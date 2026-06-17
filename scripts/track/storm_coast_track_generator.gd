@@ -13,16 +13,20 @@ const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_
 @export var assign_owner_in_editor: bool = true
 
 @export var closed_loop: bool = false
+@export var smooth_centerline: bool = true
 @export_range(4.0, 24.0, 0.25) var default_road_width_m: float = 13.5
 @export_range(1, 6, 1) var lane_count: int = 2
 @export_range(2.0, 6.0, 0.1) var lane_spacing_m: float = 3.6
 @export_range(1.0, 20.0, 0.5) var sample_spacing_m: float = 5.0
+@export_range(0.0, 1.0, 0.05) var centerline_tangent_strength: float = 0.55
+@export_range(1, 24, 1) var curve_subdivisions: int = 10
 
 @export var generate_road: bool = true
 @export var generate_collision: bool = true
 @export var generate_lane_markings: bool = true
 @export var generate_shoulders: bool = true
 @export var generate_curbs: bool = true
+@export var generate_surrounding_terrain: bool = true
 @export var generate_guardrail_hooks: bool = true
 
 @export_range(2.0, 20.0, 0.5) var collision_spacing_m: float = 6.0
@@ -33,6 +37,10 @@ const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_
 
 @export_range(0.4, 4.0, 0.05) var shoulder_width_m: float = 1.35
 @export_range(0.1, 1.4, 0.05) var curb_width_m: float = 0.42
+@export_range(10.0, 180.0, 1.0) var terrain_width_m: float = 72.0
+@export_range(0.0, 20.0, 0.25) var terrain_outer_drop_m: float = 6.5
+@export_range(0.0, 8.0, 0.1) var terrain_roughness_m: float = 1.8
+@export_range(0.0, 12.0, 0.25) var terrain_edge_gap_m: float = 2.5
 @export_range(6.0, 40.0, 1.0) var guardrail_hook_spacing_m: float = 16.0
 @export_range(0.0, 4.0, 0.05) var guardrail_edge_offset_m: float = 0.72
 
@@ -204,6 +212,9 @@ func _collect_authoring_data() -> Dictionary:
 		"start_grid_slots": start_grid_slots,
 		"start_grid_profile": start_grid_profile,
 		"closed_loop": closed_loop,
+		"smooth_centerline": smooth_centerline,
+		"centerline_tangent_strength": centerline_tangent_strength,
+		"curve_subdivisions": curve_subdivisions,
 		"default_road_width_m": default_road_width_m,
 		"lane_count": lane_count,
 		"lane_spacing_m": lane_spacing_m,
@@ -355,6 +366,9 @@ func _preview_authoring_data() -> Dictionary:
 			},
 		],
 		"closed_loop": false,
+		"smooth_centerline": smooth_centerline,
+		"centerline_tangent_strength": centerline_tangent_strength,
+		"curve_subdivisions": curve_subdivisions,
 		"default_road_width_m": default_road_width_m,
 		"lane_count": lane_count,
 		"lane_spacing_m": lane_spacing_m,
@@ -366,6 +380,9 @@ func _empty_authoring_data() -> Dictionary:
 	return {
 		"road_points": [],
 		"closed_loop": closed_loop,
+		"smooth_centerline": smooth_centerline,
+		"centerline_tangent_strength": centerline_tangent_strength,
+		"curve_subdivisions": curve_subdivisions,
 		"default_road_width_m": default_road_width_m,
 		"lane_count": lane_count,
 		"lane_spacing_m": lane_spacing_m,
@@ -390,17 +407,22 @@ func _builder_options() -> Dictionary:
 		"root_name": generated_root_name,
 		"clear_existing": true,
 		"sample_spacing_m": sample_spacing_m,
-			"lane_count": lane_count,
-			"generate_road": generate_road,
-			"generate_collision": generate_collision,
-			"collision_spacing_m": collision_spacing_m,
-			"collision_thickness_m": collision_thickness_m,
-			"collision_width_margin_m": collision_width_margin_m,
-			"collision_surface_lift_m": collision_surface_lift_m,
-			"collision_segment_overlap_m": collision_segment_overlap_m,
-			"generate_lane_markings": generate_lane_markings,
-			"generate_shoulders": generate_shoulders,
-			"generate_curbs": generate_curbs,
+		"lane_count": lane_count,
+		"generate_road": generate_road,
+		"generate_collision": generate_collision,
+		"collision_spacing_m": collision_spacing_m,
+		"collision_thickness_m": collision_thickness_m,
+		"collision_width_margin_m": collision_width_margin_m,
+		"collision_surface_lift_m": collision_surface_lift_m,
+		"collision_segment_overlap_m": collision_segment_overlap_m,
+		"generate_lane_markings": generate_lane_markings,
+		"generate_shoulders": generate_shoulders,
+		"generate_curbs": generate_curbs,
+		"generate_surrounding_terrain": generate_surrounding_terrain,
+		"terrain_width_m": terrain_width_m,
+		"terrain_outer_drop_m": terrain_outer_drop_m,
+		"terrain_roughness_m": terrain_roughness_m,
+		"terrain_edge_gap_m": terrain_edge_gap_m,
 		"generate_guardrail_hooks": generate_guardrail_hooks,
 		"shoulder_width_m": shoulder_width_m,
 		"curb_width_m": curb_width_m,

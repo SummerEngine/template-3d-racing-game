@@ -20,6 +20,9 @@ var _length_m: float = 0.0
 var _default_width_m: float = 12.0
 var _lane_count: int = 2
 var _lane_spacing_m: float = 3.6
+var _smooth_centerline: bool = true
+var _centerline_tangent_strength: float = 0.55
+var _curve_subdivisions: int = 10
 
 
 func _init(track_profile: Resource = null, authoring_data: Variant = null) -> void:
@@ -132,13 +135,8 @@ func sample_ref_at_distance(distance_m: float) -> TrackSample:
 			var next_index: int = (i + 1) % _road_points.size()
 			var current: Dictionary = _road_points[i]
 			var next: Dictionary = _road_points[next_index]
-			var current_position: Vector3 = current["position"]
-			var next_position: Vector3 = next["position"]
-			var tangent: Vector3 = next_position - current_position
-			if tangent.length_squared() <= 0.0001:
-				tangent = _tangent_for_index(i)
-			else:
-				tangent = tangent.normalized()
+			var current_position: Vector3 = _segment_position(i, t)
+			var tangent: Vector3 = _segment_tangent(i, t)
 
 			var base_up: Vector3 = _interpolated_up(current["up"], next["up"], t, tangent)
 			var fallback_banking: float = lerpf(
@@ -168,7 +166,7 @@ func sample_ref_at_distance(distance_m: float) -> TrackSample:
 				resolved_distance,
 				resolved_distance / maxf(_length_m, 0.001),
 				i,
-				current_position.lerp(next_position, t),
+				current_position,
 				tangent,
 				banked_up,
 				banking,
@@ -189,20 +187,24 @@ func closest_distance_for_position(position: Vector3) -> float:
 	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
 
 	for i: int in range(segment_count):
-		var next_index: int = (i + 1) % _road_points.size()
-		var a: Vector3 = _road_points[i]["position"]
-		var b: Vector3 = _road_points[next_index]["position"]
-		var segment: Vector3 = b - a
-		var segment_length_sq: float = segment.length_squared()
-		var t: float = 0.0
-		if segment_length_sq > 0.0001:
-			t = clampf((position - a).dot(segment) / segment_length_sq, 0.0, 1.0)
+		var steps: int = _closest_subdivision_count()
+		for step: int in range(steps):
+			var t0: float = float(step) / float(steps)
+			var t1: float = float(step + 1) / float(steps)
+			var a: Vector3 = _segment_position(i, t0)
+			var b: Vector3 = _segment_position(i, t1)
+			var segment: Vector3 = b - a
+			var segment_length_sq: float = segment.length_squared()
+			var local_t: float = 0.0
+			if segment_length_sq > 0.0001:
+				local_t = clampf((position - a).dot(segment) / segment_length_sq, 0.0, 1.0)
 
-		var projected: Vector3 = a + segment * t
-		var distance_sq: float = position.distance_squared_to(projected)
-		if distance_sq < best_distance_sq:
-			best_distance_sq = distance_sq
-			best_distance_m = _distance_table[i] + (_distance_table[i + 1] - _distance_table[i]) * t
+			var projected: Vector3 = a + segment * local_t
+			var distance_sq: float = position.distance_squared_to(projected)
+			if distance_sq < best_distance_sq:
+				best_distance_sq = distance_sq
+				var segment_t: float = (float(step) + local_t) / float(steps)
+				best_distance_m = _distance_table[i] + (_distance_table[i + 1] - _distance_table[i]) * segment_t
 
 	return _resolve_distance(best_distance_m)
 
@@ -371,6 +373,18 @@ func _apply_defaults_from_sources(authoring_data: Variant, track_profile: Resour
 		authoring_data,
 		track_profile,
 	], ["lane_spacing_m", "spawn_lane_spacing_m"], _lane_spacing_m)
+	_smooth_centerline = _bool_from_sources([
+		authoring_data,
+		track_profile,
+	], ["smooth_centerline", "use_smooth_centerline", "smooth_path"], _smooth_centerline)
+	_centerline_tangent_strength = clampf(_float_from_sources([
+		authoring_data,
+		track_profile,
+	], ["centerline_tangent_strength", "centerline_smoothness", "curve_tension"], _centerline_tangent_strength), 0.0, 1.0)
+	_curve_subdivisions = maxi(int(_float_from_sources([
+		authoring_data,
+		track_profile,
+	], ["curve_subdivisions", "centerline_subdivisions"], float(_curve_subdivisions))), 1)
 
 
 func _apply_marker_sources(source: Variant) -> void:
@@ -590,10 +604,118 @@ func _build_distance_table() -> PackedFloat32Array:
 
 	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
 	for i: int in range(segment_count):
-		var next_index: int = (i + 1) % _road_points.size()
-		distance += (_road_points[i]["position"] as Vector3).distance_to(_road_points[next_index]["position"])
+		distance += _segment_arc_length(i)
 		distances.append(distance)
 	return distances
+
+
+func _segment_arc_length(segment_index: int) -> float:
+	if _road_points.size() < 2:
+		return 0.0
+
+	var length_m: float = 0.0
+	var previous: Vector3 = _segment_position(segment_index, 0.0)
+	var steps: int = _arc_subdivision_count()
+	for step: int in range(1, steps + 1):
+		var t: float = float(step) / float(steps)
+		var current: Vector3 = _segment_position(segment_index, t)
+		length_m += previous.distance_to(current)
+		previous = current
+	return length_m
+
+
+func _segment_position(segment_index: int, t: float) -> Vector3:
+	var point_count: int = _road_points.size()
+	if point_count == 0:
+		return Vector3.ZERO
+	if point_count == 1:
+		return _point_position(0)
+
+	var safe_t: float = clampf(t, 0.0, 1.0)
+	var p1: Vector3 = _point_position(segment_index)
+	var p2: Vector3 = _point_position(_next_point_index(segment_index))
+	if not _smooth_centerline or point_count < 3:
+		return p1.lerp(p2, safe_t)
+
+	var p0: Vector3 = _point_position(_previous_point_index(segment_index))
+	var p3: Vector3 = _point_position(_next_point_index(segment_index + 1))
+	return _hermite_position(p0, p1, p2, p3, safe_t)
+
+
+func _segment_tangent(segment_index: int, t: float) -> Vector3:
+	var point_count: int = _road_points.size()
+	if point_count < 2:
+		return Vector3(0.0, 0.0, 1.0)
+
+	var p1: Vector3 = _point_position(segment_index)
+	var p2: Vector3 = _point_position(_next_point_index(segment_index))
+	if not _smooth_centerline or point_count < 3:
+		var linear_tangent: Vector3 = p2 - p1
+		return linear_tangent.normalized() if linear_tangent.length_squared() > 0.0001 else _tangent_for_index(segment_index)
+
+	var p0: Vector3 = _point_position(_previous_point_index(segment_index))
+	var p3: Vector3 = _point_position(_next_point_index(segment_index + 1))
+	var tangent: Vector3 = _hermite_tangent(p0, p1, p2, p3, clampf(t, 0.0, 1.0))
+	if tangent.length_squared() <= 0.0001:
+		tangent = p2 - p1
+	return tangent.normalized() if tangent.length_squared() > 0.0001 else _tangent_for_index(segment_index)
+
+
+func _hermite_position(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, t: float) -> Vector3:
+	var t2: float = t * t
+	var t3: float = t2 * t
+	var m1: Vector3 = (p2 - p0) * 0.5 * _centerline_tangent_strength
+	var m2: Vector3 = (p3 - p1) * 0.5 * _centerline_tangent_strength
+	var h00: float = 2.0 * t3 - 3.0 * t2 + 1.0
+	var h10: float = t3 - 2.0 * t2 + t
+	var h01: float = -2.0 * t3 + 3.0 * t2
+	var h11: float = t3 - t2
+	return p1 * h00 + m1 * h10 + p2 * h01 + m2 * h11
+
+
+func _hermite_tangent(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, t: float) -> Vector3:
+	var t2: float = t * t
+	var m1: Vector3 = (p2 - p0) * 0.5 * _centerline_tangent_strength
+	var m2: Vector3 = (p3 - p1) * 0.5 * _centerline_tangent_strength
+	var h00: float = 6.0 * t2 - 6.0 * t
+	var h10: float = 3.0 * t2 - 4.0 * t + 1.0
+	var h01: float = -6.0 * t2 + 6.0 * t
+	var h11: float = 3.0 * t2 - 2.0 * t
+	return p1 * h00 + m1 * h10 + p2 * h01 + m2 * h11
+
+
+func _point_position(index: int) -> Vector3:
+	if _road_points.is_empty():
+		return Vector3.ZERO
+	return _road_points[_wrapped_or_clamped_index(index)]["position"]
+
+
+func _previous_point_index(index: int) -> int:
+	if _closed_loop:
+		return _wrapped_or_clamped_index(index - 1)
+	return maxi(index - 1, 0)
+
+
+func _next_point_index(index: int) -> int:
+	if _closed_loop:
+		return _wrapped_or_clamped_index(index + 1)
+	return mini(index + 1, _road_points.size() - 1)
+
+
+func _wrapped_or_clamped_index(index: int) -> int:
+	if _road_points.is_empty():
+		return 0
+	if _closed_loop:
+		return posmod(index, _road_points.size())
+	return clampi(index, 0, _road_points.size() - 1)
+
+
+func _arc_subdivision_count() -> int:
+	return maxi(_curve_subdivisions, 1)
+
+
+func _closest_subdivision_count() -> int:
+	return maxi(_curve_subdivisions * 2, 2)
 
 
 func _resolve_distance(distance_m: float) -> float:

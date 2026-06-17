@@ -59,6 +59,14 @@ func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Nod
 			_material(Color(0.82, 0.15, 0.12, 1.0), 0.55, 0.0)
 		)
 
+	if bool(options.get("generate_surrounding_terrain", true)):
+		_create_mesh_child(
+			root,
+			"SurroundingTerrain",
+			build_surrounding_terrain_mesh(query, options),
+			_terrain_material()
+		)
+
 	if bool(options.get("generate_guardrail_hooks", true)):
 		_create_guardrail_branch(root, query, options)
 
@@ -150,6 +158,54 @@ func build_curbs_mesh(query: TrackQueryV2, options: Dictionary = {}) -> ArrayMes
 	var curb_width_m: float = float(options.get("curb_width_m", 0.42))
 	var vertical_offset_m: float = float(options.get("curb_vertical_offset_m", 0.035))
 	return _build_side_strips_mesh(query, curb_width_m, 0.0, vertical_offset_m, true, options)
+
+
+func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {}) -> ArrayMesh:
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
+	var ring_count: int = _ring_count(query, options)
+	var length_m: float = maxf(query.get_track_length_m(), 0.001)
+	var terrain_width_m: float = maxf(float(options.get("terrain_width_m", 72.0)), 1.0)
+	var edge_gap_m: float = maxf(float(options.get("terrain_edge_gap_m", 2.5)), 0.0)
+	var outer_drop_m: float = maxf(float(options.get("terrain_outer_drop_m", 6.5)), 0.0)
+	var roughness_m: float = maxf(float(options.get("terrain_roughness_m", 1.8)), 0.0)
+
+	for side: float in [-1.0, 1.0]:
+		var base_index: int = vertices.size()
+		var side_sign: float = -1.0 if side < 0.0 else 1.0
+		for i: int in range(ring_count):
+			var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+			var sample: Dictionary = query.sample_at_distance(distance_m)
+			var center: Vector3 = sample["position"]
+			var right: Vector3 = sample["right"]
+			var up: Vector3 = sample["up"]
+			var width_m: float = float(sample["road_width_m"])
+			var inner_offset: float = side_sign * (width_m * 0.5 + edge_gap_m)
+			var outer_offset: float = side_sign * (width_m * 0.5 + edge_gap_m + terrain_width_m)
+			var terrain_wave_m: float = _terrain_height_wave(distance_m, side_sign, roughness_m)
+			var inner_height_m: float = -0.28 + terrain_wave_m * 0.16
+			var outer_height_m: float = -outer_drop_m + terrain_wave_m
+
+			vertices.append(center + right * inner_offset + up * inner_height_m)
+			vertices.append(center + right * outer_offset + up * outer_height_m)
+			normals.append(up)
+			normals.append(up)
+			uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
+			uvs.append(Vector2(terrain_width_m / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
+
+		for i: int in range(ring_count - 1):
+			var a: int = base_index + i * 2
+			var b: int = base_index + i * 2 + 1
+			var c: int = base_index + (i + 1) * 2
+			var d: int = base_index + (i + 1) * 2 + 1
+			if side < 0.0:
+				indices.append_array([a, c, b, b, c, d])
+			else:
+				indices.append_array([a, b, c, b, d, c])
+
+	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
 
 func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dictionary = {}) -> ArrayMesh:
@@ -416,6 +472,21 @@ func _road_material() -> Material:
 	if source_material != null:
 		return source_material.duplicate() as Material
 	return _material(Color(0.018, 0.021, 0.024, 1.0), 0.18, 0.0)
+
+
+func _terrain_material() -> StandardMaterial3D:
+	var material: StandardMaterial3D = _material(Color(0.16, 0.20, 0.17, 1.0), 0.96, 0.0)
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return material
+
+
+func _terrain_height_wave(distance_m: float, side_sign: float, roughness_m: float) -> float:
+	if roughness_m <= 0.0:
+		return 0.0
+	return (
+		sin(distance_m * 0.012 + side_sign * 1.7) * roughness_m
+		+ sin(distance_m * 0.031 + side_sign * 4.9) * roughness_m * 0.35
+	)
 
 
 func _assign_owner_recursive(node: Node, owner_node: Node) -> void:

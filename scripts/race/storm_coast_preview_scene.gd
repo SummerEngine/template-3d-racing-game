@@ -11,9 +11,20 @@ extends Node3D
 @export var print_floor_probe: bool = true
 @export var floor_probe_delay_s: float = 0.8
 
+@export_category("Track Safety")
+@export var track_safety_enabled: bool = true
+@export_range(0.0, 4.0, 0.1) var road_touch_tolerance_m: float = 0.8
+@export_range(0.0, 12.0, 0.25) var offroad_respawn_margin_m: float = 3.5
+@export_range(0.0, 3.0, 0.05) var offroad_respawn_delay_s: float = 0.65
+@export_range(1.0, 40.0, 0.5) var fall_respawn_depth_m: float = 8.0
+@export_range(0.1, 3.0, 0.05) var respawn_vertical_offset_m: float = 0.85
+@export var print_respawn_events: bool = false
+
 var _track_generator: Node = null
 var _player_car: Node3D = null
 var _camera_rig: Node = null
+var _last_valid_track_distance_m: float = 0.0
+var _offroad_time_s: float = 0.0
 
 
 func _ready() -> void:
@@ -24,9 +35,14 @@ func _setup_preview_scene() -> void:
 	_resolve_nodes()
 	_regenerate_track()
 	_place_player()
+	_capture_initial_valid_track_position()
 	_configure_camera()
 	_print_setup_summary()
 	_probe_floor_after_delay()
+
+
+func _physics_process(delta: float) -> void:
+	_update_track_safety(delta)
 
 
 func _resolve_nodes() -> void:
@@ -61,6 +77,69 @@ func _reset_vehicle_motion(vehicle: Node3D) -> void:
 	if vehicle is CharacterBody3D:
 		var body := vehicle as CharacterBody3D
 		body.velocity = Vector3.ZERO
+
+
+func _capture_initial_valid_track_position() -> void:
+	if _track_generator == null or _player_car == null:
+		return
+	if _track_generator.has_method("closest_distance_for_position"):
+		_last_valid_track_distance_m = float(_track_generator.call("closest_distance_for_position", _player_car.global_position))
+		_offroad_time_s = 0.0
+
+
+func _update_track_safety(delta: float) -> void:
+	if not track_safety_enabled or _track_generator == null or _player_car == null:
+		return
+	if not _track_generator.has_method("closest_distance_for_position"):
+		return
+	if not _track_generator.has_method("surface_transform"):
+		return
+	if not _track_generator.has_method("get_road_width_m"):
+		return
+
+	var distance_m: float = float(_track_generator.call("closest_distance_for_position", _player_car.global_position))
+	var surface_transform: Transform3D = _track_generator.call("surface_transform", distance_m)
+	var road_width_m: float = float(_track_generator.call("get_road_width_m", distance_m))
+	var local_offset: Vector3 = _player_car.global_position - surface_transform.origin
+	var lateral_offset_m: float = absf(local_offset.dot(surface_transform.basis.x.normalized()))
+	var vertical_offset_m: float = local_offset.dot(surface_transform.basis.y.normalized())
+	var road_half_width_m: float = road_width_m * 0.5
+	var touched_road: bool = lateral_offset_m <= road_half_width_m + road_touch_tolerance_m and vertical_offset_m >= -fall_respawn_depth_m
+
+	if touched_road:
+		_last_valid_track_distance_m = distance_m
+		_offroad_time_s = 0.0
+		return
+
+	var far_outside_road: bool = lateral_offset_m > road_half_width_m + offroad_respawn_margin_m
+	var fell_below_track: bool = vertical_offset_m < -fall_respawn_depth_m
+	if far_outside_road:
+		_offroad_time_s += delta
+	else:
+		_offroad_time_s = maxf(0.0, _offroad_time_s - delta)
+
+	if fell_below_track or _offroad_time_s >= offroad_respawn_delay_s:
+		_respawn_player_on_track(fell_below_track)
+
+
+func _respawn_player_on_track(fell_below_track: bool) -> void:
+	if _track_generator == null or _player_car == null:
+		return
+	if not _track_generator.has_method("surface_transform"):
+		return
+
+	var respawn_transform: Transform3D = _track_generator.call(
+		"surface_transform",
+		_last_valid_track_distance_m,
+		0.0,
+		respawn_vertical_offset_m
+	)
+	_player_car.global_transform = respawn_transform
+	_reset_vehicle_motion(_player_car)
+	_offroad_time_s = 0.0
+	if print_respawn_events:
+		var reason: String = "fell" if fell_below_track else "offroad"
+		print("StormCoastTrackSafety: respawned player reason=%s distance_m=%.1f" % [reason, _last_valid_track_distance_m])
 
 
 func _print_setup_summary() -> void:

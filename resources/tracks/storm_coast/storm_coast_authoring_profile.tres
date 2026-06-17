@@ -1,29 +1,9 @@
-[gd_resource type="Resource" script_class="TrackAuthoringProfile" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="TrackAuthoringProfile" format=3 uid="uid://ddef50m6a1k0n"]
 
-[ext_resource type="Script" path="res://scripts/track_authoring/track_authoring_profile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://dxix82l55fpg5" path="res://scripts/track_authoring/track_authoring_profile.gd" id="1_profile"]
 
 [resource]
 resource_name = "StormCoastAuthoringProfile"
 script = ExtResource("1_profile")
-track_id = &"storm_coast"
-display_name = "Storm Coast Circuit"
-authoring_scene_path = "res://scenes/tracks/storm_coast/storm_coast_authoring.tscn"
-target_length_m = 1100.0
-lap_count = 3
-default_road_width_m = 12.5
-lane_count = 2
-closed_loop = true
-environment_kit_id = &"mountain_coastal_wet"
-road_surface_profile_id = &"wet_asphalt"
-weather_profile_id = &"light_rain_wet_road"
-lighting_profile_id = &"storm_late_afternoon"
-music_profile_id = &"storm_coast_race"
-authoring_branch = NodePath("Authoring")
-generated_branch = NodePath("Generated")
-manual_overrides_branch = NodePath("ManualOverrides")
-set_pieces_branch = NodePath("SetPieces")
-tool_api_version = &"storm_coast_authoring_v1"
-preview_resource_path = "res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres"
-last_tool_summary = "Storm Coast authoring skeleton created. Use Preview Regenerate for a lightweight centerline scaffold; Bake Editable and Freeze Final are placeholder APIs."
-frozen_final = false
+last_tool_summary = "Preview Regenerate refreshed lightweight authoring handles for 8 road points. V2 road mesh regenerated at 1726.7m. No ManualOverrides were deleted."
 notes = "Agent A authoring/profile resource only. Road mesh, collision, lane markings, guardrails, and generated prop override storage belong to later agents."
