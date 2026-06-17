@@ -96,7 +96,7 @@ func build_road_surface_mesh(query: TrackQueryV2, options: Dictionary = {}) -> A
 		var b: int = i * 2 + 1
 		var c: int = (i + 1) * 2
 		var d: int = (i + 1) * 2 + 1
-		indices.append_array([a, c, b, b, c, d])
+		indices.append_array([a, b, c, b, d, c])
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
@@ -233,9 +233,9 @@ func _build_side_strips_mesh(
 			var c: int = base_index + (i + 1) * 2
 			var d: int = base_index + (i + 1) * 2 + 1
 			if side < 0.0:
-				indices.append_array([a, b, c, b, d, c])
-			else:
 				indices.append_array([a, c, b, b, c, d])
+			else:
+				indices.append_array([a, b, c, b, d, c])
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
@@ -367,7 +367,7 @@ func _append_oriented_quad(
 		Vector2(0.0, (distance_m + length_m) / MARKING_UV_SCALE_M),
 		Vector2(1.0, (distance_m + length_m) / MARKING_UV_SCALE_M),
 	])
-	indices.append_array([start_index, start_index + 2, start_index + 1, start_index + 1, start_index + 2, start_index + 3])
+	indices.append_array([start_index, start_index + 1, start_index + 2, start_index + 1, start_index + 3, start_index + 2])
 
 
 func _array_mesh_from_surface(
