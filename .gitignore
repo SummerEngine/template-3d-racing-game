@@ -2,6 +2,22 @@
 # Summer Engine local-only state
 .summer/local/
 
+# Secrets and machine-local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+id_rsa*
+id_ed25519*
+credentials*.json
+*credentials*.json
+export_presets.cfg
+export_credentials.cfg
+
 # Local brainstorming/browser companion state
 .superpowers/
 
