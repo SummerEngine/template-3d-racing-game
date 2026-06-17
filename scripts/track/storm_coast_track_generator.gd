@@ -61,11 +61,6 @@ func regenerate_track() -> void:
 	var builder := RoadMeshBuilderV2Script.new()
 	_generated_root = builder.build(self, _track_query, _builder_options())
 
-	set_meta("track_query_v2", _track_query)
-	set_meta("track_length_m", _track_query.get_track_length_m())
-	set_meta("road_width_m", _track_query.get_road_width_m())
-	set_meta("start_grid_slot_count", _track_query.get_start_grid_slot_count())
-
 
 func get_track_query() -> TrackQueryV2:
 	return _track_query

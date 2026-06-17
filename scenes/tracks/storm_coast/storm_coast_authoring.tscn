@@ -273,6 +273,8 @@ road_distance_m = 18.0
 [node name="StormCoastTrackGenerator" type="Node3D" parent="Generated" unique_id=1450259213]
 script = ExtResource("9_wqe0j")
 authoring_root_path = NodePath("../..")
+generate_on_ready = true
+assign_owner_in_editor = false
 closed_loop = true
 default_road_width_m = 13.0
 sample_spacing_m = 6.0
