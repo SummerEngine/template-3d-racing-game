@@ -1,5 +1,5 @@
 class_name UVTextureRepaintClient
-extends RepaintClient
+extends "res://scripts/customization/repaint_client.gd"
 
 signal repaint_preview_ready(preview_result: Dictionary)
 signal preview_ready(preview_result: Dictionary)

@@ -1,6 +1,6 @@
 # AI Repaint Proxy
 
-Local Express proxy for the Summer Engine live AI repaint prototype. Godot calls this service at `http://127.0.0.1:8787`, and the proxy calls fal.ai's Meshy retexture model with the secret `FAL_KEY` kept on the local machine.
+Local Express proxy for the Summer Engine live AI repaint prototype. Godot calls this service at `http://127.0.0.1:8787`, and this branch treats UV texture image-to-image repaint as the primary prototype path. The secret `FAL_KEY` stays in a local `.env` file on the machine.
 
 ## Endpoints
 
@@ -11,7 +11,21 @@ Local Express proxy for the Summer Engine live AI repaint prototype. Godot calls
 - `GET /api/repaint-texture/:job_id`
 - `GET /api/local-texture?path=<repo-relative-texture>`
 
-`POST /api/repaint` accepts:
+`POST /api/repaint-texture` is the preferred endpoint for this branch:
+
+```json
+{
+  "prompt": "white racing livery with red diagonal stripes",
+  "texture_path": "assets/cars/player_hypercar_Image_0.jpg",
+  "strength": 0.65,
+  "dry_run": true,
+  "mode": "uv_texture_img2img"
+}
+```
+
+Use `texture_path` for a repo-local source image or `texture_url` for a public image URL. The endpoint returns `result.base_color_url`, which Godot downloads and applies to the car body material.
+
+`POST /api/repaint` remains available as the older Meshy model-retexture endpoint:
 
 ```json
 {
@@ -84,20 +98,6 @@ Health check:
 curl http://127.0.0.1:8787/health
 ```
 
-Submit a repaint job:
-
-```sh
-curl -X POST http://127.0.0.1:8787/api/repaint \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"red metallic race livery","model_url":"https://example.com/model.glb","mode":"retexture"}'
-```
-
-Poll the returned job:
-
-```sh
-curl http://127.0.0.1:8787/api/repaint/<job_id>
-```
-
 Submit a dry-run UV texture image-to-image repaint job:
 
 ```sh
@@ -108,12 +108,25 @@ curl -X POST http://127.0.0.1:8787/api/repaint-texture \
 
 Dry-run returns immediately with `result.base_color_url` pointing back at the local proxy's copy of the source texture. It does not call fal or spend credits.
 
+Poll a live UV job:
+
+```sh
+curl http://127.0.0.1:8787/api/repaint-texture/<job_id>
+```
+
+Submit an older Meshy full-model repaint job:
+
+```sh
+curl -X POST http://127.0.0.1:8787/api/repaint \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"red metallic race livery","model_url":"https://example.com/model.glb","mode":"retexture"}'
+```
+
 To opt into a live fal image-edit call later, set `UV_REPAINT_DRY_RUN=false` in local `.env`, keep `FAL_KEY` local, and omit `dry_run` or pass `false`. Local `texture_path` inputs are uploaded to fal storage only in that live mode. Public `texture_url` inputs are sent directly as `image_urls`.
 
 ## Notes
 
 - Jobs are stored in memory for the prototype. Restarting the proxy clears the local job map.
-- The proxy uses a single AI layer: Godot prompt to Meshy retexture generation to preview/apply URLs.
-- The fal model is `fal-ai/meshy/v5/retexture` with original UVs, PBR maps, and safety checker enabled.
+- The primary branch path uses one AI layer: Godot prompt plus existing UV texture to image-edit generation to preview/apply URL.
 - The UV texture experiment uses `fal-ai/nano-banana-2/edit` by default and maps the first returned image URL to `result.base_color_url`.
 - `POST /api/repaint` remains the Meshy full-model retexture path. `POST /api/repaint-texture` is the flat UV texture image-to-image path.

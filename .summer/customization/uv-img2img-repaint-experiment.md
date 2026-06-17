@@ -149,11 +149,19 @@ signal preview_ready(preview_result: Dictionary)
 
 The emitted dictionary includes `base_color_url`, `preview_url`, `mode = "uv_texture_img2img"`, and `job_id`.
 
+`scripts/ui/car_customize_menu.gd` is wired for this experiment:
+
+- Auto-creates `UVTextureRepaintClient` and `CarSkinApplier` when no explicit nodes are assigned.
+- Sends `uv_source_texture_path`, `uv_source_texture_url`, `uv_repaint_strength`, and `uv_repaint_dry_run` into the UV client.
+- Downloads `result.base_color_url` and applies it through `CarSkinApplier.apply_body_texture`.
+- Keeps Meshy/model retexture out of the menu flow for this branch.
+
 ## Next Live Test
 
 1. Start the proxy with `UV_REPAINT_DRY_RUN=true`.
-2. Submit the curl example from `tools/ai-repaint-proxy/README.md` and confirm `base_color_url` serves the source texture.
-3. Set a local `FAL_KEY` and `UV_REPAINT_DRY_RUN=false`.
-4. Submit one low-risk prompt against `assets/cars/player_hypercar_Image_0.jpg`.
-5. Verify the output dimensions and that island padding/bounds survived.
-6. Apply the returned `base_color_url` to the body material and inspect seams, text orientation, and protected materials.
+2. Open `res://scenes/ui/car_customize_menu.tscn`, click Generate Preview, and confirm the dry-run source texture applies through the downloader.
+3. Set local `.env` values: `FAL_KEY=<local key only>` and `UV_REPAINT_DRY_RUN=false`.
+4. In the menu, set `uv_repaint_dry_run=false` or use a manually configured `UVTextureRepaintClient` with dry run disabled.
+5. Submit one low-risk prompt against `assets/cars/player_hypercar_Image_0.jpg`.
+6. Verify output dimensions are still 2048x2048 and that island padding/bounds survived.
+7. Inspect seams, text orientation, and protected materials on the preview car.

@@ -90,8 +90,8 @@ func get_brightness() -> float:
 	return brightness
 
 
-func build_race_config() -> RaceConfig:
-	var config: RaceConfig = RaceConfigScript.new()
+func build_race_config() -> Resource:
+	var config = RaceConfigScript.new()
 	config.set_difficulty_id(StringName(selected_difficulty))
 	return config
 

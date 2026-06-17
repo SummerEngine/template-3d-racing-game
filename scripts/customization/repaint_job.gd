@@ -28,9 +28,10 @@ var result: Dictionary = {}
 var error_message: String = ""
 
 
-static func from_variant(payload: Variant) -> RepaintJob:
-	var job := RepaintJob.new()
-	job._read_payload(payload)
+static func from_variant(payload: Variant) -> RefCounted:
+	var script := load("res://scripts/customization/repaint_job.gd") as Script
+	var job := script.new() as RefCounted
+	job.call("_read_payload", payload)
 	return job
 
 

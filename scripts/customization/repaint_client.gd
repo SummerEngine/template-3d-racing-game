@@ -413,7 +413,23 @@ func _cache_path_for_url(url: String) -> String:
 	var clean_url := url.split("?")[0].split("#")[0]
 	var extension := clean_url.get_extension().to_lower()
 	if not DOWNLOAD_EXTENSIONS.has(extension):
+		extension = _extension_from_query_path(url)
+	if not DOWNLOAD_EXTENSIONS.has(extension):
 		extension = "png"
 
 	var file_name := "texture_%d.%s" % [abs(url.hash()), extension]
 	return CACHE_DIR.path_join(file_name)
+
+
+func _extension_from_query_path(url: String) -> String:
+	var query_start := url.find("?")
+	if query_start < 0:
+		return ""
+
+	var query := url.substr(query_start + 1)
+	for pair: String in query.split("&"):
+		var parts := pair.split("=", false, 1)
+		if parts.size() != 2 or parts[0] != "path":
+			continue
+		return parts[1].split("#")[0].get_extension().to_lower()
+	return ""

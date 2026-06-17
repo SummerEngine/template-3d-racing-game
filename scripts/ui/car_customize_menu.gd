@@ -2,6 +2,8 @@ class_name CarCustomizeMenu
 extends Control
 
 const PLAYER_CAR_SCENE_PATH: String = "res://scenes/player_car.tscn"
+const UVTextureRepaintClientScript := preload("res://scripts/customization/uv_texture_repaint_client.gd")
+const CarSkinApplierScript := preload("res://scripts/customization/car_skin_applier.gd")
 const PREVIEW_SIGNAL_NAMES: Array[StringName] = [
 	&"preview_generated",
 	&"repaint_preview_ready",
@@ -30,6 +32,11 @@ const PAINT_SWATCHES: Array[Dictionary] = [
 
 @export var repaint_client_path: NodePath = NodePath("")
 @export var skin_applier_path: NodePath = NodePath("")
+@export var auto_create_integration_nodes: bool = true
+@export_file("*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.tga") var uv_source_texture_path: String = "res://assets/cars/player_hypercar_Image_0.jpg"
+@export var uv_source_texture_url: String = ""
+@export_range(0.0, 1.0, 0.01) var uv_repaint_strength: float = 0.65
+@export var uv_repaint_dry_run: bool = true
 @export_range(0.0, 2.0, 0.01) var turntable_speed: float = 0.34
 
 var _repaint_client: Node = null
@@ -52,9 +59,9 @@ var _selected_accent: Color = Color(1.0, 0.18, 0.12, 1.0)
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	_resolve_integration_nodes()
 	_build_interface()
 	_build_preview_scene()
+	_resolve_integration_nodes()
 	_select_swatch(3)
 	_set_status(_integration_status_text())
 
@@ -64,9 +71,14 @@ func _process(delta: float) -> void:
 		_turntable_root.rotate_y(turntable_speed * delta)
 
 
-func _resolve_integration_nodes() -> void:
+func _resolve_integration_nodes(create_missing: bool = true) -> void:
 	_repaint_client = _resolve_optional_node(repaint_client_path)
 	_skin_applier = _resolve_optional_node(skin_applier_path)
+	if auto_create_integration_nodes and create_missing:
+		_repaint_client = _ensure_service_node("UVTextureRepaintClient", UVTextureRepaintClientScript, _repaint_client)
+		_skin_applier = _ensure_service_node("CarSkinApplier", CarSkinApplierScript, _skin_applier)
+	_configure_uv_repaint_client()
+	_configure_skin_applier()
 	_connect_preview_signals()
 
 
@@ -76,14 +88,78 @@ func _resolve_optional_node(path: NodePath) -> Node:
 	return get_node_or_null(path)
 
 
+func _ensure_service_node(node_name: String, script_resource: Script, existing_node: Node) -> Node:
+	if existing_node != null:
+		return existing_node
+
+	var service_node := get_node_or_null(node_name)
+	if service_node != null:
+		return service_node
+
+	service_node = Node.new()
+	service_node.name = node_name
+	service_node.set_script(script_resource)
+	add_child(service_node)
+	return service_node
+
+
+func _configure_uv_repaint_client() -> void:
+	if _repaint_client == null:
+		return
+	_set_property_if_present(_repaint_client, "source_texture_url", uv_source_texture_url)
+	_set_property_if_present(_repaint_client, "source_texture_path", uv_source_texture_path)
+	_set_property_if_present(_repaint_client, "strength", uv_repaint_strength)
+	_set_property_if_present(_repaint_client, "dry_run", uv_repaint_dry_run)
+
+
+func _set_property_if_present(target: Object, property_name: StringName, value: Variant) -> void:
+	for property_info: Dictionary in target.get_property_list():
+		if StringName(str(property_info.get("name", ""))) == property_name:
+			target.set(property_name, value)
+			return
+
+
+func _configure_skin_applier() -> void:
+	if _skin_applier == null or _car_preview == null:
+		return
+	if _skin_applier.has_method("set_target"):
+		_skin_applier.call("set_target", _car_preview)
+
+
+func _ensure_repaint_client() -> bool:
+	if _repaint_client == null and auto_create_integration_nodes:
+		_repaint_client = _ensure_service_node("UVTextureRepaintClient", UVTextureRepaintClientScript, null)
+	_configure_uv_repaint_client()
+	_connect_preview_signals()
+	return _repaint_client != null
+
+
+func _ensure_skin_applier() -> bool:
+	if _skin_applier == null and auto_create_integration_nodes:
+		_skin_applier = _ensure_service_node("CarSkinApplier", CarSkinApplierScript, null)
+	_configure_skin_applier()
+	return _skin_applier != null
+
+
 func _connect_preview_signals() -> void:
 	if _repaint_client == null:
 		return
+	_connect_repaint_signal(&"repaint_submitted", Callable(self, "_on_repaint_submitted"))
+	_connect_repaint_signal(&"repaint_progress", Callable(self, "_on_repaint_progress"))
+	_connect_repaint_signal(&"repaint_failed", Callable(self, "_on_repaint_failed"))
+
 	for signal_name: StringName in PREVIEW_SIGNAL_NAMES:
 		if _repaint_client.has_signal(signal_name):
 			var callback := Callable(self, "_on_repaint_preview_ready")
 			if not _repaint_client.is_connected(signal_name, callback):
 				_repaint_client.connect(signal_name, callback)
+
+
+func _connect_repaint_signal(signal_name: StringName, callback: Callable) -> void:
+	if _repaint_client == null or not _repaint_client.has_signal(signal_name):
+		return
+	if not _repaint_client.is_connected(signal_name, callback):
+		_repaint_client.connect(signal_name, callback)
 
 
 func _build_interface() -> void:
@@ -413,9 +489,10 @@ func _on_generate_preview_pressed() -> void:
 	_apply_preview_materials(_current_preview["primary"], _current_preview["accent"], _current_preview["metallic"], _current_preview["roughness"])
 
 	if _try_request_repaint_preview(_current_preview):
-		_set_status("Preview requested from RepaintClient.")
+		_set_status("UV texture repaint requested from local proxy.")
+		return
 	else:
-		_set_status("Mock preview ready. No RepaintClient is connected.")
+		_set_status("Mock preview ready. No UVTextureRepaintClient is connected.")
 		_apply_button.disabled = false
 
 	_generate_button.disabled = false
@@ -438,7 +515,67 @@ func _on_repaint_preview_ready(preview_result: Variant = null) -> void:
 	_consume_preview_result(preview_result)
 	_apply_button.disabled = _current_preview.is_empty()
 	_generate_button.disabled = false
-	_set_status("Preview ready from RepaintClient.")
+	if preview_result is Dictionary and _has_generated_base_color(preview_result):
+		_set_status("UV texture ready. Downloading and applying base color...")
+		await _apply_generated_repaint_texture(preview_result)
+	else:
+		_set_status("Preview ready from UVTextureRepaintClient.")
+
+
+func _on_repaint_submitted(job_id: String) -> void:
+	_set_status("UV texture repaint queued: %s" % job_id)
+
+
+func _on_repaint_progress(_job_id: String, status: String, progress: float, message: String) -> void:
+	_set_status("%s %d%% - %s" % [status.capitalize(), roundi(progress * 100.0), message])
+
+
+func _on_repaint_failed(_job_id: String, message: String) -> void:
+	_set_status("UV texture repaint failed: %s" % message)
+	_apply_button.disabled = false
+	_generate_button.disabled = false
+
+
+func _has_generated_base_color(result: Dictionary) -> bool:
+	return typeof(result.get("base_color_url", null)) == TYPE_STRING and not String(result["base_color_url"]).strip_edges().is_empty()
+
+
+func _apply_generated_repaint_texture(result: Dictionary) -> void:
+	if _repaint_client == null or not _repaint_client.has_method("download_result_texture"):
+		_set_status("UV texture result ready, but no texture downloader is available.")
+		return
+
+	var texture_path: Variant = await _repaint_client.call("download_result_texture", result)
+	if typeof(texture_path) != TYPE_STRING or String(texture_path).is_empty():
+		_set_status("UV texture result did not include a usable base-color image.")
+		return
+
+	var texture := _load_texture_from_file(String(texture_path))
+	if texture == null:
+		_set_status("Downloaded UV repaint texture could not be loaded.")
+		return
+
+	if _apply_body_texture(texture):
+		_set_status("UV image-to-image texture applied to preview car.")
+	else:
+		_set_status("Downloaded UV texture, but no body material target was found.")
+
+
+func _load_texture_from_file(path: String) -> Texture2D:
+	var image := Image.new()
+	var error := image.load(path)
+	if error != OK:
+		push_warning("CarCustomizeMenu: failed to load repaint texture '%s' with error %d" % [path, error])
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+func _apply_body_texture(texture: Texture2D) -> bool:
+	_ensure_skin_applier()
+	if _skin_applier == null or not _skin_applier.has_method("apply_body_texture"):
+		return false
+	_skin_applier.call("apply_body_texture", texture)
+	return true
 
 
 func _consume_preview_result(preview_result: Variant) -> void:
@@ -455,7 +592,7 @@ func _consume_preview_result(preview_result: Variant) -> void:
 
 
 func _try_request_repaint_preview(preview_result: Dictionary) -> bool:
-	if _repaint_client == null:
+	if not _ensure_repaint_client():
 		return false
 
 	var options: Dictionary = {
@@ -464,6 +601,10 @@ func _try_request_repaint_preview(preview_result: Dictionary) -> bool:
 		"metallic": preview_result["metallic"],
 		"roughness": preview_result["roughness"],
 		"target_node": _car_preview,
+		"texture_url": uv_source_texture_url,
+		"texture_path": uv_source_texture_path,
+		"strength": uv_repaint_strength,
+		"dry_run": uv_repaint_dry_run,
 	}
 	var prompt: String = _prompt_text()
 	var called: bool = _call_first_supported_method(_repaint_client, PREVIEW_METHOD_NAMES, [
@@ -476,8 +617,13 @@ func _try_request_repaint_preview(preview_result: Dictionary) -> bool:
 
 
 func _try_apply_skin(preview_result: Dictionary) -> bool:
+	_ensure_skin_applier()
 	if _skin_applier == null:
 		return false
+
+	if _skin_applier.has_method("apply_body_color"):
+		_skin_applier.call("apply_body_color", preview_result["primary"], preview_result["metallic"], preview_result["roughness"])
+		return true
 
 	return _call_first_supported_method(_skin_applier, APPLY_METHOD_NAMES, [
 		[preview_result, _car_preview],
@@ -749,9 +895,9 @@ func _set_status(text: String) -> void:
 
 func _integration_status_text() -> String:
 	if _repaint_client != null and _skin_applier != null:
-		return "RepaintClient and CarSkinApplier connected."
+		return "UV image-to-image repaint client and CarSkinApplier connected."
 	if _repaint_client != null:
-		return "RepaintClient connected. Apply will stay local until a skin applier is assigned."
+		return "UV image-to-image repaint client connected. Apply will stay local until a skin applier is assigned."
 	if _skin_applier != null:
-		return "CarSkinApplier connected. Generate will use mock previews until a repaint client is assigned."
-	return "Offline mock mode. Assign RepaintClient and CarSkinApplier paths when integration lands."
+		return "CarSkinApplier connected. Generate will use mock previews until a UV repaint client is assigned."
+	return "Offline mock mode. Assign UVTextureRepaintClient and CarSkinApplier paths when integration lands."
