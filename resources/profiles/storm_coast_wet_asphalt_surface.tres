@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="RoadSurfaceProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/road_surface_profile.gd" id="1_surface"]
+[ext_resource type="Material" path="res://resources/materials/storm_coast_wet_asphalt_placeholder.tres" id="2_wet_asphalt"]
+[ext_resource type="Material" path="res://resources/materials/storm_coast_scrape_decal_placeholder.tres" id="3_scrape_decal"]
+
+[resource]
+resource_name = "StormCoastWetAsphaltSurface"
+script = ExtResource("1_surface")
+surface_id = &"storm_coast_wet_asphalt"
+display_name = "Storm Coast Wet Asphalt"
+surface_kind = 1
+material_key = &"storm_coast_wet_asphalt"
+base_material = ExtResource("2_wet_asphalt")
+skid_decal_material = ExtResource("3_scrape_decal")
+scrape_decal_material = ExtResource("3_scrape_decal")
+grip_multiplier = 0.92
+wetness = 0.86
+reflection_strength = 0.74
+uv_meters_per_tile = 8.0
+lane_marking_contrast = 0.86
+supports_tire_spray = true
+supports_scrape_decals = true
+surface_tags = PackedStringArray("wet", "reflective", "asphalt", "storm_coast", "premium_surface")
+notes = "Road generator placeholder target for wet asphalt. Material references are intentionally simple and can be swapped for texture or shader resources later."

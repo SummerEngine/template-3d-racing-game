@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "StormCoastWetAsphaltPlaceholder"
+albedo_color = Color(0.018, 0.021, 0.024, 1)
+metallic = 0.0
+roughness = 0.18

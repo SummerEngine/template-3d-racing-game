@@ -1,0 +1,175 @@
+[gd_scene format=3 uid="uid://hdyeiyxpt8ir"]
+
+[ext_resource type="Script" uid="uid://dgwtrhyeo884v" path="res://scripts/car_controller.gd" id="1_car"]
+[ext_resource type="PackedScene" uid="uid://ckxgsmgdyodfb" path="res://assets/cars/player_hypercar.glb" id="2_s2c5k"]
+[ext_resource type="Script" uid="uid://bbohn8ngrcjsm" path="res://scripts/vfx/vehicle_feedback_emitter.gd" id="2_vfx"]
+[ext_resource type="Script" uid="uid://cao2awdf2dlr1" path="res://scripts/audio/vehicle_audio_controller.gd" id="3_audio"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(1.9, 1, 4.35)
+
+[sub_resource type="StandardMaterial3D" id="Material_car_body"]
+albedo_color = Color(0.08, 0.24, 0.9, 1)
+roughness = 0.42
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(1.75, 0.42, 3.8)
+
+[sub_resource type="StandardMaterial3D" id="Material_car_cabin"]
+albedo_color = Color(0.05, 0.07, 0.09, 1)
+roughness = 0.18
+
+[sub_resource type="BoxMesh" id="BoxMesh_cabin"]
+size = Vector3(0.95, 0.48, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="Material_car_nose"]
+albedo_color = Color(1, 0.12, 0.08, 1)
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_nose"]
+size = Vector3(0.7, 0.18, 1.35)
+
+[sub_resource type="BoxMesh" id="BoxMesh_side_pod"]
+size = Vector3(0.34, 0.34, 1.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_front_wing"]
+size = Vector3(1.88, 0.1, 0.28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wing_post"]
+size = Vector3(0.08, 0.46, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rear_wing"]
+size = Vector3(1.78, 0.12, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_center_fin"]
+size = Vector3(0.12, 0.48, 0.78)
+
+[sub_resource type="StandardMaterial3D" id="Material_wheel"]
+albedo_color = Color(0.015, 0.014, 0.012, 1)
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wheel"]
+top_radius = 0.32
+bottom_radius = 0.32
+height = 0.22
+radial_segments = 8
+
+[node name="PlayerCar" type="CharacterBody3D" unique_id=211797938]
+script = ExtResource("1_car")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=953982835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="VisualRoot" type="Node3D" parent="." unique_id=1010202558]
+
+[node name="Body" type="MeshInstance3D" parent="VisualRoot" unique_id=1160652389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0.15)
+visible = false
+material_override = SubResource("Material_car_body")
+mesh = SubResource("BoxMesh_body")
+
+[node name="Cabin" type="MeshInstance3D" parent="VisualRoot" unique_id=1786891700]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, 0.55)
+visible = false
+material_override = SubResource("Material_car_cabin")
+mesh = SubResource("BoxMesh_cabin")
+
+[node name="NoseCone" type="MeshInstance3D" parent="VisualRoot" unique_id=557972875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, -1.45)
+visible = false
+material_override = SubResource("Material_car_nose")
+mesh = SubResource("BoxMesh_nose")
+
+[node name="SidePodL" type="MeshInstance3D" parent="VisualRoot" unique_id=2063237212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.66, 0.58, 0.2)
+visible = false
+material_override = SubResource("Material_car_body")
+mesh = SubResource("BoxMesh_side_pod")
+
+[node name="SidePodR" type="MeshInstance3D" parent="VisualRoot" unique_id=849339772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.66, 0.58, 0.2)
+visible = false
+material_override = SubResource("Material_car_body")
+mesh = SubResource("BoxMesh_side_pod")
+
+[node name="FrontSplitter" type="MeshInstance3D" parent="VisualRoot" unique_id=860359475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.37, -2.18)
+visible = false
+material_override = SubResource("Material_car_cabin")
+mesh = SubResource("BoxMesh_front_wing")
+
+[node name="RearWingPostL" type="MeshInstance3D" parent="VisualRoot" unique_id=604816620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.08, 2.08)
+visible = false
+material_override = SubResource("Material_car_cabin")
+mesh = SubResource("BoxMesh_wing_post")
+
+[node name="RearWingPostR" type="MeshInstance3D" parent="VisualRoot" unique_id=222440522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.08, 2.08)
+visible = false
+material_override = SubResource("Material_car_cabin")
+mesh = SubResource("BoxMesh_wing_post")
+
+[node name="RearWing" type="MeshInstance3D" parent="VisualRoot" unique_id=1595163930]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.33, 2.16)
+visible = false
+material_override = SubResource("Material_car_nose")
+mesh = SubResource("BoxMesh_rear_wing")
+
+[node name="CenterFin" type="MeshInstance3D" parent="VisualRoot" unique_id=1123273431]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.12, 1.24)
+visible = false
+material_override = SubResource("Material_car_nose")
+mesh = SubResource("BoxMesh_center_fin")
+
+[node name="WheelFL" type="Node3D" parent="VisualRoot" unique_id=2008829822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.98, 0.34, -1.35)
+visible = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="VisualRoot/WheelFL" unique_id=1453808124]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("Material_wheel")
+mesh = SubResource("CylinderMesh_wheel")
+
+[node name="WheelFR" type="Node3D" parent="VisualRoot" unique_id=345031075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.98, 0.34, -1.35)
+visible = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="VisualRoot/WheelFR" unique_id=32522811]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("Material_wheel")
+mesh = SubResource("CylinderMesh_wheel")
+
+[node name="WheelRL" type="Node3D" parent="VisualRoot" unique_id=1634944972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.98, 0.34, 1.35)
+visible = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="VisualRoot/WheelRL" unique_id=150197463]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("Material_wheel")
+mesh = SubResource("CylinderMesh_wheel")
+
+[node name="WheelRR" type="Node3D" parent="VisualRoot" unique_id=2003291149]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.98, 0.34, 1.35)
+visible = false
+
+[node name="WheelMesh" type="MeshInstance3D" parent="VisualRoot/WheelRR" unique_id=1223618476]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+material_override = SubResource("Material_wheel")
+mesh = SubResource("CylinderMesh_wheel")
+
+[node name="ModelMount" type="Node3D" parent="VisualRoot" unique_id=2098538252]
+transform = Transform3D(2.6830982e-08, 0, -2.25, 0, 2.25, 0, 2.25, 0, 2.6830982e-08, 0, 0.55, 0)
+
+[node name="ImportedHypercarModel" parent="VisualRoot/ModelMount" unique_id=1377953634 instance=ExtResource("2_s2c5k")]
+transform = Transform3D(1, 0, 8.881784e-16, 0, 1, 0, -8.881784e-16, 0, 1, 8.969837e-05, 0.00089113414, 0.00012312995)
+
+[node name="CameraTarget" type="Marker3D" parent="." unique_id=1583333663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="FeedbackEmitter" type="Node3D" parent="." unique_id=1990601433]
+script = ExtResource("2_vfx")
+
+[node name="VehicleAudio" type="Node" parent="." unique_id=1892901907]
+script = ExtResource("3_audio")

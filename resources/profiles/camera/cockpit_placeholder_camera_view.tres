@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CameraViewProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/camera/camera_view_profile.gd" id="1_profile"]
+
+[resource]
+resource_name = "CockpitPlaceholderCameraView"
+script = ExtResource("1_profile")
+view_id = &"cockpit"
+display_name = "Cockpit Placeholder"
+view_role = 0
+anchor_offset_local = Vector3(0, 0.25, 0)
+camera_offset_local = Vector3(0, 0.15, -0.65)
+view_yaw_degrees = 0.0
+fov_degrees = 74.0
+high_speed_fov_degrees = 82.0
+fov_speed_power = 0.75
+position_damping = 24.0
+rotation_damping = 20.0
+fov_damping = 5.0
+roll_damping = 10.0
+collision_return_damping = 18.0
+max_follow_lag_m = 1.0
+roll_mode = 2
+roll_degrees = 0.0
+drift_roll_bonus_degrees = 0.0
+track_orientation_weight = 0.0
+airborne_orientation_hold = 0.65
+collision_mode = 0
+collision_mask = 1
+collision_radius_m = 0.25
+collision_margin_m = 0.35
+road_preview_enabled = true
+preview_distance_low_speed_m = 10.0
+preview_distance_high_speed_m = 24.0
+preview_height_m = 0.35
+corner_preview_lateral_m = 1.1
+velocity_preview_bias = 0.12
+track_preview_weight = 0.0

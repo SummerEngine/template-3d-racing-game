@@ -1,0 +1,79 @@
+[gd_resource type="Resource" script_class="EnvironmentProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/track/environment_profile.gd" id="1_environment"]
+[ext_resource type="Script" path="res://scripts/track/scenery_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="SceneryRule_factory"]
+script = ExtResource("2_rule")
+prop_id = &"factory"
+display_name = "Sad Gray Factories"
+placement_mode = 1
+sides = 2
+road_edge_offset_m = 58.0
+offset_jitter_m = 16.0
+min_spacing_m = 115.0
+max_spacing_m = 220.0
+coverage_ratio_range = Vector2(0.45, 0.75)
+scale_multiplier_range = Vector2(4, 9)
+color_tags = PackedStringArray("sad_gray", "factory_scale_2_to_3x_farmhouse")
+notes = "Factories are 2-3x farmhouses and should use gray, muted tones."
+
+[sub_resource type="Resource" id="SceneryRule_container"]
+script = ExtResource("2_rule")
+prop_id = &"container"
+display_name = "Containers And Service Hints"
+placement_mode = 0
+sides = 2
+road_edge_offset_m = 24.0
+offset_jitter_m = 8.0
+min_spacing_m = 60.0
+max_spacing_m = 130.0
+coverage_ratio_range = Vector2(0.2, 0.45)
+scale_multiplier_range = Vector2(1, 1.2)
+color_tags = PackedStringArray("muted_industrial", "roadside")
+notes = "Roadside industrial props use offsets from the road edge."
+
+[sub_resource type="Resource" id="SceneryRule_utility"]
+script = ExtResource("2_rule")
+prop_id = &"utility_props"
+display_name = "Utility Poles And Industrial Signs"
+placement_mode = 0
+sides = 2
+road_edge_offset_m = 18.0
+offset_jitter_m = 5.0
+min_spacing_m = 50.0
+max_spacing_m = 120.0
+coverage_ratio_range = Vector2(0.25, 0.55)
+scale_multiplier_range = Vector2(1, 1)
+color_tags = PackedStringArray("industrial_signage", "utility")
+notes = "Density rises after Highway/Crops to Industrial transition and tapers before returning."
+
+[resource]
+resource_name = "IndustrialEnvironment"
+script = ExtResource("1_environment")
+display_name = "Industrial"
+environment_id = &"industrial"
+environment_type = &"industrial"
+terrain_palette = {
+"asphalt": Color(0.12, 0.13, 0.14, 1),
+"concrete": Color(0.48, 0.48, 0.45, 1),
+"gravel": Color(0.31, 0.32, 0.33, 1)
+}
+prop_rules = Array[Resource]([SubResource("SceneryRule_factory"), SubResource("SceneryRule_container"), SubResource("SceneryRule_utility")])
+ambient_audio_key = &"industrial_hum"
+ambient_audio_path = ""
+coverage_targets = {
+"container": Vector2(0.2, 0.45),
+"factory": Vector2(0.45, 0.75),
+"utility_props": Vector2(0.25, 0.55)
+}
+roadside_offset_rules = {
+"container": 24.0,
+"factory": 58.0,
+"utility_props": 18.0
+}
+transition_prop_rules = {
+"from_highway_crops": "Small utility props appear first, then larger gray factories move closer.",
+"to_highway_crops": "Factories and containers taper out; gravel/concrete softens into grass and crops."
+}
+notes = "Chunky toy-like industrial contrast. Placeholder metadata only; no generated paid assets."

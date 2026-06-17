@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="LightingProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/lighting_profile.gd" id="1_lighting"]
+
+[resource]
+resource_name = "StormCoastLighting"
+script = ExtResource("1_lighting")
+lighting_id = &"storm_coast_overcast_wet"
+display_name = "Storm Coast Overcast Wet"
+time_of_day = "overcast_late_afternoon"
+weather_preset_id = &"light_rain_wet_road"
+sky_color = Color(0.30, 0.34, 0.38, 1)
+horizon_color = Color(0.42, 0.46, 0.50, 1)
+ambient_light_color = Color(0.47, 0.51, 0.55, 1)
+ambient_energy = 0.86
+sun_color = Color(0.72, 0.77, 0.82, 1)
+sun_energy = 1.05
+sun_rotation_degrees = Vector3(-38, -32, 0)
+shadow_softness = 6.5
+fog_enabled = true
+fog_color = Color(0.39, 0.44, 0.48, 1)
+fog_density = 0.085
+rain_intensity = 0.35
+wetness_multiplier = 0.92
+reflection_probe_budget = {
+"garage": 1,
+"track_key_zones": 3,
+"set_piece": 1
+}
+notes = "Light rain and wet-road profile for Storm Coast. This is a foundation resource only; no WorldEnvironment or light nodes are wired here yet."

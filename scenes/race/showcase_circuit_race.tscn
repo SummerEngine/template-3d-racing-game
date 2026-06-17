@@ -1,0 +1,171 @@
+[gd_scene format=3 uid="uid://bp08jx344quxm"]
+
+[ext_resource type="Script" uid="uid://bwu1o385ttsbc" path="res://scripts/race/showcase_race_scene.gd" id="1_a4f8a"]
+[ext_resource type="Script" uid="uid://c360hanijsxb0" path="res://scripts/track/track_generator.gd" id="2_1cygd"]
+[ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="3_ho65n"]
+[ext_resource type="Script" uid="uid://b7ftvxk4rgrbn" path="res://scripts/vehicles/npc_driver.gd" id="5_j05bb"]
+[ext_resource type="Script" uid="uid://b38xmpvltaog7" path="res://scripts/elastic_chase_camera.gd" id="6_5juuk"]
+[ext_resource type="Script" uid="uid://camrubrc8108k" path="res://scripts/race/race_manager.gd" id="7_ym5jb"]
+[ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="8_m4m2u"]
+[ext_resource type="Script" uid="uid://bdy2leo4bnxur" path="res://scripts/audio/race_audio_controller.gd" id="9_audio"]
+[ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="10_overlay"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+size = Vector3(1.9, 1, 4.35)
+
+[sub_resource type="Environment" id="Environment_55qj1"]
+background_mode = 1
+background_color = Color(0.48, 0.68, 0.95, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.74, 0.82, 0.92, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 3
+glow_enabled = true
+glow_intensity = 0.08
+
+[node name="ShowcaseCircuitRace" type="Node3D" unique_id=1398284230]
+script = ExtResource("1_a4f8a")
+
+[node name="World" type="Node3D" parent="." unique_id=143648707]
+
+[node name="TrackRoot" type="Node3D" parent="World" unique_id=1140943829]
+script = ExtResource("2_1cygd")
+generate_on_ready = false
+
+[node name="Vehicles" type="Node3D" parent="World" unique_id=517205929]
+
+[node name="PlayerCar" parent="World/Vehicles" unique_id=211797938 instance=ExtResource("3_ho65n")]
+max_speed = 60.0
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="World/Vehicles/PlayerCar" unique_id=953982835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="VisualRoot2" type="Node3D" parent="World/Vehicles/PlayerCar" unique_id=1010202558]
+
+[node name="CameraTarget2" type="Marker3D" parent="World/Vehicles/PlayerCar" unique_id=1583333663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="NpcCars" type="Node3D" parent="World/Vehicles" unique_id=1659603456]
+
+[node name="TechnicianCar" parent="World/Vehicles/NpcCars" unique_id=385612983 instance=ExtResource("3_ho65n")]
+car_color_variant = "green"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=276160872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="VisualRoot2" type="Node3D" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=1408622248]
+
+[node name="CameraTarget2" type="Marker3D" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=185086413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=1940375992]
+script = ExtResource("5_j05bb")
+track_query_path = NodePath("../../../../TrackRoot")
+lane_index = 1
+
+[node name="BullyCar" parent="World/Vehicles/NpcCars" unique_id=1050300205 instance=ExtResource("3_ho65n")]
+car_color_variant = "red"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1896327699]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="VisualRoot2" type="Node3D" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1191023709]
+
+[node name="CameraTarget2" type="Marker3D" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1078949972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1210286555]
+script = ExtResource("5_j05bb")
+track_query_path = NodePath("../../../../TrackRoot")
+personality_id = &"bully"
+
+[node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=2137897400 instance=ExtResource("3_ho65n")]
+car_color_variant = "yellow"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=727789247]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("BoxShape3D_collision")
+
+[node name="VisualRoot2" type="Node3D" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=995370016]
+
+[node name="CameraTarget2" type="Marker3D" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=978576999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=752290076]
+script = ExtResource("5_j05bb")
+track_query_path = NodePath("../../../../TrackRoot")
+personality_id = &"showoff"
+lane_index = 1
+
+[node name="CameraRig" type="Node3D" parent="World" unique_id=1452391880]
+
+[node name="ChaseCamera" type="Camera3D" parent="World/CameraRig" unique_id=2075822441]
+current = true
+fov = 67.0
+script = ExtResource("6_5juuk")
+target_path = NodePath("../../Vehicles/PlayerCar")
+
+[node name="Lighting" type="Node3D" parent="World" unique_id=1388093698]
+
+[node name="Sun" type="DirectionalLight3D" parent="World/Lighting" unique_id=381049704]
+transform = Transform3D(0.8480481, -0.3938068, 0.35458517, 0, 0.66913056, 0.74314487, -0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
+light_color = Color(1, 0.95, 0.86, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World/Lighting" unique_id=939563467]
+environment = SubResource("Environment_55qj1")
+
+[node name="Managers" type="Node" parent="." unique_id=603629456]
+
+[node name="RaceManager" type="Node" parent="Managers" unique_id=1755325413]
+script = ExtResource("7_ym5jb")
+
+[node name="RaceAudio" type="Node" parent="Managers" unique_id=128787879]
+script = ExtResource("9_audio")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1129320086]
+script = ExtResource("8_m4m2u")
+race_manager_path = NodePath("../Managers/RaceManager")
+player_car_path = NodePath("../World/Vehicles/PlayerCar")
+
+[node name="Margin" type="MarginContainer" parent="UI" unique_id=427387364]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 440.0
+offset_bottom = 170.0
+
+[node name="Panel" type="Panel" parent="UI/Margin" unique_id=1523872052]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/Margin/Panel" unique_id=1570464824]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Readout" type="Label" parent="UI/Margin/Panel/Margin" unique_id=755598533]
+layout_mode = 2
+text = "Speed 000 km/h
+Mode GRIP
+Race SETUP
+Lap 1/3
+Pos --/--
+Time 00:00.000"
+vertical_alignment = 1
+
+[node name="RaceFlowOverlay" type="CanvasLayer" parent="." unique_id=1472234482]
+layer = 20
+script = ExtResource("10_overlay")

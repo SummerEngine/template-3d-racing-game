@@ -1,0 +1,15 @@
+
+# Summer Engine local-only state
+.summer/local/
+
+# Local brainstorming/browser companion state
+.superpowers/
+
+# Godot/Summer generated editor cache
+.godot/
+
+# Local OS/editor noise
+.DS_Store
+*.tmp
+*.swp
+*.bak
