@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TrackAuthoringProfile" format=3 uid="uid://ddef50m6a1k0n"]
+
+[ext_resource type="Script" uid="uid://dxix82l55fpg5" path="res://scripts/track_authoring/track_authoring_profile.gd" id="1_profile"]
+
+[resource]
+resource_name = "StormCoastAuthoringProfile"
+script = ExtResource("1_profile")
+last_tool_summary = "Preview Regenerate refreshed lightweight authoring handles for 8 road points. V2 road mesh regenerated at 1726.7m. No ManualOverrides were deleted."
+notes = "Agent A authoring/profile resource only. Road mesh, collision, lane markings, guardrails, and generated prop override storage belong to later agents."

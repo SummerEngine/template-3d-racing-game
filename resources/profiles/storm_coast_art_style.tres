@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="ArtStyleProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/art_style_profile.gd" id="1_style"]
+
+[resource]
+resource_name = "StormCoastArtStyle"
+script = ExtResource("1_style")
+style_id = &"storm_coast_premium_realism"
+display_name = "Storm Coast Premium Realism"
+realism_target = &"premium_arcade_realism"
+style_tags = PackedStringArray("rainy_coastal", "mountain_road", "wet_surface", "premium_reflections", "engineered_set_piece")
+palette = {
+"asphalt_wet": Color(0.018, 0.021, 0.024, 1),
+"cliff_stone": Color(0.25, 0.27, 0.28, 1),
+"guardrail_metal": Color(0.56, 0.58, 0.57, 1),
+"ocean_horizon": Color(0.18, 0.25, 0.30, 1),
+"rain_sky": Color(0.34, 0.38, 0.42, 1),
+"safety_warning": Color(1.0, 0.62, 0.12, 1)
+}
+material_language = {
+"car": "Deep glossy paint, readable glass, subtle blue emissive accents, and wet-road reflections.",
+"environment": "Dark coastal stone, brushed safety metal, damp concrete, and distant mist silhouettes.",
+"road": "Fine-grain wet asphalt with restrained specular highlights and high lane-marking readability."
+}
+readability_targets = {
+"brake_lights": 0.9,
+"headlights": 0.85,
+"jump_warning": 1.0,
+"lane_edges": 0.8,
+"wet_reflection": 0.72
+}
+forbidden_style_tags = PackedStringArray("oversaturated_plastic", "miniature_scale", "flat_world_only")
+intent = "Storm Coast should read as a believable coastal mountain circuit with one engineered arcade jump. The look should support premium car reflections, rain readability, and clear racing lines."
+notes = "Profile-only foundation. Later agents should edit this resource or related profile resources instead of hardcoding style in gameplay scripts."

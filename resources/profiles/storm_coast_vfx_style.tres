@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="VFXStyleProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/vfx_style_profile.gd" id="1_vfx"]
+[ext_resource type="Material" path="res://resources/materials/storm_coast_scrape_decal_placeholder.tres" id="2_scrape_decal"]
+
+[resource]
+resource_name = "StormCoastVFXStyle"
+script = ExtResource("1_vfx")
+vfx_style_id = &"storm_coast_wet_vfx"
+display_name = "Storm Coast Wet VFX"
+weather_preset_id = &"light_rain_wet_road"
+rain_intensity = 0.35
+mist_density = 0.46
+tire_spray_color = Color(0.78, 0.84, 0.88, 0.72)
+tire_spray_scale = 1.1
+headlight_readability = 0.88
+scrape_decal_material = ExtResource("2_scrape_decal")
+scrape_spark_color = Color(1.0, 0.72, 0.38, 1)
+decal_pool_budget = {
+"scrape_decals": 64,
+"skid_marks": 96,
+"spray_emitters": 12
+}
+skid_mark_lifetime_seconds = 42.0
+effect_tags = PackedStringArray("light_rain", "tire_spray", "wet_scrape", "coastal_mist")
+notes = "Initial Storm Coast VFX style for rain, mist, tire spray, and scrape decals. Runtime emitters are not integrated in this pass."

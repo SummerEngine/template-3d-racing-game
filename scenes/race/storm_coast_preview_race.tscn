@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://brqy8nh5owoik"]
+
+[ext_resource type="Script" uid="uid://b2ripyg1c0nws" path="res://scripts/race/storm_coast_preview_scene.gd" id="1_scene"]
+[ext_resource type="PackedScene" uid="uid://boy8sqrtmcvva" path="res://scenes/tracks/storm_coast/storm_coast_authoring.tscn" id="2_track_authoring"]
+[ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="3_player_car"]
+[ext_resource type="Script" uid="uid://d4ec4dtsyad7u" path="res://scripts/camera/camera_rig.gd" id="4_camera_rig"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/chase_camera_view.tres" id="5_chase_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/cockpit_placeholder_camera_view.tres" id="6_cockpit_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/look_back_camera_view.tres" id="7_look_back_camera"]
+[ext_resource type="Script" uid="uid://dgtcgka78uvux" path="res://scripts/environment/coastal_backdrop.gd" id="8_backdrop"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_storm_coast_preview"]
+sky_top_color = Color(0.3, 0.58, 0.96, 1)
+sky_horizon_color = Color(0.84, 0.92, 1, 1)
+sky_curve = 0.11
+sky_energy_multiplier = 1.18
+ground_bottom_color = Color(0.26, 0.38, 0.42, 1)
+ground_horizon_color = Color(0.72, 0.83, 0.9, 1)
+ground_curve = 0.05
+sun_angle_max = 18.0
+sun_curve = 0.04
+
+[sub_resource type="Sky" id="Sky_storm_coast_preview"]
+sky_material = SubResource("ProceduralSkyMaterial_storm_coast_preview")
+
+[sub_resource type="Environment" id="Environment_storm_coast_preview"]
+background_mode = 2
+background_color = Color(0.58, 0.76, 0.96, 1)
+sky = SubResource("Sky_storm_coast_preview")
+ambient_light_source = 2
+ambient_light_color = Color(0.78, 0.82, 0.88, 1)
+ambient_light_energy = 0.92
+tonemap_mode = 3
+tonemap_exposure = 1.12
+tonemap_white = 5.5
+ssr_max_steps = 32
+ssao_enabled = true
+ssao_radius = 2.2
+ssao_intensity = 0.45
+glow_enabled = true
+glow_intensity = 0.18
+glow_strength = 0.55
+glow_bloom = 0.08
+fog_enabled = true
+fog_light_color = Color(0.7, 0.82, 0.96, 1)
+fog_light_energy = 0.32
+fog_density = 0.0018
+
+[node name="StormCoastPreviewRace" type="Node3D" unique_id=1039963252]
+script = ExtResource("1_scene")
+
+[node name="World" type="Node3D" parent="." unique_id=210362279]
+
+[node name="TrackAuthoring" parent="World" unique_id=1246797821 instance=ExtResource("2_track_authoring")]
+
+[node name="CoastalBackdrop" type="Node3D" parent="World" unique_id=679288389]
+script = ExtResource("8_backdrop")
+horizon_distance_m = 920.0
+backdrop_width_m = 2100.0
+ocean_height_m = -22.0
+cloud_color = Color(0.95, 0.97, 1, 0.34)
+
+[node name="Vehicles" type="Node3D" parent="World" unique_id=1380648959]
+
+[node name="PlayerCar" parent="World/Vehicles" unique_id=449766395 instance=ExtResource("3_player_car")]
+
+[node name="CameraRig" type="Node3D" parent="World" unique_id=428696892]
+script = ExtResource("4_camera_rig")
+target_path = NodePath("../Vehicles/PlayerCar")
+track_query_provider_path = NodePath("../TrackAuthoring/Generated/StormCoastTrackGenerator")
+chase_profile = ExtResource("5_chase_camera")
+cockpit_profile = ExtResource("6_cockpit_camera")
+look_back_profile = ExtResource("7_look_back_camera")
+
+[node name="Camera3D" type="Camera3D" parent="World/CameraRig" unique_id=1860161802]
+current = true
+fov = 67.0
+
+[node name="Sun" type="DirectionalLight3D" parent="World" unique_id=1313742438]
+transform = Transform3D(-0.61566156, -0.48514754, 0.62096065, 0, 0.78801024, 0.61566114, -0.78801095, 0.37903878, -0.48514757, 0, 80, 0)
+light_color = Color(1, 0.93, 0.82, 1)
+light_energy = 2.15
+light_indirect_energy = 1.35
+light_angular_distance = 0.65
+shadow_enabled = true
+shadow_bias = 0.045
+shadow_normal_bias = 1.25
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 280.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=666990856]
+environment = SubResource("Environment_storm_coast_preview")
+
+[node name="SkyFillLight" type="DirectionalLight3D" parent="World" unique_id=2122635602]
+transform = Transform3D(0.57357645, 0.33317915, -0.7483326, 0, 0.9135454, 0.40673664, 0.81915206, -0.23329456, 0.5239881, 0, 0, 0)
+light_color = Color(0.58, 0.74, 1, 1)
+light_energy = 0.38
+light_specular = 0.18

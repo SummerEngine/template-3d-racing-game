@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SetPieceProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/set_piece_profile.gd" id="1_set_piece"]
+
+[resource]
+resource_name = "StormCoastCliffsideJumpSetPiece"
+script = ExtResource("1_set_piece")
+set_piece_id = &"storm_coast_cliffside_jump"
+display_name = "Storm Coast Cliffside Jump"
+scene_path = "res://scenes/setpieces/storm_coast/cliffside_jump.tscn"
+entry_socket = &"EntrySocket"
+exit_socket = &"ExitSocket"
+min_speed_mps = 42.0
+recommended_camera_mode = "chase"
+surface_gravity_mode = &"track_relative_airborne_assist"
+ai_strategy = &"centerline_commit_then_recover"
+risk_rating = 4
+warning_distance_m = 110.0
+approach_distance_m = 170.0
+recovery_distance_m = 145.0
+landing_width_m = 20.0
+fail_safe_volume_id = &"CliffsideJumpResetVolume"
+vfx_cue_ids = PackedStringArray("mist_reveal", "tire_spray_takeoff", "landing_spray")
+audio_cue_ids = PackedStringArray("jump_warning_sign_pass", "wind_gap", "landing_impact_wet")
+notes = "Non-destructive engineered cliffside jump profile. First implementation should use sockets, recovery space, reset safety, VFX, and audio cues rather than physical collapse."

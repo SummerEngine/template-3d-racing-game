@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="AudioMixProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/audio_mix_profile.gd" id="1_audio"]
+
+[resource]
+resource_name = "StormCoastAudioMix"
+script = ExtResource("1_audio")
+audio_mix_id = &"storm_coast_wet_mix"
+display_name = "Storm Coast Wet Race Mix"
+music_profile_key = &"storm_coast_premium_arcade_drive"
+ambience_key = &"storm_coast_light_rain_waves"
+bus_names = {
+"ambience": "Master",
+"engine": "Master",
+"music": "Master",
+"scrape": "Master",
+"spray": "Master"
+}
+volume_db = {
+"ambience": -18.0,
+"engine_bias": -1.5,
+"music": -12.0,
+"scrape": -4.0,
+"spray": -11.0
+}
+ducking_settings = {
+"jump_warning_duck_db": -3.0,
+"landing_impact_duck_seconds": 0.35,
+"menu_to_race_crossfade_seconds": 1.2
+}
+cue_keys = {
+"jump_warning": "jump_warning_sign_pass",
+"landing": "landing_impact_wet",
+"rain_loop": "light_rain_surface_loop",
+"scrape": "barrier_scrape_sparks"
+}
+master_gain_db = 0.0
+wet_environment_reverb_send = 0.24
+notes = "Placeholder audio mix metadata for Storm Coast rain, wet road spray, engine readability, scrape feedback, and jump cues."

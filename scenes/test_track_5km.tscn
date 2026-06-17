@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://2rbj5wpbdpla"]
+
+[ext_resource type="Script" uid="uid://d1srgjwxfrk8q" path="res://scripts/test_track_5km.gd" id="1_track"]
+[ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="2_car"]
+[ext_resource type="Script" uid="uid://b38xmpvltaog7" path="res://scripts/elastic_chase_camera.gd" id="3_camera"]
+[ext_resource type="Script" uid="uid://b0bq0uk1nuclm" path="res://scripts/driving_debug_hud.gd" id="4_hud"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(2600, 0.2, 2600)
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 1
+background_color = Color(0.48, 0.68, 0.95, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.74, 0.82, 0.92, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.08
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.02, 0.024, 0.028, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.16)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="TestTrack5km" type="Node3D" unique_id=1877134264]
+script = ExtResource("1_track")
+
+[node name="GroundCollision" type="StaticBody3D" parent="." unique_id=548458155]
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundCollision" unique_id=9241709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 590, -0.1, 640)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="PlayerCar" parent="." unique_id=1986957045 instance=ExtResource("2_car")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.14, 22)
+
+[node name="ChaseCamera" type="Camera3D" parent="." unique_id=1786424962]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 0.91706, -0.39875, 8.01267e-08, -0.39875, -0.91706, 0, 6.2, 7.5)
+current = true
+fov = 67.0
+script = ExtResource("3_camera")
+target_path = NodePath("../PlayerCar")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1577384838]
+transform = Transform3D(0.8869949, -0.33762792, 0.31503555, 0, 0.68222123, 0.7311458, -0.46177918, -0.6485226, 0.60512674, 0, 0, 0)
+light_color = Color(1, 0.95, 0.86, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=22504240]
+environment = SubResource("Environment_world")
+
+[node name="DebugHUD" type="CanvasLayer" parent="." unique_id=1367579662]
+script = ExtResource("4_hud")
+car_path = NodePath("../PlayerCar")
+
+[node name="Margin" type="MarginContainer" parent="DebugHUD" unique_id=1161561949]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 530.0
+offset_bottom = 118.0
+
+[node name="Panel" type="Panel" parent="DebugHUD/Margin" unique_id=1670814391]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="DebugHUD/Margin/Panel" unique_id=2136524883]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Readout" type="Label" parent="DebugHUD/Margin/Panel/Margin" unique_id=114944844]
+layout_mode = 2
+text = "Speed 000 km/h
+Mode GRIP
+W/Up accelerate  S/Down brake/reverse
+A/D steer while moving  Shift drift"
+vertical_alignment = 1

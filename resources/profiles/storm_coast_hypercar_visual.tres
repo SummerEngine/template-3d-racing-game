@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CarVisualProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/profiles/car_visual_profile.gd" id="1_car"]
+[ext_resource type="Material" path="res://resources/materials/storm_coast_scrape_decal_placeholder.tres" id="2_scrape_decal"]
+
+[resource]
+resource_name = "StormCoastHypercarVisual"
+script = ExtResource("1_car")
+car_id = &"astra_prototype_rs"
+display_name = "Astra Prototype RS"
+vehicle_class = &"fictional_hypercar_prototype"
+body_material = null
+glass_material = null
+wheel_material = null
+damage_decal_material = ExtResource("2_scrape_decal")
+primary_paint_color = Color(0.025, 0.032, 0.04, 1)
+secondary_paint_color = Color(0.08, 0.11, 0.14, 1)
+emissive_accent_color = Color(0.12, 0.58, 1.0, 1)
+accent_emission_energy = 1.65
+silhouette_tags = PackedStringArray("low_nose", "wide_body", "prototype_canopy", "active_aero_hint")
+material_tags = PackedStringArray("gloss_paint", "carbon_dark", "wet_reflection_ready", "blue_emissive_accent")
+livery_slots = {
+"accent": "Thin blue lighting accents along side intake and rear blade.",
+"primary": "Dark graphite main body color.",
+"secondary": "Deep blue-black aero and lower-body contrast."
+}
+cockpit_detail_level = "blocked_placeholder"
+notes = "Fictional hypercar/prototype visual profile for Storm Coast. Mesh and final materials are intentionally not assigned in this foundation pass."
