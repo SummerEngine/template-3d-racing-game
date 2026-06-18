@@ -86,6 +86,8 @@ func _on_vehicle_bumped(intensity: float, _contact_position: Vector3, _contact_n
 
 
 func _update_engine_layers(speed_ratio: float, throttle_ratio: float) -> void:
+	speed_ratio = _finite_ratio(speed_ratio)
+	throttle_ratio = _finite_ratio(throttle_ratio)
 	var load_ratio: float = clampf(throttle_ratio * 0.75 + speed_ratio * 0.35, 0.0, 1.0)
 	var high_ratio: float = smoothstep(0.42, 0.92, speed_ratio)
 
@@ -103,6 +105,8 @@ func _update_engine_layers(speed_ratio: float, throttle_ratio: float) -> void:
 
 
 func _update_shift_pop(speed_ratio: float, throttle_ratio: float) -> void:
+	speed_ratio = _finite_ratio(speed_ratio)
+	throttle_ratio = _finite_ratio(throttle_ratio)
 	var gear_count: int = maxi(virtual_gear_count, 1)
 	var current_gear: int = clampi(floori(speed_ratio * float(gear_count)), 0, gear_count - 1)
 	if current_gear > _last_virtual_gear and throttle_ratio > 0.18 and speed_ratio > 0.12:
@@ -129,6 +133,7 @@ func _make_player_3d(player_name: String, stream: AudioStream, autoplay: bool) -
 func _play_one_shot(player: AudioStreamPlayer3D, volume_db: float) -> void:
 	if player == null or player.stream == null:
 		return
+	volume_db = _finite_db(volume_db, -18.0)
 	player.volume_db = volume_db
 	player.pitch_scale = randf_range(0.96, 1.05)
 	player.stop()
@@ -137,7 +142,7 @@ func _play_one_shot(player: AudioStreamPlayer3D, volume_db: float) -> void:
 
 func _vehicle_speed_ratio() -> float:
 	if _vehicle != null and _vehicle.has_method("get_speed_ratio"):
-		return clampf(float(_vehicle.call("get_speed_ratio")), 0.0, 1.0)
+		return _finite_ratio(float(_vehicle.call("get_speed_ratio")))
 	return 0.0
 
 
@@ -146,16 +151,28 @@ func _vehicle_throttle_ratio() -> float:
 		return 0.0
 	var value: Variant = _vehicle.get("throttle_amount")
 	if value is float or value is int:
-		return clampf(float(value), 0.0, 1.0)
+		return _finite_ratio(float(value))
 	return 0.0
 
 
 func _vehicle_drift_intensity() -> float:
 	if _vehicle != null and _vehicle.has_method("get_drift_intensity"):
-		return clampf(float(_vehicle.call("get_drift_intensity")), 0.0, 1.0)
+		return _finite_ratio(float(_vehicle.call("get_drift_intensity")))
 	if _vehicle != null and _vehicle.get("drift_intensity") != null:
-		return clampf(float(_vehicle.get("drift_intensity")), 0.0, 1.0)
+		return _finite_ratio(float(_vehicle.get("drift_intensity")))
 	return 0.0
+
+
+func _finite_ratio(value: float, fallback: float = 0.0) -> float:
+	if is_nan(value) or is_inf(value):
+		return fallback
+	return clampf(value, 0.0, 1.0)
+
+
+func _finite_db(value: float, fallback: float) -> float:
+	if is_nan(value) or is_inf(value):
+		return fallback
+	return value
 
 
 func _set_stream_loop(stream: AudioStream, should_loop: bool) -> void:

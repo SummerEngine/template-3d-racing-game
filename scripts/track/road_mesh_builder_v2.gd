@@ -90,11 +90,12 @@ func build_road_surface_mesh(query: TrackQueryV2, options: Dictionary = {}) -> A
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
+	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 
 	for i: int in range(ring_count):
-		var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+		var distance_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
 		var sample: Dictionary = query.sample_at_distance(distance_m)
 		var center: Vector3 = sample["position"]
 		var right: Vector3 = sample["right"]
@@ -107,11 +108,12 @@ func build_road_surface_mesh(query: TrackQueryV2, options: Dictionary = {}) -> A
 		uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
 		uvs.append(Vector2(width_m / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
 
-	for i: int in range(ring_count - 1):
+	for i: int in range(_ring_span_count(ring_count, closed_loop)):
 		var a: int = i * 2
 		var b: int = i * 2 + 1
-		var c: int = (i + 1) * 2
-		var d: int = (i + 1) * 2 + 1
+		var next_i: int = _next_ring_index(i, ring_count, closed_loop)
+		var c: int = next_i * 2
+		var d: int = next_i * 2 + 1
 		indices.append_array([a, b, c, b, d, c])
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
@@ -161,6 +163,7 @@ func build_rubber_racing_line_mesh(query: TrackQueryV2, options: Dictionary = {}
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
+	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 	var vertical_offset_m: float = float(options.get("rubber_vertical_offset_m", 0.052))
@@ -170,7 +173,7 @@ func build_rubber_racing_line_mesh(query: TrackQueryV2, options: Dictionary = {}
 		var base_index: int = vertices.size()
 		var band_ratio: float = band_ratios[band_index]
 		for i: int in range(ring_count):
-			var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+			var distance_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
 			var sample: Dictionary = query.sample_at_distance(distance_m)
 			var center: Vector3 = sample["position"]
 			var right: Vector3 = sample["right"]
@@ -185,11 +188,12 @@ func build_rubber_racing_line_mesh(query: TrackQueryV2, options: Dictionary = {}
 			uvs.append(Vector2(float(band_index), distance_m / ROAD_UV_SCALE_M))
 			uvs.append(Vector2(float(band_index) + 1.0, distance_m / ROAD_UV_SCALE_M))
 
-		for i: int in range(ring_count - 1):
+		for i: int in range(_ring_span_count(ring_count, closed_loop)):
 			var a: int = base_index + i * 2
 			var b: int = base_index + i * 2 + 1
-			var c: int = base_index + (i + 1) * 2
-			var d: int = base_index + (i + 1) * 2 + 1
+			var next_i: int = _next_ring_index(i, ring_count, closed_loop)
+			var c: int = base_index + next_i * 2
+			var d: int = base_index + next_i * 2 + 1
 			indices.append_array([a, b, c, b, d, c])
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
@@ -212,10 +216,15 @@ func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
+	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 	var terrain_width_m: float = maxf(float(options.get("terrain_width_m", 72.0)), 1.0)
 	var edge_gap_m: float = maxf(float(options.get("terrain_edge_gap_m", 2.5)), 0.0)
+	var shoulder_width_m: float = maxf(float(options.get("shoulder_width_m", 0.0)), 0.0)
+	var shoulder_overlap_m: float = maxf(float(options.get("terrain_shoulder_overlap_m", 0.35)), 0.0)
+	var terrain_start_gap_m: float = maxf(minf(edge_gap_m, shoulder_width_m) - shoulder_overlap_m, 0.0)
+	var inner_drop_m: float = maxf(float(options.get("terrain_inner_drop_m", 0.08)), 0.0)
 	var outer_drop_m: float = maxf(float(options.get("terrain_outer_drop_m", 6.5)), 0.0)
 	var roughness_m: float = maxf(float(options.get("terrain_roughness_m", 1.8)), 0.0)
 
@@ -223,16 +232,16 @@ func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {
 		var base_index: int = vertices.size()
 		var side_sign: float = -1.0 if side < 0.0 else 1.0
 		for i: int in range(ring_count):
-			var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+			var distance_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
 			var sample: Dictionary = query.sample_at_distance(distance_m)
 			var center: Vector3 = sample["position"]
 			var right: Vector3 = sample["right"]
 			var up: Vector3 = sample["up"]
 			var width_m: float = float(sample["road_width_m"])
-			var inner_offset: float = side_sign * (width_m * 0.5 + edge_gap_m)
-			var outer_offset: float = side_sign * (width_m * 0.5 + edge_gap_m + terrain_width_m)
+			var inner_offset: float = side_sign * (width_m * 0.5 + terrain_start_gap_m)
+			var outer_offset: float = side_sign * (width_m * 0.5 + terrain_start_gap_m + terrain_width_m)
 			var terrain_wave_m: float = _terrain_height_wave(distance_m, side_sign, roughness_m)
-			var inner_height_m: float = -0.28 + terrain_wave_m * 0.16
+			var inner_height_m: float = -inner_drop_m + terrain_wave_m * 0.08
 			var outer_height_m: float = -outer_drop_m + terrain_wave_m
 
 			vertices.append(center + right * inner_offset + up * inner_height_m)
@@ -242,11 +251,12 @@ func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {
 			uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
 			uvs.append(Vector2(terrain_width_m / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
 
-		for i: int in range(ring_count - 1):
+		for i: int in range(_ring_span_count(ring_count, closed_loop)):
 			var a: int = base_index + i * 2
 			var b: int = base_index + i * 2 + 1
-			var c: int = base_index + (i + 1) * 2
-			var d: int = base_index + (i + 1) * 2 + 1
+			var next_i: int = _next_ring_index(i, ring_count, closed_loop)
+			var c: int = base_index + next_i * 2
+			var d: int = base_index + next_i * 2 + 1
 			if side < 0.0:
 				indices.append_array([a, c, b, b, c, d])
 			else:
@@ -260,53 +270,44 @@ func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dic
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
+	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
 	var rail_height_m: float = float(options.get("guardrail_height_m", 0.95))
 	var beam_height_m: float = float(options.get("guardrail_beam_height_m", 0.34))
 	var beam_thickness_m: float = maxf(float(options.get("guardrail_visual_thickness_m", 0.34)), 0.08)
+	var beam_overlap_m: float = maxf(float(options.get("guardrail_visual_overlap_m", 0.45)), 0.0)
+	var connect_loop_seam: bool = bool(options.get("guardrail_connect_loop_seam", true))
 	var side_sign: float = -1.0 if side < 0.0 else 1.0
 
-	for i: int in range(ring_count):
-		var distance_m: float = _distance_for_ring(i, ring_count, length_m)
-		var sample: Dictionary = query.sample_at_distance(distance_m)
-		var transform: Transform3D = query.road_edge_transform(distance_m, side_sign, edge_offset_m)
-		var up: Vector3 = sample["up"]
-		var outward: Vector3 = sample["right"] * side_sign
-		var inner_offset: Vector3 = -outward * beam_thickness_m * 0.5
-		var outer_offset: Vector3 = outward * beam_thickness_m * 0.5
-		var lower_height: Vector3 = up * rail_height_m
-		var upper_height: Vector3 = up * (rail_height_m + beam_height_m)
-
-		vertices.append(transform.origin + inner_offset + lower_height)
-		vertices.append(transform.origin + inner_offset + upper_height)
-		vertices.append(transform.origin + outer_offset + lower_height)
-		vertices.append(transform.origin + outer_offset + upper_height)
-		normals.append(-outward)
-		normals.append(-outward)
-		normals.append(outward)
-		normals.append(outward)
-		uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
-		uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
-		uvs.append(Vector2(1.0, distance_m / ROAD_UV_SCALE_M))
-		uvs.append(Vector2(1.0, distance_m / ROAD_UV_SCALE_M))
-
-	for i: int in range(ring_count - 1):
-		var distance_a_m: float = _distance_for_ring(i, ring_count, length_m)
-		var distance_b_m: float = _distance_for_ring(i + 1, ring_count, length_m)
-		var midpoint_distance_m: float = (distance_a_m + distance_b_m) * 0.5
+	for i: int in range(_ring_span_count(ring_count, closed_loop)):
+		var distance_a_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
+		var next_i: int = _next_ring_index(i, ring_count, closed_loop)
+		if closed_loop and next_i == 0 and not connect_loop_seam:
+			continue
+		var distance_b_m: float = _distance_for_ring(next_i, ring_count, length_m, closed_loop)
+		if closed_loop and next_i == 0:
+			distance_b_m += length_m
+		var midpoint_distance_m: float = fposmod((distance_a_m + distance_b_m) * 0.5, length_m)
 		if not _guardrail_enabled_at_distance(midpoint_distance_m, length_m, options):
 			continue
 
-		var a: int = i * 4
-		var c: int = (i + 1) * 4
-		indices.append_array([
-			a + 2, c + 2, a + 3, a + 3, c + 2, c + 3,
-			a, a + 1, c, a + 1, c + 1, c,
-			a + 1, a + 3, c + 1, a + 3, c + 3, c + 1,
-			a, c, a + 2, a + 2, c, c + 2,
-		])
+		var span_length_m: float = maxf(distance_b_m - distance_a_m + beam_overlap_m, 0.1)
+		var transform: Transform3D = query.road_edge_transform(
+			midpoint_distance_m,
+			side_sign,
+			edge_offset_m,
+			rail_height_m + beam_height_m * 0.5
+		)
+		_append_box(
+			vertices,
+			normals,
+			uvs,
+			indices,
+			transform,
+			Vector3(beam_thickness_m, beam_height_m, span_length_m)
+		)
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
@@ -323,13 +324,14 @@ func _build_side_strips_mesh(
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
+	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 
 	for side: float in [-1.0, 1.0]:
 		var base_index: int = vertices.size()
 		for i: int in range(ring_count):
-			var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+			var distance_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
 			var sample: Dictionary = query.sample_at_distance(distance_m)
 			var center: Vector3 = sample["position"]
 			var right: Vector3 = sample["right"]
@@ -349,11 +351,12 @@ func _build_side_strips_mesh(
 			uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
 			uvs.append(Vector2(strip_width_m / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
 
-		for i: int in range(ring_count - 1):
+		for i: int in range(_ring_span_count(ring_count, closed_loop)):
 			var a: int = base_index + i * 2
 			var b: int = base_index + i * 2 + 1
-			var c: int = base_index + (i + 1) * 2
-			var d: int = base_index + (i + 1) * 2 + 1
+			var next_i: int = _next_ring_index(i, ring_count, closed_loop)
+			var c: int = base_index + next_i * 2
+			var d: int = base_index + next_i * 2 + 1
 			if side < 0.0:
 				indices.append_array([a, c, b, b, c, d])
 			else:
@@ -604,6 +607,59 @@ func _append_oriented_quad(
 	indices.append_array([start_index, start_index + 1, start_index + 2, start_index + 1, start_index + 3, start_index + 2])
 
 
+func _append_mesh_quad(
+	vertices: PackedVector3Array,
+	normals: PackedVector3Array,
+	uvs: PackedVector2Array,
+	indices: PackedInt32Array,
+	a: Vector3,
+	b: Vector3,
+	c: Vector3,
+	d: Vector3,
+	normal: Vector3
+) -> void:
+	var start_index: int = vertices.size()
+	var safe_normal: Vector3 = normal.normalized() if normal.length_squared() > 0.0001 else Vector3.UP
+	vertices.append_array([a, b, c, d])
+	normals.append_array([safe_normal, safe_normal, safe_normal, safe_normal])
+	uvs.append_array([Vector2.ZERO, Vector2.RIGHT, Vector2.UP, Vector2.ONE])
+	indices.append_array([start_index, start_index + 2, start_index + 1, start_index + 1, start_index + 2, start_index + 3])
+
+
+func _append_box(
+	vertices: PackedVector3Array,
+	normals: PackedVector3Array,
+	uvs: PackedVector2Array,
+	indices: PackedInt32Array,
+	box_transform: Transform3D,
+	size: Vector3
+) -> void:
+	var hx: float = size.x * 0.5
+	var hy: float = size.y * 0.5
+	var hz: float = size.z * 0.5
+	var corners: Array[Vector3] = [
+		Vector3(-hx, -hy, -hz),
+		Vector3(hx, -hy, -hz),
+		Vector3(-hx, hy, -hz),
+		Vector3(hx, hy, -hz),
+		Vector3(-hx, -hy, hz),
+		Vector3(hx, -hy, hz),
+		Vector3(-hx, hy, hz),
+		Vector3(hx, hy, hz),
+	]
+
+	var world_corners: Array[Vector3] = []
+	for corner: Vector3 in corners:
+		world_corners.append(box_transform * corner)
+
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[0], world_corners[1], world_corners[2], world_corners[3], -box_transform.basis.z)
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[5], world_corners[4], world_corners[7], world_corners[6], box_transform.basis.z)
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[4], world_corners[0], world_corners[6], world_corners[2], -box_transform.basis.x)
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[1], world_corners[5], world_corners[3], world_corners[7], box_transform.basis.x)
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[2], world_corners[3], world_corners[6], world_corners[7], box_transform.basis.y)
+	_append_mesh_quad(vertices, normals, uvs, indices, world_corners[4], world_corners[5], world_corners[0], world_corners[1], -box_transform.basis.y)
+
+
 func _array_mesh_from_surface(
 	vertices: PackedVector3Array,
 	normals: PackedVector3Array,
@@ -628,13 +684,38 @@ func _ring_count(query: TrackQueryV2, options: Dictionary) -> int:
 	var spacing_m: float = float(options.get("sample_spacing_m", 5.0))
 	var min_samples: int = maxi(int(options.get("min_samples", 8)), 2)
 	var length_m: float = query.get_track_length_m()
-	return maxi(ceili(length_m / maxf(spacing_m, 0.25)) + 1, min_samples + 1)
+	var interval_count: int = maxi(ceili(length_m / maxf(spacing_m, 0.25)), 1)
+	if _is_closed_loop(query):
+		return maxi(interval_count, min_samples)
+	return maxi(interval_count + 1, min_samples + 1)
 
 
-func _distance_for_ring(index: int, ring_count: int, length_m: float) -> float:
+func _distance_for_ring(index: int, ring_count: int, length_m: float, closed_loop: bool = false) -> float:
 	if ring_count <= 1:
 		return 0.0
+	if closed_loop:
+		return length_m * float(index) / float(ring_count)
 	return length_m * float(index) / float(ring_count - 1)
+
+
+func _ring_span_count(ring_count: int, closed_loop: bool) -> int:
+	if closed_loop:
+		return maxi(ring_count, 0)
+	return maxi(ring_count - 1, 0)
+
+
+func _next_ring_index(index: int, ring_count: int, closed_loop: bool) -> int:
+	if closed_loop:
+		return posmod(index + 1, ring_count)
+	return index + 1
+
+
+func _is_closed_loop(query: TrackQueryV2) -> bool:
+	if query == null:
+		return false
+	if query.uses_explicit_loop_closure():
+		return false
+	return query.is_closed_loop()
 
 
 func _guardrail_enabled_at_distance(distance_m: float, track_length_m: float, options: Dictionary) -> bool:

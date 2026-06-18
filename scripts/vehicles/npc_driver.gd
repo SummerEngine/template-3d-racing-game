@@ -62,23 +62,31 @@ func _sample_command() -> RefCounted:
 		return _command.clear()
 
 	var vehicle_position: Vector3 = vehicle.global_position
+	if not vehicle_position.is_finite():
+		return _command.clear()
 	var current_distance_m: float = _closest_distance_for_position(track_query, vehicle_position)
 	var speed_ratio: float = _vehicle_speed_ratio(vehicle)
 	var speed_mps: float = _vehicle_speed_mps(vehicle)
+	if not _is_finite_float(current_distance_m) or not _is_finite_float(speed_ratio) or not _is_finite_float(speed_mps):
+		return _command.clear()
 	var lookahead_distance_m: float = current_distance_m + lookahead_m * lerpf(0.85, 1.35, speed_ratio)
 	var target_sample: Dictionary = _lane_target_sample(track_query, lookahead_distance_m)
 	if not bool(target_sample.get("valid", false)):
 		return _command.clear()
 	var target_position: Vector3 = target_sample["position"]
+	if not target_position.is_finite():
+		return _command.clear()
 
 	var forward: Vector3 = _flat_vehicle_forward(vehicle)
 	var target_direction: Vector3 = target_position - vehicle_position
 	target_direction.y = 0.0
-	if target_direction.length_squared() <= 0.0001:
+	if not target_direction.is_finite() or target_direction.length_squared() <= 0.0001:
 		return _command.clear()
 	target_direction = target_direction.normalized()
 
 	var signed_angle_rad: float = forward.signed_angle_to(target_direction, Vector3.UP)
+	if not _is_finite_float(signed_angle_rad):
+		return _command.clear()
 	var angle_abs_degrees: float = absf(rad_to_deg(signed_angle_rad))
 	var steer: float = clampf(-signed_angle_rad * steer_gain * _personality_steer_multiplier(), -1.0, 1.0)
 	var desired_speed_ratio: float = _desired_speed_ratio_for_angle(angle_abs_degrees)
@@ -167,13 +175,13 @@ func _closest_distance_for_position(track_query: Object, position: Vector3) -> f
 	var track_length_m: float = _track_length_m(track_query)
 	if track_length_m > 0.0:
 		return fposmod(distance_m, track_length_m)
-	return maxf(distance_m, 0.0)
+	return maxf(distance_m, 0.0) if _is_finite_float(distance_m) else 0.0
 
 
 func _lane_target_sample(track_query: Object, distance_m: float) -> Dictionary:
 	if track_query.has_method("lane_transform"):
 		var lane_value: Variant = track_query.call("lane_transform", distance_m, lane_index)
-		if lane_value is Transform3D:
+		if lane_value is Transform3D and _is_finite_transform(lane_value):
 			return {
 				"valid": true,
 				"position": lane_value.origin,
@@ -182,7 +190,7 @@ func _lane_target_sample(track_query: Object, distance_m: float) -> Dictionary:
 	if track_query.has_method("transform_at_distance"):
 		var offset_m: float = float(lane_index) * fallback_lane_width_m
 		var transform_value: Variant = track_query.call("transform_at_distance", distance_m, offset_m)
-		if transform_value is Transform3D:
+		if transform_value is Transform3D and _is_finite_transform(transform_value):
 			return {
 				"valid": true,
 				"position": transform_value.origin,
@@ -196,12 +204,13 @@ func _lane_target_sample(track_query: Object, distance_m: float) -> Dictionary:
 			if position_value is Vector3:
 				var position: Vector3 = position_value
 				var normal_value: Variant = sample.get("normal", Vector3.ZERO)
-				if normal_value is Vector3:
+				if normal_value is Vector3 and normal_value.is_finite() and normal_value.length_squared() > 0.0001:
 					position += normal_value.normalized() * float(lane_index) * fallback_lane_width_m
-				return {
-					"valid": true,
-					"position": position,
-				}
+				if position.is_finite():
+					return {
+						"valid": true,
+						"position": position,
+					}
 
 	return {
 		"valid": false,
@@ -213,12 +222,16 @@ func _track_length_m(track_query: Object) -> float:
 	if track_query.has_method("get_track_length_m"):
 		var track_query_length: Variant = track_query.call("get_track_length_m")
 		if track_query_length is float or track_query_length is int:
-			return maxf(float(track_query_length), 0.0)
+			var length_m: float = float(track_query_length)
+			if _is_finite_float(length_m):
+				return maxf(length_m, 0.0)
 
 	if track_query.has_method("get_length_m"):
 		var path_length: Variant = track_query.call("get_length_m")
 		if path_length is float or path_length is int:
-			return maxf(float(path_length), 0.0)
+			var path_length_m: float = float(path_length)
+			if _is_finite_float(path_length_m):
+				return maxf(path_length_m, 0.0)
 
 	return 0.0
 
@@ -257,12 +270,16 @@ func _vehicle_speed_ratio(vehicle: Node3D) -> float:
 	if vehicle.has_method("get_speed_ratio"):
 		var ratio_value: Variant = vehicle.call("get_speed_ratio")
 		if ratio_value is float or ratio_value is int:
-			return clampf(float(ratio_value), 0.0, 1.5)
+			var ratio: float = float(ratio_value)
+			if _is_finite_float(ratio):
+				return clampf(ratio, 0.0, 1.5)
 
 	var max_speed_mps: float = 1.0
 	var max_speed_value: Variant = vehicle.get("max_speed")
 	if max_speed_value is float or max_speed_value is int:
-		max_speed_mps = maxf(float(max_speed_value), 1.0)
+		var max_speed_float: float = float(max_speed_value)
+		if _is_finite_float(max_speed_float):
+			max_speed_mps = maxf(max_speed_float, 1.0)
 
 	return clampf(_vehicle_speed_mps(vehicle) / max_speed_mps, 0.0, 1.5)
 
@@ -270,12 +287,14 @@ func _vehicle_speed_ratio(vehicle: Node3D) -> float:
 func _vehicle_speed_mps(vehicle: Node3D) -> float:
 	if vehicle.has_method("get_speed"):
 		var speed_value: Variant = vehicle.call("get_speed")
-		if speed_value is float or speed_value is int:
+		if (speed_value is float or speed_value is int) and _is_finite_float(float(speed_value)):
 			return maxf(float(speed_value), 0.0)
 
 	if vehicle is CharacterBody3D:
 		var body: CharacterBody3D = vehicle as CharacterBody3D
-		return Vector3(body.velocity.x, 0.0, body.velocity.z).length()
+		var planar_velocity := Vector3(body.velocity.x, 0.0, body.velocity.z)
+		if planar_velocity.is_finite():
+			return planar_velocity.length()
 
 	return 0.0
 
@@ -283,9 +302,20 @@ func _vehicle_speed_mps(vehicle: Node3D) -> float:
 func _flat_vehicle_forward(vehicle: Node3D) -> Vector3:
 	var forward: Vector3 = -vehicle.global_transform.basis.z
 	forward.y = 0.0
-	if forward.length_squared() <= 0.0001:
+	if not forward.is_finite() or forward.length_squared() <= 0.0001:
 		return Vector3(0.0, 0.0, -1.0)
 	return forward.normalized()
+
+
+func _is_finite_transform(value: Transform3D) -> bool:
+	return value.origin.is_finite() \
+			and value.basis.x.is_finite() \
+			and value.basis.y.is_finite() \
+			and value.basis.z.is_finite()
+
+
+func _is_finite_float(value: float) -> bool:
+	return not is_nan(value) and not is_inf(value)
 
 
 func _personality_speed_multiplier() -> float:

@@ -12,7 +12,9 @@ const SPONSOR_MARKS: Array[Dictionary] = [
 
 @export_enum("city_sunset", "coastal_mountain") var style: String = "city_sunset"
 @export var generate_on_ready: bool = true
+@export var generate_in_editor: bool = false
 @export var clear_previous_on_generate: bool = true
+@export var assign_owner_in_editor: bool = false
 @export var root_name: String = "GeneratedPremiumTrackDressing"
 @export_node_path("Node") var track_query_provider_path: NodePath = NodePath("../TrackAuthoring/Generated/StormCoastTrackGenerator")
 @export var use_generated_sponsor_textures: bool = true
@@ -25,6 +27,7 @@ const SPONSOR_MARKS: Array[Dictionary] = [
 @export_file("*.glb", "*.gltf", "*.tscn") var generated_barrier_scene_path: String = "res://assets/environment/storm_coast_concrete_barrier_hunyuan.glb"
 @export_file("*.glb", "*.gltf", "*.tscn") var generated_cliff_scene_path: String = "res://assets/environment/storm_coast_cliff_rock_wall_hunyuan.glb"
 @export_file("*.glb", "*.gltf", "*.tscn") var generated_service_post_scene_path: String = "res://assets/environment/storm_coast_floodlight_camera_post_hunyuan.glb"
+@export var use_generated_barrier_scene_instances: bool = false
 @export var generated_barrier_scene_scale: Vector3 = Vector3(2.2, 2.2, 2.2)
 @export var generated_cliff_scene_scale: Vector3 = Vector3(8.0, 8.0, 8.0)
 @export var generated_service_post_scene_scale: Vector3 = Vector3(2.5, 2.5, 2.5)
@@ -46,15 +49,21 @@ const SPONSOR_MARKS: Array[Dictionary] = [
 @export_range(0, 14, 1) var powerline_pole_count: int = 7
 @export_range(0, 12, 1) var mist_bank_count: int = 5
 @export var track_relative_dressing_enabled: bool = true
+@export var trackside_safety_barriers_enabled: bool = false
 @export_range(24.0, 120.0, 1.0) var track_barrier_segment_spacing_m: float = 34.0
 @export_range(40.0, 180.0, 1.0) var track_sponsor_spacing_m: float = 118.0
 @export_range(50.0, 240.0, 1.0) var track_rock_cluster_spacing_m: float = 92.0
 @export_range(40.0, 220.0, 1.0) var track_service_post_spacing_m: float = 135.0
+@export_range(0.0, 320.0, 1.0) var track_start_finish_clearance_m: float = 180.0
+@export_range(0.0, 360.0, 1.0) var track_start_area_clearance_radius_m: float = 260.0
+@export_range(0.0, 32.0, 0.5) var track_road_clearance_margin_m: float = 1.0
 
 var _generated_root: Node3D = null
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint() and not generate_in_editor:
+		return
 	if generate_on_ready:
 		call_deferred("generate")
 
@@ -302,7 +311,8 @@ func _add_track_relative_coastal_details() -> void:
 	if track_length_m <= 1.0:
 		return
 
-	_add_trackside_safety_barriers(track_provider, track_length_m)
+	if trackside_safety_barriers_enabled:
+		_add_trackside_safety_barriers(track_provider, track_length_m)
 	_add_trackside_sponsor_boards(track_provider, track_length_m)
 	_add_brake_marker_boards(track_provider, track_length_m)
 	_add_trackside_service_posts(track_provider, track_length_m)
@@ -326,16 +336,22 @@ func _resolve_track_query_provider() -> Node:
 
 func _add_trackside_safety_barriers(track_provider: Node, track_length_m: float) -> void:
 	var material := _material(Color(0.48, 0.49, 0.47, 1.0), 0.72, 0.0)
-	var barrier_scene: PackedScene = _load_packed_scene(generated_barrier_scene_path)
+	var barrier_scene: PackedScene = null
+	if use_generated_barrier_scene_instances:
+		barrier_scene = _load_packed_scene(generated_barrier_scene_path)
 	var segment_count: int = maxi(floori(track_length_m / maxf(track_barrier_segment_spacing_m, 1.0)), 1)
 	for index: int in range(segment_count):
 		var distance_m: float = 18.0 + float(index) * track_barrier_segment_spacing_m
 		if distance_m >= track_length_m - 18.0:
 			continue
+		if _is_in_track_start_finish_clearance(distance_m, track_length_m):
+			continue
 		for side: float in [-1.0, 1.0]:
 			if (index + int(side * 2.0)) % 5 == 0:
 				continue
 			var edge_xform: Transform3D = _edge_transform(track_provider, distance_m, side, 2.65, 0.48)
+			if _is_in_track_start_area_clearance(track_provider, edge_xform.origin) or _is_too_close_to_road(track_provider, edge_xform.origin, 0.5):
+				continue
 			var node_name: String = "TracksideConcreteBarrier_%s_%03d" % ["L" if side < 0.0 else "R", index]
 			if barrier_scene != null and index % 6 == 0:
 				_add_scene_instance(node_name, barrier_scene, edge_xform, generated_barrier_scene_scale)
@@ -352,11 +368,16 @@ func _add_trackside_sponsor_boards(track_provider: Node, track_length_m: float) 
 	var board_index: int = 0
 	var distance_m: float = 72.0
 	while distance_m < track_length_m - 80.0:
+		if _is_in_track_start_finish_clearance(distance_m, track_length_m):
+			distance_m += track_sponsor_spacing_m
+			continue
 		for side: float in [-1.0, 1.0]:
 			if _unit_noise(board_index, int(side * 10.0)) < 0.33:
 				continue
 			var sponsor: Dictionary = SPONSOR_MARKS[board_index % SPONSOR_MARKS.size()]
 			var panel_xform: Transform3D = _road_facing_panel_transform(track_provider, distance_m, side, 5.3, 2.15)
+			if _is_in_track_start_area_clearance(track_provider, panel_xform.origin) or _is_too_close_to_road(track_provider, panel_xform.origin, 1.0):
+				continue
 			_add_trackside_ad_panel(
 				"TrackEdgeSponsor_%s_%03d" % ["L" if side < 0.0 else "R", board_index],
 				panel_xform,
@@ -376,8 +397,12 @@ func _add_brake_marker_boards(track_provider: Node, track_length_m: float) -> vo
 		var corner_distance: float = corner_anchors[corner_index]
 		for marker_index: int in range(marker_distances.size()):
 			var marker_distance: float = fposmod(corner_distance - marker_distances[marker_index], track_length_m)
+			if _is_in_track_start_finish_clearance(marker_distance, track_length_m):
+				continue
 			for side: float in [-1.0, 1.0]:
 				var panel_xform: Transform3D = _road_facing_panel_transform(track_provider, marker_distance, side, 3.6, 1.15)
+				if _is_in_track_start_area_clearance(track_provider, panel_xform.origin) or _is_too_close_to_road(track_provider, panel_xform.origin, 1.0):
+					continue
 				_add_trackside_marker_panel(
 					"BrakeMarker_%03d_%s_%03d" % [int(marker_distances[marker_index]), "L" if side < 0.0 else "R", corner_index],
 					panel_xform,
@@ -390,8 +415,16 @@ func _add_trackside_service_posts(track_provider: Node, track_length_m: float) -
 	var post_index: int = 0
 	var distance_m: float = 42.0
 	while distance_m < track_length_m - 30.0:
+		if _is_in_track_start_finish_clearance(distance_m, track_length_m):
+			post_index += 1
+			distance_m += track_service_post_spacing_m
+			continue
 		var side := -1.0 if post_index % 2 == 0 else 1.0
 		var post_xform: Transform3D = _edge_transform(track_provider, distance_m, side, 6.4, 2.4)
+		if _is_in_track_start_area_clearance(track_provider, post_xform.origin) or _is_too_close_to_road(track_provider, post_xform.origin, 1.5):
+			post_index += 1
+			distance_m += track_service_post_spacing_m
+			continue
 		if service_post_scene != null and post_index % 3 == 0:
 			_add_scene_instance("GeneratedServicePost_%03d" % post_index, service_post_scene, post_xform, generated_service_post_scene_scale)
 		else:
@@ -410,6 +443,10 @@ func _add_trackside_rock_clusters(track_provider: Node, track_length_m: float) -
 	var cluster_index: int = 0
 	var distance_m: float = 88.0
 	while distance_m < track_length_m - 50.0:
+		if _is_in_track_start_finish_clearance(distance_m, track_length_m):
+			cluster_index += 1
+			distance_m += track_rock_cluster_spacing_m
+			continue
 		var side := -1.0 if cluster_index % 3 != 1 else 1.0
 		var chunk_count: int = 3 + (cluster_index % 3)
 		for chunk_index: int in range(chunk_count):
@@ -428,6 +465,8 @@ func _add_trackside_rock_clusters(track_provider: Node, track_length_m: float) -
 				height_m * 0.5 - 0.4,
 				_unit_noise(cluster_index, chunk_index + 31) * 26.0 - 13.0
 			)
+			if _is_in_track_start_area_clearance(track_provider, rock_xform.origin) or _is_too_close_to_road(track_provider, rock_xform.origin, 3.0):
+				continue
 			var node_name: String = "RoadsideCliffChunk_%03d_%02d" % [cluster_index, chunk_index]
 			if cliff_scene != null and chunk_index == 0 and cluster_index % 2 == 0:
 				_add_scene_instance(node_name, cliff_scene, rock_xform, generated_cliff_scene_scale)
@@ -449,10 +488,16 @@ func _add_trackside_foliage_clusters(track_provider: Node, track_length_m: float
 	var cluster_index: int = 0
 	var distance_m: float = 120.0
 	while distance_m < track_length_m - 80.0:
+		if _is_in_track_start_finish_clearance(distance_m, track_length_m):
+			cluster_index += 1
+			distance_m += 165.0
+			continue
 		for side: float in [-1.0, 1.0]:
 			if _unit_noise(cluster_index, int(side * 8.0)) < 0.42:
 				continue
 			var cluster_xform: Transform3D = _edge_transform(track_provider, distance_m, side, 13.0 + _unit_noise(cluster_index, 3) * 11.0, 1.2)
+			if _is_in_track_start_area_clearance(track_provider, cluster_xform.origin) or _is_too_close_to_road(track_provider, cluster_xform.origin, 3.0):
+				continue
 			_add_tree_cluster("RoadsideTreeCluster_%s_%03d" % ["L" if side < 0.0 else "R", cluster_index], cluster_xform, foliage_material, trunk_material, cluster_index)
 		cluster_index += 1
 		distance_m += 165.0
@@ -670,6 +715,54 @@ func _safe_vector(value: Variant, fallback: Vector3) -> Vector3:
 	return fallback
 
 
+func _is_in_track_start_finish_clearance(distance_m: float, track_length_m: float) -> bool:
+	if track_start_finish_clearance_m <= 0.0 or track_length_m <= 0.0:
+		return false
+	var clearance_m: float = clampf(track_start_finish_clearance_m, 0.0, track_length_m * 0.45)
+	if clearance_m <= 0.0:
+		return false
+	var wrapped_distance_m: float = fposmod(distance_m, track_length_m)
+	return wrapped_distance_m < clearance_m or wrapped_distance_m > track_length_m - clearance_m
+
+
+func _is_in_track_start_area_clearance(track_provider: Node, world_position: Vector3) -> bool:
+	if track_start_area_clearance_radius_m <= 0.0 or track_provider == null or not track_provider.has_method("get_start_grid_transform"):
+		return false
+	var start_center: Vector3 = _track_start_grid_center(track_provider)
+	var offset: Vector3 = world_position - start_center
+	offset.y = 0.0
+	return offset.length() < track_start_area_clearance_radius_m
+
+
+func _is_too_close_to_road(track_provider: Node, world_position: Vector3, extra_margin_m: float = 0.0) -> bool:
+	if track_provider == null:
+		return false
+	if not track_provider.has_method("closest_distance_for_position") or not track_provider.has_method("surface_transform"):
+		return false
+	var closest_distance_m: float = float(track_provider.call("closest_distance_for_position", world_position))
+	var road_transform: Transform3D = track_provider.call("surface_transform", closest_distance_m)
+	var center_to_position: Vector3 = world_position - road_transform.origin
+	center_to_position.y = 0.0
+	var lateral_distance_m: float = absf(center_to_position.dot(road_transform.basis.x.normalized()))
+	var road_width_m: float = 20.0
+	if track_provider.has_method("get_road_width_m"):
+		road_width_m = float(track_provider.call("get_road_width_m", closest_distance_m))
+	var clearance_m: float = road_width_m * 0.5 + track_road_clearance_margin_m + maxf(extra_margin_m, 0.0)
+	return lateral_distance_m < clearance_m
+
+
+func _track_start_grid_center(track_provider: Node) -> Vector3:
+	var slot_count: int = 1
+	if track_provider.has_method("get_start_grid_slot_count"):
+		slot_count = maxi(int(track_provider.call("get_start_grid_slot_count")), 1)
+	slot_count = mini(slot_count, 8)
+	var center := Vector3.ZERO
+	for slot_index: int in range(slot_count):
+		var slot_transform: Transform3D = track_provider.call("get_start_grid_transform", slot_index)
+		center += slot_transform.origin
+	return center / float(slot_count)
+
+
 func _irregular_rock_mesh(size_m: Vector3, seed_index: int) -> ArrayMesh:
 	var base_vertices: Array[Vector3] = [
 		Vector3(-0.5, -0.5, -0.5),
@@ -746,14 +839,18 @@ func _add_ocean_plane() -> void:
 
 
 func _add_coastal_roadside_signage() -> void:
+	var track_provider := _resolve_track_query_provider()
 	for index: int in range(warning_sign_count):
 		var side := -1.0 if index % 2 == 0 else 1.0
 		var z := lerpf(-112.0, 112.0, float(index) / maxf(float(warning_sign_count - 1), 1.0))
 		var sponsor: Dictionary = SPONSOR_MARKS[(index + 3) % SPONSOR_MARKS.size()]
 		if index % 3 == 0:
+			var board_position := Vector3(side * 39.0, 2.0, z)
+			if _is_too_close_to_road(track_provider, board_position, 5.0):
+				continue
 			_add_sponsor_board(
 				"CoastalSponsor_%02d" % index,
-				Vector3(side * 39.0, 2.0, z),
+				board_position,
 				-72.0 if side < 0.0 else 72.0,
 				String(sponsor["name"]),
 				sponsor["base"],
@@ -761,7 +858,10 @@ func _add_coastal_roadside_signage() -> void:
 				Vector2(7.0, 2.1)
 			)
 		else:
-			_add_warning_chevrons(index, Vector3(side * 31.0, 1.3, z), -68.0 if side < 0.0 else 68.0, side)
+			var chevron_position := Vector3(side * 31.0, 1.3, z)
+			if _is_too_close_to_road(track_provider, chevron_position, 4.0):
+				continue
+			_add_warning_chevrons(index, chevron_position, -68.0 if side < 0.0 else 68.0, side)
 
 
 func _add_warning_chevrons(index: int, chevron_position: Vector3, yaw_degrees: float, side: float) -> void:
@@ -819,6 +919,7 @@ func _add_cliffs() -> void:
 
 
 func _add_hillside_city() -> void:
+	var track_provider := _resolve_track_query_provider()
 	for index: int in range(22):
 		var cluster_x := lerpf(-170.0, 170.0, float(index) / 21.0)
 		var hill_y := 8.0 + absf(cluster_x) * 0.045 + sin(float(index) * 0.81) * 3.5
@@ -832,6 +933,8 @@ func _add_hillside_city() -> void:
 		mesh.size = Vector3(width, height, depth)
 		building.mesh = mesh
 		building.position = Vector3(cluster_x, hill_y + height * 0.5, z)
+		if _is_too_close_to_road(track_provider, building.position, 14.0):
+			continue
 		building.rotation_degrees.y = sin(float(index) * 0.52) * 6.0
 		building.material_override = _material(Color(0.72, 0.76, 0.76, 1.0), 0.64, 0.04)
 		_generated_root.add_child(building)
@@ -840,6 +943,7 @@ func _add_hillside_city() -> void:
 
 
 func _add_coastal_support_structures() -> void:
+	var track_provider := _resolve_track_query_provider()
 	_add_retaining_wall(Vector3(-48.0, 2.2, -82.0), 18.0, 74.0)
 	_add_retaining_wall(Vector3(54.0, 2.2, 68.0), -22.0, 68.0)
 	for index: int in range(3):
@@ -849,6 +953,8 @@ func _add_coastal_support_structures() -> void:
 		mesh.size = Vector3(18.0, 8.2, 2.4)
 		tunnel.mesh = mesh
 		tunnel.position = Vector3(-72.0 + float(index) * 72.0, 3.9, -138.0 - float(index % 2) * 12.0)
+		if _is_too_close_to_road(track_provider, tunnel.position, 12.0):
+			continue
 		tunnel.rotation_degrees.y = -8.0 + float(index) * 6.0
 		tunnel.material_override = _material(Color(0.47, 0.49, 0.48, 1.0), 0.72, 0.02)
 		_generated_root.add_child(tunnel)
@@ -874,6 +980,7 @@ func _add_powerline_run() -> void:
 	if powerline_pole_count <= 0:
 		return
 
+	var track_provider := _resolve_track_query_provider()
 	var previous_top := Vector3.ZERO
 	var has_previous := false
 	for index: int in range(powerline_pole_count):
@@ -882,6 +989,9 @@ func _add_powerline_run() -> void:
 		var x := -54.0 + sin(float(index) * 0.73) * 4.5
 		var height := 10.5 + sin(float(index) * 1.31) * 1.4
 		var pole_top := Vector3(x, height + 1.8, z)
+		if _is_too_close_to_road(track_provider, Vector3(x, height * 0.5, z), 8.0):
+			has_previous = false
+			continue
 
 		var pole := MeshInstance3D.new()
 		pole.name = "CoastalPowerPole_%02d" % index
@@ -965,16 +1075,20 @@ func _add_reflector_posts(side_offset_m: float, start_z: float, end_z: float) ->
 	if reflector_post_count <= 0:
 		return
 
+	var track_provider := _resolve_track_query_provider()
 	for index: int in range(reflector_post_count):
 		var t := float(index) / maxf(float(reflector_post_count - 1), 1.0)
 		var z := lerpf(start_z, end_z, t)
 		for side: float in [-1.0, 1.0]:
+			var post_position := Vector3(side * side_offset_m, 0.62, z)
+			if _is_too_close_to_road(track_provider, post_position, 2.0):
+				continue
 			var post := MeshInstance3D.new()
 			post.name = "ReflectorPost_%s_%02d" % ["L" if side < 0.0 else "R", index]
 			var post_mesh := BoxMesh.new()
 			post_mesh.size = Vector3(0.16, 1.25, 0.16)
 			post.mesh = post_mesh
-			post.position = Vector3(side * side_offset_m, 0.62, z)
+			post.position = post_position
 			post.material_override = _material(Color(0.78, 0.80, 0.76, 1.0), 0.44, 0.0)
 			_generated_root.add_child(post)
 			_assign_owner(post)
@@ -1129,7 +1243,7 @@ func _basis_from_forward(forward: Vector3) -> Basis:
 
 
 func _assign_owner(node: Node) -> void:
-	if Engine.is_editor_hint() and get_tree() != null and owner != null:
+	if assign_owner_in_editor and Engine.is_editor_hint() and get_tree() != null and owner != null:
 		node.owner = owner
 
 

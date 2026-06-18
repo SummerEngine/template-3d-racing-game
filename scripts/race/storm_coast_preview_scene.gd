@@ -10,7 +10,8 @@ const RaceConfigScript := preload("res://scripts/race/race_config.gd")
 @export_node_path("Node") var race_manager_path: NodePath = ^"Managers/RaceManager"
 @export var regenerate_track_on_ready: bool = true
 @export var place_player_on_start_grid: bool = true
-@export var player_start_slot_index: int = 0
+@export var player_start_slot_index: int = 2
+@export var npc_start_slot_indices: Array[int] = [0, 1, 3]
 @export var auto_start_countdown: bool = true
 @export var print_setup_summary: bool = true
 @export var print_floor_probe: bool = true
@@ -76,11 +77,21 @@ func _place_vehicles() -> void:
 	if _track_generator != null and _track_generator.has_method("place_node_at_start_grid"):
 		_track_generator.call("place_node_at_start_grid", _player_car, player_start_slot_index)
 		_reset_vehicle_motion(_player_car)
-		var grid_index: int = player_start_slot_index + 1
+		var npc_index: int = 0
 		for npc_car: Node3D in _collect_npc_cars():
+			var grid_index: int = _npc_start_slot_index(npc_index)
 			_track_generator.call("place_node_at_start_grid", npc_car, grid_index)
 			_reset_vehicle_motion(npc_car)
-			grid_index += 1
+			npc_index += 1
+
+
+func _npc_start_slot_index(npc_index: int) -> int:
+	if npc_index >= 0 and npc_index < npc_start_slot_indices.size():
+		return int(npc_start_slot_indices[npc_index])
+	var grid_index: int = maxi(npc_index, 0)
+	if grid_index >= player_start_slot_index:
+		grid_index += 1
+	return grid_index
 
 
 func _configure_npc_drivers() -> void:
