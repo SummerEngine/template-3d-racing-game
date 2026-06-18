@@ -35,6 +35,16 @@ Use `texture_path` for a repo-local source image or `texture_url` for a public i
 }
 ```
 
+For local prototype models, use `model_path` instead of `model_url`; the proxy uploads the GLB to fal storage without making the file public in the repo:
+
+```json
+{
+  "prompt": "red metallic race livery with black carbon fiber details",
+  "model_path": "assets/cars/customizable_hypercar_model3.glb",
+  "mode": "retexture"
+}
+```
+
 Successful job responses use the Godot-facing shape:
 
 ```json

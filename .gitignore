@@ -20,6 +20,8 @@ export_credentials.cfg
 
 # Local brainstorming/browser companion state
 .superpowers/
+downloads/
+node_modules/
 
 # Godot/Summer generated editor cache
 .godot/

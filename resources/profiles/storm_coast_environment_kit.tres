@@ -9,9 +9,9 @@ kit_id = &"mountain_coastal_wet"
 display_name = "Mountain Coastal Wet Kit"
 environment_type = &"rainy_mountain_coastal"
 style_tags = PackedStringArray("rainy_coastal", "cliffside", "wet_road", "mist", "guardrails", "power_lines")
-module_scenes = PackedStringArray("res://scenes/environment/storm_coast/cliff_wall_segment.tscn", "res://scenes/environment/storm_coast/coastal_guardrail_run.tscn", "res://scenes/environment/storm_coast/power_line_run.tscn", "res://scenes/environment/storm_coast/mist_ocean_backdrop.tscn")
-roadside_props = PackedStringArray("guardrail_cluster", "jump_warning_sign", "reflector_post", "power_line_pole", "service_barrier")
-background_props = PackedStringArray("distant_ocean_plane", "mountain_silhouette", "low_cloud_bank", "rain_haze_card")
+module_scenes = PackedStringArray("res://assets/environment/storm_coast_cliff_rock_wall_hunyuan.glb", "res://assets/environment/storm_coast_concrete_barrier_hunyuan.glb", "res://assets/environment/storm_coast_floodlight_camera_post_hunyuan.glb", "res://assets/environment/generated_grandstand_hunyuan.glb")
+roadside_props = PackedStringArray("generated_concrete_barrier", "generated_floodlight_camera_post", "jump_warning_sign", "reflector_post", "power_line_pole", "service_barrier")
+background_props = PackedStringArray("generated_cliff_rock_wall", "distant_ocean_plane", "mountain_silhouette", "low_cloud_bank", "golden_haze_card")
 landmark_scenes = PackedStringArray("res://scenes/environment/storm_coast/ocean_reveal_landmark.tscn", "res://scenes/environment/storm_coast/cliffside_jump_viewpoint.tscn")
 lighting_overrides = {
 "fog_density": 0.085,
@@ -26,4 +26,4 @@ performance_budget = {
 "reflection_probes": 4,
 "roadside_prop_instances": 180
 }
-notes = "Reusable kit metadata for Storm Coast. Scene paths are placeholders for future modular assets and should remain editable through this resource."
+notes = "Reusable kit metadata for Storm Coast. The first generated GLB modules are imported and used sparsely by PremiumTrackDressing, with lightweight procedural fallback pieces between hero instances."

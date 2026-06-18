@@ -30,6 +30,9 @@ const DOWNLOAD_EXTENSIONS: Array[String] = [
 	"tga",
 	"ktx",
 	"exr",
+	"glb",
+	"gltf",
+	"obj",
 ]
 
 var _request: HTTPRequest = null
@@ -43,6 +46,14 @@ func _ready() -> void:
 
 
 func submit_repaint(prompt: String, model_url: String) -> int:
+	return submit_repaint_from_source(prompt, model_url, "")
+
+
+func submit_repaint_from_path(prompt: String, model_path: String) -> int:
+	return submit_repaint_from_source(prompt, "", model_path)
+
+
+func submit_repaint_from_source(prompt: String, model_url: String = "", model_path: String = "") -> int:
 	_ensure_children()
 
 	if has_active_job() or not _request_kind.is_empty():
@@ -51,18 +62,23 @@ func submit_repaint(prompt: String, model_url: String) -> int:
 
 	var clean_prompt := prompt.strip_edges()
 	var clean_model_url := model_url.strip_edges()
+	var clean_model_path := model_path.strip_edges()
 	if clean_prompt.is_empty():
 		_emit_failure("", "Repaint prompt cannot be empty.")
 		return ERR_INVALID_PARAMETER
-	if clean_model_url.is_empty():
-		_emit_failure("", "Repaint model_url cannot be empty.")
+	if clean_model_url.is_empty() == clean_model_path.is_empty():
+		_emit_failure("", "Repaint needs exactly one of model_url or model_path.")
 		return ERR_INVALID_PARAMETER
 
 	var payload := {
 		"prompt": clean_prompt,
-		"model_url": clean_model_url,
 		"mode": "retexture",
 	}
+	if clean_model_url.is_empty():
+		payload["model_path"] = clean_model_path
+	else:
+		payload["model_url"] = clean_model_url
+
 	var body := JSON.stringify(payload)
 	return _start_api_request(
 		REQUEST_SUBMIT,
@@ -115,6 +131,14 @@ func check_health() -> bool:
 
 
 func download_texture(url: String) -> String:
+	return await download_file(url, "texture")
+
+
+func download_model(url: String) -> String:
+	return await download_file(url, "model")
+
+
+func download_file(url: String, cache_prefix: String = "asset") -> String:
 	var clean_url := url.strip_edges()
 	if clean_url.is_empty():
 		return ""
@@ -124,7 +148,7 @@ func download_texture(url: String) -> String:
 		_emit_failure(_active_job_id, "Could not create AI repaint cache directory.")
 		return ""
 
-	var target_path := _cache_path_for_url(clean_url)
+	var target_path := _cache_path_for_url(clean_url, cache_prefix)
 	var response := await _request_url(
 		clean_url,
 		PackedStringArray(),
@@ -145,6 +169,15 @@ func download_texture(url: String) -> String:
 	file.store_buffer(body)
 	file.close()
 	return target_path
+
+
+func download_result_model(result: Dictionary) -> String:
+	if not result.has("model_url"):
+		return ""
+	if typeof(result["model_url"]) != TYPE_STRING:
+		_emit_failure(_active_job_id, "Repaint result model_url is not a string.")
+		return ""
+	return await download_model(String(result["model_url"]))
 
 
 func download_result_texture(result: Dictionary) -> String:
@@ -409,7 +442,7 @@ func _ensure_cache_dir() -> int:
 	return DirAccess.make_dir_recursive_absolute(CACHE_DIR)
 
 
-func _cache_path_for_url(url: String) -> String:
+func _cache_path_for_url(url: String, cache_prefix: String = "texture") -> String:
 	var clean_url := url.split("?")[0].split("#")[0]
 	var extension := clean_url.get_extension().to_lower()
 	if not DOWNLOAD_EXTENSIONS.has(extension):
@@ -417,7 +450,11 @@ func _cache_path_for_url(url: String) -> String:
 	if not DOWNLOAD_EXTENSIONS.has(extension):
 		extension = "png"
 
-	var file_name := "texture_%d.%s" % [abs(url.hash()), extension]
+	var safe_prefix := cache_prefix.strip_edges().to_snake_case()
+	if safe_prefix.is_empty():
+		safe_prefix = "asset"
+
+	var file_name := "%s_%d.%s" % [safe_prefix, abs(url.hash()), extension]
 	return CACHE_DIR.path_join(file_name)
 
 

@@ -5,6 +5,8 @@ const DEFAULT_ROOT_NAME: String = "GeneratedRoadV2"
 const ROAD_UV_SCALE_M: float = 20.0
 const MARKING_UV_SCALE_M: float = 8.0
 const WET_ASPHALT_MATERIAL := preload("res://resources/materials/storm_coast_wet_asphalt_placeholder.tres")
+const CURB_STRIPE_SHADER := preload("res://resources/materials/storm_coast_curb_stripe.gdshader")
+const TERRAIN_SHADER := preload("res://resources/materials/storm_coast_terrain.gdshader")
 
 
 func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Node3D:
@@ -33,14 +35,20 @@ func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Nod
 		root.add_child(road)
 
 	if bool(options.get("generate_collision", true)):
-		_create_collision(root, query, options)
+		_create_collision(root, query, options, road_mesh)
 
 	if bool(options.get("generate_lane_markings", true)):
 		_create_mesh_child(
 			root,
 			"LaneMarkings",
 			build_lane_markings_mesh(query, options),
-			_material(Color(0.92, 0.92, 0.86, 1.0), 0.42, 0.0)
+			_lane_marking_material()
+		)
+		_create_mesh_child(
+			root,
+			"RubberedRacingLine",
+			build_rubber_racing_line_mesh(query, options),
+			_rubber_decal_material()
 		)
 
 	if bool(options.get("generate_shoulders", true)):
@@ -48,7 +56,7 @@ func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Nod
 			root,
 			"Shoulders",
 			build_shoulders_mesh(query, options),
-			_material(Color(0.16, 0.15, 0.14, 1.0), 0.9, 0.0)
+			_shoulder_material()
 		)
 
 	if bool(options.get("generate_curbs", true)):
@@ -56,7 +64,7 @@ func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Nod
 			root,
 			"Curbs",
 			build_curbs_mesh(query, options),
-			_material(Color(0.82, 0.15, 0.12, 1.0), 0.55, 0.0)
+			_curb_material()
 		)
 
 	if bool(options.get("generate_surrounding_terrain", true)):
@@ -148,6 +156,45 @@ func build_lane_markings_mesh(query: TrackQueryV2, options: Dictionary = {}) -> 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
 
+func build_rubber_racing_line_mesh(query: TrackQueryV2, options: Dictionary = {}) -> ArrayMesh:
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
+	var ring_count: int = _ring_count(query, options)
+	var length_m: float = maxf(query.get_track_length_m(), 0.001)
+	var vertical_offset_m: float = float(options.get("rubber_vertical_offset_m", 0.052))
+	var band_ratios: Array[float] = [-0.18, 0.18]
+
+	for band_index: int in range(band_ratios.size()):
+		var base_index: int = vertices.size()
+		var band_ratio: float = band_ratios[band_index]
+		for i: int in range(ring_count):
+			var distance_m: float = _distance_for_ring(i, ring_count, length_m)
+			var sample: Dictionary = query.sample_at_distance(distance_m)
+			var center: Vector3 = sample["position"]
+			var right: Vector3 = sample["right"]
+			var up: Vector3 = sample["up"]
+			var width_m: float = float(sample["road_width_m"])
+			var lateral_offset_m: float = width_m * band_ratio
+			var half_band_width_m: float = clampf(width_m * 0.035, 0.42, 0.85)
+			vertices.append(center + right * (lateral_offset_m - half_band_width_m) + up * vertical_offset_m)
+			vertices.append(center + right * (lateral_offset_m + half_band_width_m) + up * vertical_offset_m)
+			normals.append(up)
+			normals.append(up)
+			uvs.append(Vector2(float(band_index), distance_m / ROAD_UV_SCALE_M))
+			uvs.append(Vector2(float(band_index) + 1.0, distance_m / ROAD_UV_SCALE_M))
+
+		for i: int in range(ring_count - 1):
+			var a: int = base_index + i * 2
+			var b: int = base_index + i * 2 + 1
+			var c: int = base_index + (i + 1) * 2
+			var d: int = base_index + (i + 1) * 2 + 1
+			indices.append_array([a, b, c, b, d, c])
+
+	return _array_mesh_from_surface(vertices, normals, uvs, indices)
+
+
 func build_shoulders_mesh(query: TrackQueryV2, options: Dictionary = {}) -> ArrayMesh:
 	var shoulder_width_m: float = float(options.get("shoulder_width_m", 1.35))
 	var vertical_offset_m: float = float(options.get("shoulder_vertical_offset_m", -0.012))
@@ -218,6 +265,7 @@ func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dic
 	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
 	var rail_height_m: float = float(options.get("guardrail_height_m", 0.95))
 	var beam_height_m: float = float(options.get("guardrail_beam_height_m", 0.34))
+	var beam_thickness_m: float = maxf(float(options.get("guardrail_visual_thickness_m", 0.34)), 0.08)
 	var side_sign: float = -1.0 if side < 0.0 else 1.0
 
 	for i: int in range(ring_count):
@@ -226,21 +274,39 @@ func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dic
 		var transform: Transform3D = query.road_edge_transform(distance_m, side_sign, edge_offset_m)
 		var up: Vector3 = sample["up"]
 		var outward: Vector3 = sample["right"] * side_sign
-		var lower: Vector3 = transform.origin + up * rail_height_m
-		var upper: Vector3 = transform.origin + up * (rail_height_m + beam_height_m)
-		vertices.append(lower)
-		vertices.append(upper)
+		var inner_offset: Vector3 = -outward * beam_thickness_m * 0.5
+		var outer_offset: Vector3 = outward * beam_thickness_m * 0.5
+		var lower_height: Vector3 = up * rail_height_m
+		var upper_height: Vector3 = up * (rail_height_m + beam_height_m)
+
+		vertices.append(transform.origin + inner_offset + lower_height)
+		vertices.append(transform.origin + inner_offset + upper_height)
+		vertices.append(transform.origin + outer_offset + lower_height)
+		vertices.append(transform.origin + outer_offset + upper_height)
+		normals.append(-outward)
+		normals.append(-outward)
 		normals.append(outward)
 		normals.append(outward)
 		uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
+		uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
+		uvs.append(Vector2(1.0, distance_m / ROAD_UV_SCALE_M))
 		uvs.append(Vector2(1.0, distance_m / ROAD_UV_SCALE_M))
 
 	for i: int in range(ring_count - 1):
-		var a: int = i * 2
-		var b: int = i * 2 + 1
-		var c: int = (i + 1) * 2
-		var d: int = (i + 1) * 2 + 1
-		indices.append_array([a, c, b, b, c, d])
+		var distance_a_m: float = _distance_for_ring(i, ring_count, length_m)
+		var distance_b_m: float = _distance_for_ring(i + 1, ring_count, length_m)
+		var midpoint_distance_m: float = (distance_a_m + distance_b_m) * 0.5
+		if not _guardrail_enabled_at_distance(midpoint_distance_m, length_m, options):
+			continue
+
+		var a: int = i * 4
+		var c: int = (i + 1) * 4
+		indices.append_array([
+			a + 2, c + 2, a + 3, a + 3, c + 2, c + 3,
+			a, a + 1, c, a + 1, c + 1, c,
+			a + 1, a + 3, c + 1, a + 3, c + 3, c + 1,
+			a, c, a + 2, a + 2, c, c + 2,
+		])
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
@@ -296,7 +362,7 @@ func _build_side_strips_mesh(
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
 
-func _create_collision(root: Node3D, query: TrackQueryV2, options: Dictionary) -> void:
+func _create_collision(root: Node3D, query: TrackQueryV2, options: Dictionary, road_mesh: ArrayMesh = null) -> void:
 	if query == null or query.get_track_length_m() <= 0.0:
 		return
 
@@ -304,9 +370,20 @@ func _create_collision(root: Node3D, query: TrackQueryV2, options: Dictionary) -
 	body.name = "RoadCollision"
 	body.collision_layer = 1
 	body.collision_mask = 1
-	body.set_meta("collision_mode", "segment_slabs")
 	root.add_child(body)
 
+	var collision_mode: String = String(options.get("road_collision_mode", "surface_mesh")).to_lower()
+	if collision_mode == "surface_mesh" and road_mesh != null:
+		var mesh_shape: Shape3D = road_mesh.create_trimesh_shape()
+		if mesh_shape != null:
+			body.set_meta("collision_mode", "surface_mesh")
+			var surface_collision := CollisionShape3D.new()
+			surface_collision.name = "RoadSurfaceCollision"
+			surface_collision.shape = mesh_shape
+			body.add_child(surface_collision)
+			return
+
+	body.set_meta("collision_mode", "segment_slabs")
 	var track_length_m: float = query.get_track_length_m()
 	var spacing_m: float = maxf(float(options.get("collision_spacing_m", options.get("sample_spacing_m", 5.0))), 0.5)
 	var segment_count: int = maxi(ceili(track_length_m / spacing_m), 1)
@@ -343,7 +420,7 @@ func _create_guardrail_branch(root: Node3D, query: TrackQueryV2, options: Dictio
 	guardrails.name = "Guardrails"
 	root.add_child(guardrails)
 
-	var material: StandardMaterial3D = _material(Color(0.54, 0.57, 0.56, 1.0), 0.62, 0.0)
+	var material: StandardMaterial3D = _guardrail_material()
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	for side: float in [-1.0, 1.0]:
 		var side_name: String = "Left" if side < 0.0 else "Right"
@@ -353,11 +430,65 @@ func _create_guardrail_branch(root: Node3D, query: TrackQueryV2, options: Dictio
 			build_guardrail_preview_mesh(query, side, options),
 			material
 		)
+		var lower_options: Dictionary = options.duplicate()
+		lower_options["guardrail_height_m"] = 0.42
+		lower_options["guardrail_beam_height_m"] = 0.16
+		_create_mesh_child(
+			guardrails,
+			"Guardrail%sLowerBeam" % side_name,
+			build_guardrail_preview_mesh(query, side, lower_options),
+			material
+		)
+
+	_create_guardrail_visual_posts(guardrails, query, options, material)
 
 	var hooks := Node3D.new()
 	hooks.name = "GuardrailHooks"
 	guardrails.add_child(hooks)
 	_create_guardrail_hooks(hooks, query, options)
+
+	if bool(options.get("generate_collision", true)):
+		_create_guardrail_collision(guardrails, query, options)
+
+
+func _create_guardrail_visual_posts(
+	parent: Node3D,
+	query: TrackQueryV2,
+	options: Dictionary,
+	material: Material
+) -> void:
+	var spacing_m: float = maxf(float(options.get("guardrail_post_visual_spacing_m", 8.0)), 1.0)
+	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
+	var post_height_m: float = float(options.get("guardrail_visual_post_height_m", 1.25))
+	var post_size_m: float = float(options.get("guardrail_visual_post_size_m", 0.16))
+	var length_m: float = query.get_track_length_m()
+	var post_count: int = maxi(ceili(length_m / spacing_m), 1)
+	var post_mesh := BoxMesh.new()
+	post_mesh.size = Vector3(post_size_m, post_height_m, post_size_m)
+
+	for side: float in [-1.0, 1.0]:
+		var transforms: Array[Transform3D] = []
+		for i: int in range(post_count):
+			var distance_m: float = minf(float(i) * spacing_m, length_m)
+			if not _guardrail_enabled_at_distance(distance_m, length_m, options):
+				continue
+			transforms.append(query.road_edge_transform(distance_m, side, edge_offset_m, post_height_m * 0.5))
+
+		if transforms.is_empty():
+			continue
+
+		var multimesh := MultiMesh.new()
+		multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		multimesh.mesh = post_mesh
+		multimesh.instance_count = transforms.size()
+		for index: int in range(transforms.size()):
+			multimesh.set_instance_transform(index, transforms[index])
+
+		var posts := MultiMeshInstance3D.new()
+		posts.name = "GuardrailPostVisuals_%s" % ("L" if side < 0.0 else "R")
+		posts.multimesh = multimesh
+		posts.material_override = material
+		parent.add_child(posts)
 
 
 func _create_guardrail_hooks(parent: Node3D, query: TrackQueryV2, options: Dictionary) -> void:
@@ -371,6 +502,9 @@ func _create_guardrail_hooks(parent: Node3D, query: TrackQueryV2, options: Dicti
 		var side_name: String = "L" if side < 0.0 else "R"
 		for i: int in range(hook_count):
 			var distance_m: float = minf(float(i) * spacing_m, length_m)
+			if not _guardrail_enabled_at_distance(distance_m, length_m, options):
+				continue
+
 			var marker := Marker3D.new()
 			marker.name = "GuardrailHook_%s_%03d" % [side_name, i]
 			marker.transform = query.road_edge_transform(distance_m, side, edge_offset_m, vertical_offset_m)
@@ -382,11 +516,55 @@ func _create_guardrail_hooks(parent: Node3D, query: TrackQueryV2, options: Dicti
 			parent.add_child(marker)
 
 
+func _create_guardrail_collision(parent: Node3D, query: TrackQueryV2, options: Dictionary) -> void:
+	var body := StaticBody3D.new()
+	body.name = "GuardrailCollision"
+	body.collision_layer = 1
+	body.collision_mask = 1
+	body.set_meta("collision_role", "solid_guardrail")
+	parent.add_child(body)
+
+	var track_length_m: float = query.get_track_length_m()
+	var spacing_m: float = maxf(float(options.get("guardrail_collision_spacing_m", options.get("collision_spacing_m", 6.0))), 0.5)
+	var segment_count: int = maxi(ceili(track_length_m / spacing_m), 1)
+	var segment_length_m: float = track_length_m / float(segment_count)
+	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
+	var thickness_m: float = maxf(float(options.get("guardrail_collision_thickness_m", 1.35)), 0.25)
+	var height_m: float = maxf(float(options.get("guardrail_collision_height_m", 2.15)), 0.5)
+	var vertical_offset_m: float = float(options.get("guardrail_collision_vertical_offset_m", height_m * 0.5))
+	var overlap_m: float = maxf(float(options.get("guardrail_collision_overlap_m", 1.2)), 0.0)
+
+	for side: float in [-1.0, 1.0]:
+		for i: int in range(segment_count):
+			var start_distance_m: float = float(i) * segment_length_m
+			var end_distance_m: float = minf(start_distance_m + segment_length_m, track_length_m)
+			var midpoint_distance_m: float = start_distance_m + (end_distance_m - start_distance_m) * 0.5
+			if not _guardrail_enabled_at_distance(midpoint_distance_m, track_length_m, options):
+				continue
+
+			var slab_length_m: float = maxf(end_distance_m - start_distance_m + overlap_m, 0.1)
+			var transform: Transform3D = query.road_edge_transform(
+				midpoint_distance_m,
+				side,
+				edge_offset_m,
+				vertical_offset_m
+			)
+
+			var shape := BoxShape3D.new()
+			shape.size = Vector3(thickness_m, height_m, slab_length_m)
+
+			var collision := CollisionShape3D.new()
+			collision.name = "GuardrailCollision_%s_%03d" % ["L" if side < 0.0 else "R", i]
+			collision.shape = shape
+			collision.transform = transform
+			body.add_child(collision)
+
+
 func _create_mesh_child(
 	parent: Node3D,
 	node_name: String,
 	mesh: ArrayMesh,
-	material: StandardMaterial3D
+	material: Material
 ) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
 	node.name = node_name
@@ -459,6 +637,16 @@ func _distance_for_ring(index: int, ring_count: int, length_m: float) -> float:
 	return length_m * float(index) / float(ring_count - 1)
 
 
+func _guardrail_enabled_at_distance(distance_m: float, track_length_m: float, options: Dictionary) -> bool:
+	var seam_gap_m: float = maxf(float(options.get("guardrail_seam_gap_m", 0.0)), 0.0)
+	if seam_gap_m <= 0.0 or track_length_m <= 0.0:
+		return true
+
+	seam_gap_m = minf(seam_gap_m, track_length_m * 0.45)
+	var resolved_distance_m: float = fposmod(distance_m, track_length_m)
+	return resolved_distance_m > seam_gap_m and resolved_distance_m < track_length_m - seam_gap_m
+
+
 func _material(color: Color, roughness: float = 0.82, metallic: float = 0.0) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -468,15 +656,52 @@ func _material(color: Color, roughness: float = 0.82, metallic: float = 0.0) -> 
 
 
 func _road_material() -> Material:
-	var source_material: Material = WET_ASPHALT_MATERIAL
-	if source_material != null:
-		return source_material.duplicate() as Material
-	return _material(Color(0.018, 0.021, 0.024, 1.0), 0.18, 0.0)
+	var material := StandardMaterial3D.new()
+	material.resource_name = "StormCoastRuntimeDarkAsphalt"
+	material.albedo_color = Color(0.022, 0.023, 0.022, 1.0)
+	material.roughness = 0.88
+	material.metallic = 0.0
+	return material
 
 
-func _terrain_material() -> StandardMaterial3D:
-	var material: StandardMaterial3D = _material(Color(0.16, 0.20, 0.17, 1.0), 0.96, 0.0)
+func _lane_marking_material() -> StandardMaterial3D:
+	var material: StandardMaterial3D = _material(Color(0.86, 0.86, 0.78, 1.0), 0.38, 0.0)
+	material.albedo_color = Color(0.92, 0.91, 0.84, 1.0)
+	return material
+
+
+func _rubber_decal_material() -> StandardMaterial3D:
+	var material: StandardMaterial3D = _material(Color(0.006, 0.006, 0.005, 0.38), 0.48, 0.0)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return material
+
+
+func _shoulder_material() -> StandardMaterial3D:
+	var material: StandardMaterial3D = _material(Color(0.095, 0.090, 0.082, 1.0), 0.93, 0.0)
+	material.albedo_color = Color(0.12, 0.11, 0.10, 1.0)
+	return material
+
+
+func _curb_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = CURB_STRIPE_SHADER
+	material.set_shader_parameter("red_paint", Color(0.42, 0.025, 0.022, 1.0))
+	material.set_shader_parameter("white_paint", Color(0.62, 0.61, 0.55, 1.0))
+	material.set_shader_parameter("grime", Color(0.05, 0.045, 0.040, 1.0))
+	material.set_shader_parameter("stripe_scale", 8.0)
+	material.set_shader_parameter("grime_strength", 0.34)
+	return material
+
+
+func _guardrail_material() -> StandardMaterial3D:
+	var material: StandardMaterial3D = _material(Color(0.56, 0.59, 0.57, 1.0), 0.34, 0.55)
+	return material
+
+
+func _terrain_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = TERRAIN_SHADER
 	return material
 
 

@@ -3,7 +3,6 @@ class_name StormCoastTrackGenerator
 extends Node3D
 
 const TrackQueryV2Script := preload("res://scripts/track/track_query_v2.gd")
-const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_v2.gd")
 
 @export var track_profile: Resource = null
 @export var authoring_root_path: NodePath = NodePath("")
@@ -14,7 +13,7 @@ const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_
 
 @export var closed_loop: bool = false
 @export var smooth_centerline: bool = true
-@export_range(4.0, 24.0, 0.25) var default_road_width_m: float = 13.5
+@export_range(4.0, 32.0, 0.25) var default_road_width_m: float = 20.0
 @export_range(1, 6, 1) var lane_count: int = 2
 @export_range(2.0, 6.0, 0.1) var lane_spacing_m: float = 3.6
 @export_range(1.0, 20.0, 0.5) var sample_spacing_m: float = 5.0
@@ -43,6 +42,10 @@ const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_
 @export_range(0.0, 12.0, 0.25) var terrain_edge_gap_m: float = 2.5
 @export_range(6.0, 40.0, 1.0) var guardrail_hook_spacing_m: float = 16.0
 @export_range(0.0, 4.0, 0.05) var guardrail_edge_offset_m: float = 0.72
+@export_range(0.25, 4.0, 0.05) var guardrail_collision_thickness_m: float = 1.45
+@export_range(0.5, 5.0, 0.05) var guardrail_collision_height_m: float = 2.2
+@export_range(0.0, 4.0, 0.05) var guardrail_collision_overlap_m: float = 1.4
+@export_range(0.0, 200.0, 1.0) var guardrail_seam_gap_m: float = 0.0
 
 @export_range(1, 16, 1) var start_grid_slot_count: int = 4
 @export_range(1, 4, 1) var start_grid_columns: int = 2
@@ -50,7 +53,7 @@ const RoadMeshBuilderV2Script := preload("res://scripts/track/road_mesh_builder_
 @export_range(2.0, 8.0, 0.1) var start_grid_lane_spacing_m: float = 3.8
 @export_range(4.0, 14.0, 0.25) var start_grid_row_spacing_m: float = 8.0
 @export_range(0.0, 8.0, 0.25) var start_grid_stagger_offset_m: float = 2.0
-@export_range(0.0, 1.0, 0.01) var start_grid_vertical_offset_m: float = 0.18
+@export_range(-0.5, 1.0, 0.01) var start_grid_vertical_offset_m: float = -0.08
 
 var _track_query: TrackQueryV2 = null
 var _generated_root: Node3D = null
@@ -66,8 +69,15 @@ func regenerate_track() -> void:
 	_track_query = TrackQueryV2Script.new()
 	_track_query.configure_from_authoring_data(authoring_data, track_profile)
 
-	var builder := RoadMeshBuilderV2Script.new()
-	_generated_root = builder.build(self, _track_query, _builder_options())
+	var builder_script := load("res://scripts/track/road_mesh_builder_v2.gd") as Script
+	if builder_script == null:
+		push_error("StormCoastTrackGenerator: failed to load road mesh builder.")
+		return
+	var builder: RefCounted = builder_script.new() as RefCounted
+	if builder == null:
+		push_error("StormCoastTrackGenerator: road mesh builder did not instantiate.")
+		return
+	_generated_root = builder.call("build", self, _track_query, _builder_options()) as Node3D
 
 
 func get_track_query() -> TrackQueryV2:
@@ -246,7 +256,14 @@ func _collect_authoring_nodes(
 				"zone_marker":
 					zone_markers.append(_marker_record(child as Node3D, "zone_id", _node_string_name(child, ["zone_id", "zone"], TrackQueryV2.DEFAULT_ZONE_ID)))
 				"start_grid_marker":
-					start_grid_profile["grid_origin_distance_m"] = _node_float(child, ["grid_origin_distance_m", "distance_m", "distance"], start_grid_origin_distance_m)
+					start_grid_profile["grid_origin_distance_m"] = _node_float(child, ["road_distance_m", "grid_origin_distance_m", "distance_m", "distance"], start_grid_origin_distance_m)
+					start_grid_profile["slot_count"] = int(_node_float(child, ["slot_count"], start_grid_slot_count))
+					start_grid_profile["rows"] = int(_node_float(child, ["rows"], 2.0))
+					start_grid_profile["columns"] = int(_node_float(child, ["columns"], start_grid_columns))
+					start_grid_profile["lane_spacing_m"] = _node_float(child, ["lane_spacing_m"], start_grid_lane_spacing_m)
+					start_grid_profile["row_spacing_m"] = _node_float(child, ["row_spacing_m"], start_grid_row_spacing_m)
+					start_grid_profile["stagger_offset_m"] = _node_float(child, ["stagger_offset_m"], start_grid_stagger_offset_m)
+					start_grid_profile["vertical_offset_m"] = _node_float(child, ["vertical_offset_m", "height_offset_m"], start_grid_vertical_offset_m)
 					start_grid_profile["position"] = to_local((child as Node3D).global_position)
 				"start_grid_slot":
 					start_grid_slots.append(_start_slot_record(child as Node3D))
@@ -428,6 +445,10 @@ func _builder_options() -> Dictionary:
 		"curb_width_m": curb_width_m,
 		"guardrail_hook_spacing_m": guardrail_hook_spacing_m,
 		"guardrail_edge_offset_m": guardrail_edge_offset_m,
+		"guardrail_collision_thickness_m": guardrail_collision_thickness_m,
+		"guardrail_collision_height_m": guardrail_collision_height_m,
+		"guardrail_collision_overlap_m": guardrail_collision_overlap_m,
+		"guardrail_seam_gap_m": guardrail_seam_gap_m,
 		"assign_owner": assign_owner_in_editor and Engine.is_editor_hint(),
 	}
 

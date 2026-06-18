@@ -57,6 +57,7 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export_category("Command Source")
 @export var driver_path: NodePath = NodePath("")
 @export var use_default_player_driver: bool = true
+@export var controls_enabled: bool = true
 
 @onready var visual_root: Node3D = get_node_or_null("VisualRoot")
 @onready var wheel_nodes: Array[Node3D] = [
@@ -192,6 +193,13 @@ func get_vehicle_command() -> RefCounted:
 	return vehicle_command.duplicate_command()
 
 
+func set_controls_enabled(enabled: bool) -> void:
+	controls_enabled = enabled
+	if not controls_enabled:
+		vehicle_command.clear()
+		_sync_command_state()
+
+
 func set_car_color_variant(variant_id: String) -> void:
 	car_color_variant = variant_id
 	_apply_car_color_variant()
@@ -204,6 +212,11 @@ func _resolve_driver() -> void:
 
 
 func _read_command() -> void:
+	if not controls_enabled:
+		vehicle_command.clear()
+		_sync_command_state()
+		return
+
 	var command_written: bool = false
 	if _driver_node == null and not String(driver_path).is_empty():
 		_resolve_driver()

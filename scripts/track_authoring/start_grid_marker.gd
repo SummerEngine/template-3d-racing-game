@@ -8,7 +8,7 @@ extends "res://scripts/track_authoring/track_authoring_marker.gd"
 @export_range(1.0, 10.0, 0.1) var lane_spacing_m: float = 3.6
 @export_range(2.0, 20.0, 0.1) var row_spacing_m: float = 7.5
 @export_range(-6.0, 6.0, 0.1) var stagger_offset_m: float = 1.8
-@export_range(0.0, 1.0, 0.01) var vertical_offset_m: float = 0.14
+@export_range(-0.5, 1.0, 0.01) var vertical_offset_m: float = -0.08
 @export var start_section_only: bool = true
 
 

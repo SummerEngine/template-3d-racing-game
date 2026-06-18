@@ -13,13 +13,14 @@ const packageRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(packageRoot, "..", "..");
 
 dotenv.config({ path: path.join(repoRoot, ".env"), quiet: true });
-dotenv.config({ path: path.join(packageRoot, ".env"), override: false, quiet: true });
+dotenv.config({ path: path.join(packageRoot, ".env"), override: true, quiet: true });
 
 const MESHY_RETEXTURE_MODEL_ID = "fal-ai/meshy/v5/retexture";
 const TEXTURE_REPAINT_MODEL_ID = process.env.FAL_TEXTURE_REPAINT_MODEL_ID || "fal-ai/nano-banana-2/edit";
 const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const TEXTURE_REPAINT_DEFAULT_DRY_RUN = parseBooleanEnv(process.env.UV_REPAINT_DRY_RUN, true);
 const LOCAL_TEXTURE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga"]);
+const LOCAL_MODEL_EXTENSIONS = new Set([".glb", ".gltf", ".obj"]);
 const jobs = new Map();
 
 if (process.env.FAL_KEY) {
@@ -40,6 +41,7 @@ app.get("/health", (_req, res) => {
       texture_img2img: TEXTURE_REPAINT_MODEL_ID,
     },
     fal_configured: Boolean(process.env.FAL_KEY),
+    model_path_upload: true,
     texture_repaint_dry_run: TEXTURE_REPAINT_DEFAULT_DRY_RUN,
   });
 });
@@ -55,10 +57,12 @@ app.post("/api/repaint", async (req, res) => {
   }
 
   try {
-    const { prompt, model_url } = req.body;
+    const { prompt } = req.body;
+    const source = resolveModelSource(req.body);
+    const modelUrl = source.model_url || await uploadLocalModel(source.model_path);
     const submitted = await fal.queue.submit(MESHY_RETEXTURE_MODEL_ID, {
       input: {
-        model_url,
+        model_url: modelUrl,
         text_style_prompt: prompt,
         enable_original_uv: true,
         enable_pbr: true,
@@ -214,8 +218,21 @@ function validateRepaintRequest(body) {
     return "prompt must be 600 characters or fewer for Meshy retexture.";
   }
 
-  if (typeof body.model_url !== "string" || body.model_url.trim().length === 0) {
-    return "model_url is required and must be a non-empty string.";
+  const hasModelUrl = typeof body.model_url === "string" && body.model_url.trim().length > 0;
+  const hasModelPath = typeof body.model_path === "string" && body.model_path.trim().length > 0;
+  if (hasModelUrl === hasModelPath) {
+    return "Provide exactly one of model_url or model_path.";
+  }
+
+  if (hasModelUrl && !isHttpUrl(body.model_url)) {
+    return "model_url must be an http or https URL.";
+  }
+
+  if (hasModelPath) {
+    const resolved = resolveLocalModelPath(body.model_path);
+    if (typeof resolved === "string") {
+      return resolved;
+    }
   }
 
   if (body.mode !== undefined && body.mode !== "retexture") {
@@ -409,6 +426,27 @@ function resolveTextureSource(body, req) {
   };
 }
 
+function resolveModelSource(body) {
+  if (typeof body.model_url === "string" && body.model_url.trim().length > 0) {
+    return {
+      source: "url",
+      model_url: body.model_url.trim(),
+      model_path: null,
+    };
+  }
+
+  const resolved = resolveLocalModelPath(body.model_path);
+  if (typeof resolved === "string") {
+    throw new Error(resolved);
+  }
+
+  return {
+    source: "path",
+    model_url: null,
+    model_path: resolved.absolute_path,
+  };
+}
+
 function createDryRunTextureJob(body, source) {
   const now = new Date().toISOString();
   const sourceUrl = source.texture_url || source.texture_public_url;
@@ -439,6 +477,14 @@ function createDryRunTextureJob(body, source) {
 }
 
 async function uploadLocalTexture(absolutePath) {
+  return uploadLocalFile(absolutePath);
+}
+
+async function uploadLocalModel(absolutePath) {
+  return uploadLocalFile(absolutePath);
+}
+
+async function uploadLocalFile(absolutePath) {
   const bytes = await fs.readFile(absolutePath);
   const file = new File([bytes], path.basename(absolutePath), {
     type: mimeTypeForPath(absolutePath),
@@ -495,6 +541,30 @@ function resolveLocalTexturePath(texturePath) {
   };
 }
 
+function resolveLocalModelPath(modelPath) {
+  if (typeof modelPath !== "string" || modelPath.trim().length === 0) {
+    return "model_path is required and must be a non-empty string.";
+  }
+
+  const cleanPath = modelPath.trim().replace(/^res:\/\//, "");
+  const absolutePath = path.isAbsolute(cleanPath)
+    ? path.resolve(cleanPath)
+    : path.resolve(repoRoot, cleanPath);
+
+  if (!isPathInside(absolutePath, repoRoot)) {
+    return "model_path must resolve inside this repo worktree.";
+  }
+
+  if (!LOCAL_MODEL_EXTENSIONS.has(path.extname(absolutePath).toLowerCase())) {
+    return "model_path must point to a supported model file.";
+  }
+
+  return {
+    absolute_path: absolutePath,
+    relative_path: path.relative(repoRoot, absolutePath).split(path.sep).join("/"),
+  };
+}
+
 function localTextureUrl(req, relativePath) {
   const host = req.get("host") || `127.0.0.1:${PORT}`;
   const query = new URLSearchParams({ path: relativePath });
@@ -537,6 +607,12 @@ function isUnitNumber(value) {
 
 function mimeTypeForPath(filePath) {
   switch (path.extname(filePath).toLowerCase()) {
+    case ".glb":
+      return "model/gltf-binary";
+    case ".gltf":
+      return "model/gltf+json";
+    case ".obj":
+      return "model/obj";
     case ".jpg":
     case ".jpeg":
       return "image/jpeg";
