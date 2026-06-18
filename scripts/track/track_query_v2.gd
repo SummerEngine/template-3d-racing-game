@@ -16,6 +16,7 @@ var _zone_markers: Array[Dictionary] = []
 var _start_grid_slots: Array[Dictionary] = []
 var _start_grid_profile: Dictionary = {}
 var _closed_loop: bool = false
+var _explicit_loop_closure: bool = false
 var _length_m: float = 0.0
 var _default_width_m: float = 12.0
 var _lane_count: int = 2
@@ -124,7 +125,7 @@ func sample_ref_at_distance(distance_m: float) -> TrackSample:
 		)
 
 	var resolved_distance: float = _resolve_distance(distance_m)
-	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
+	var segment_count: int = _segment_count()
 
 	for i: int in range(segment_count):
 		var start_distance: float = _distance_table[i]
@@ -132,7 +133,7 @@ func sample_ref_at_distance(distance_m: float) -> TrackSample:
 		if resolved_distance <= end_distance or i == segment_count - 1:
 			var segment_length: float = maxf(end_distance - start_distance, 0.001)
 			var t: float = clampf((resolved_distance - start_distance) / segment_length, 0.0, 1.0)
-			var next_index: int = (i + 1) % _road_points.size()
+			var next_index: int = _next_point_index(i)
 			var current: Dictionary = _road_points[i]
 			var next: Dictionary = _road_points[next_index]
 			var current_position: Vector3 = _segment_position(i, t)
@@ -184,7 +185,7 @@ func closest_distance_for_position(position: Vector3) -> float:
 
 	var best_distance_sq: float = INF
 	var best_distance_m: float = 0.0
-	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
+	var segment_count: int = _segment_count()
 
 	for i: int in range(segment_count):
 		var steps: int = _closest_subdivision_count()
@@ -275,6 +276,10 @@ func is_closed_loop() -> bool:
 	return _closed_loop
 
 
+func uses_explicit_loop_closure() -> bool:
+	return _explicit_loop_closure
+
+
 func get_road_width_m(distance_m: float = -1.0) -> float:
 	if distance_m < 0.0 or _road_points.is_empty():
 		return _default_width_m
@@ -354,6 +359,7 @@ func _configure_records(records: Array[Dictionary], closed_loop_enabled: bool) -
 		_road_points.append(normalized_record)
 
 	_closed_loop = closed_loop_enabled and _road_points.size() > 2
+	_explicit_loop_closure = _detect_explicit_loop_closure()
 	_distance_table = _build_distance_table()
 	_length_m = _distance_table[_distance_table.size() - 1] if not _distance_table.is_empty() else 0.0
 	if not _road_points.is_empty():
@@ -525,7 +531,7 @@ func _record_width_at_distance(distance_m: float) -> float:
 	if _road_points.is_empty():
 		return _default_width_m
 	var resolved_distance: float = _resolve_distance(distance_m)
-	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
+	var segment_count: int = _segment_count()
 	if segment_count <= 0:
 		return _float_value(_road_points[0], "width_m", _default_width_m)
 
@@ -534,7 +540,7 @@ func _record_width_at_distance(distance_m: float) -> float:
 		var end_distance: float = _distance_table[i + 1]
 		if resolved_distance <= end_distance or i == segment_count - 1:
 			var t: float = clampf((resolved_distance - start_distance) / maxf(end_distance - start_distance, 0.001), 0.0, 1.0)
-			var next_index: int = (i + 1) % _road_points.size()
+			var next_index: int = _next_point_index(i)
 			return lerpf(
 				_float_value(_road_points[i], "width_m", _default_width_m),
 				_float_value(_road_points[next_index], "width_m", _default_width_m),
@@ -602,11 +608,27 @@ func _build_distance_table() -> PackedFloat32Array:
 	if _road_points.size() < 2:
 		return distances
 
-	var segment_count: int = _road_points.size() if _closed_loop else _road_points.size() - 1
+	var segment_count: int = _segment_count()
 	for i: int in range(segment_count):
 		distance += _segment_arc_length(i)
 		distances.append(distance)
 	return distances
+
+
+func _segment_count() -> int:
+	if _road_points.size() < 2:
+		return 0
+	if _closed_loop and not _explicit_loop_closure:
+		return _road_points.size()
+	return _road_points.size() - 1
+
+
+func _detect_explicit_loop_closure() -> bool:
+	if not _closed_loop or _road_points.size() < 4:
+		return false
+	var first_position: Vector3 = _road_points[0]["position"]
+	var last_position: Vector3 = _road_points[_road_points.size() - 1]["position"]
+	return first_position.distance_squared_to(last_position) <= 0.0025
 
 
 func _segment_arc_length(segment_index: int) -> float:
@@ -691,12 +713,20 @@ func _point_position(index: int) -> Vector3:
 
 
 func _previous_point_index(index: int) -> int:
+	if _closed_loop and _explicit_loop_closure:
+		if index <= 0:
+			return maxi(_road_points.size() - 2, 0)
+		return maxi(index - 1, 0)
 	if _closed_loop:
 		return _wrapped_or_clamped_index(index - 1)
 	return maxi(index - 1, 0)
 
 
 func _next_point_index(index: int) -> int:
+	if _closed_loop and _explicit_loop_closure:
+		if index >= _road_points.size() - 1:
+			return mini(1, _road_points.size() - 1)
+		return mini(index + 1, _road_points.size() - 1)
 	if _closed_loop:
 		return _wrapped_or_clamped_index(index + 1)
 	return mini(index + 1, _road_points.size() - 1)
@@ -705,7 +735,7 @@ func _next_point_index(index: int) -> int:
 func _wrapped_or_clamped_index(index: int) -> int:
 	if _road_points.is_empty():
 		return 0
-	if _closed_loop:
+	if _closed_loop and not _explicit_loop_closure:
 		return posmod(index, _road_points.size())
 	return clampi(index, 0, _road_points.size() - 1)
 
@@ -730,8 +760,8 @@ func _tangent_for_index(index: int) -> Vector3:
 	if _road_points.size() < 2:
 		return Vector3(0.0, 0.0, 1.0)
 	var safe_index: int = clampi(index, 0, _road_points.size() - 1)
-	var previous_index: int = (safe_index - 1 + _road_points.size()) % _road_points.size()
-	var next_index: int = (safe_index + 1) % _road_points.size()
+	var previous_index: int = _previous_point_index(safe_index)
+	var next_index: int = _next_point_index(safe_index)
 	var tangent: Vector3 = _road_points[next_index]["position"] - _road_points[previous_index]["position"]
 	if tangent.length_squared() <= 0.0001:
 		return Vector3(0.0, 0.0, 1.0)

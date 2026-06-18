@@ -4,6 +4,44 @@ Date: 2026-06-16
 Project: Demo
 Status: Direction pivot approved
 
+## Storm Coast Hero Slice Addendum
+
+Storm Coast is the first premium proof slice. It should read as a fictional coastal mountain circuit at golden hour: wet asphalt, warm sun, blue fill, ocean haze, dark rock, believable barriers, fictional sponsors, and trackside density that never damages road readability.
+
+The live scene target is stylized high-end PBR realism, not low-poly placeholder art. The road surface is the most important visual surface because it fills the chase camera. It must show grain, rubber bands, curb paint, wet specular highlights, and readable lane markings before secondary scenery is judged.
+
+Storm Coast palette:
+
+| Hex | Role |
+|---|---|
+| `#030506` | wet asphalt dark |
+| `#14191D` | asphalt midtone |
+| `#8F9390` | guardrail metal |
+| `#5B5F5D` | damp concrete |
+| `#2D3434` | coastal rock |
+| `#0D1F35` | deep sky |
+| `#FF9350` | golden horizon |
+| `#7192D1` | cool sky fill |
+| `#FF9E1F` | warning accents |
+| `#EEF1E8` | lane paint |
+
+Storm Coast lighting:
+
+- Low warm sun, long shadows, controlled exposure.
+- Weak cool fill, no extra shadow source.
+- Dark blue sky top into warm coastal horizon.
+- Subtle warm fog/haze, not heavy gray fog.
+- SSR and low roughness for wet asphalt.
+- Restrained glow. Headlights and accents may bloom; the whole scene must not.
+
+Storm Coast implementation rules:
+
+- Keep collision and visual dressing separate.
+- Trackside props must be placed from road-edge anchors, not fixed absolute positions.
+- Decorative props get no collision unless explicitly intended as gameplay blockers.
+- Do not hand-edit generated children under `GeneratedPremiumTrackDressing` or `GeneratedStormCoastRoad`.
+- Fictional sponsor marks only.
+
 ## Creative Target
 
 The game is no longer toy-low-poly. The new visual target is premium arcade realism: high-end realistic cars, cinematic roads, detailed environments, glossy lighting, expressive glares, satisfying VFX, and arcade-impossible track moments.

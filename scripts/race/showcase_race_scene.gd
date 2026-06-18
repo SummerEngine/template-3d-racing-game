@@ -88,6 +88,7 @@ func _configure_npc_drivers() -> void:
 func _register_race_participants() -> void:
 	if _race_manager == null:
 		return
+	_connect_race_flow_signals()
 	if _race_manager.has_method("set_track_progress_provider"):
 		_race_manager.call("set_track_progress_provider", _track_query)
 	if _race_manager.has_method("reset_race"):
@@ -104,8 +105,11 @@ func _register_race_participants() -> void:
 			_race_manager.call("register_participant_node", npc_car, _npc_display_name(npc_index), StringName("npc_%d" % [npc_index + 1]), false)
 		npc_index += 1
 
+	_set_vehicle_controls_enabled(false)
 	if auto_start_countdown and _race_manager.has_method("start_countdown"):
 		_race_manager.call("start_countdown")
+	else:
+		_set_vehicle_controls_enabled(true)
 
 
 func _collect_npc_cars() -> Array[Node3D]:
@@ -125,6 +129,38 @@ func _reset_vehicle_motion(vehicle: Node3D) -> void:
 	if vehicle is CharacterBody3D:
 		var body := vehicle as CharacterBody3D
 		body.velocity = Vector3.ZERO
+
+
+func _connect_race_flow_signals() -> void:
+	if _race_manager == null:
+		return
+	if _race_manager.has_signal("race_started") and not _race_manager.race_started.is_connected(Callable(self, "_on_race_started")):
+		_race_manager.race_started.connect(Callable(self, "_on_race_started"))
+	if _race_manager.has_signal("race_phase_changed") and not _race_manager.race_phase_changed.is_connected(Callable(self, "_on_race_phase_changed")):
+		_race_manager.race_phase_changed.connect(Callable(self, "_on_race_phase_changed"))
+
+
+func _on_race_started() -> void:
+	_set_vehicle_controls_enabled(true)
+
+
+func _on_race_phase_changed(_previous_phase: int, _new_phase: int) -> void:
+	if _race_manager != null and _race_manager.has_method("get_phase_name"):
+		var phase_name: String = String(_race_manager.call("get_phase_name")).to_lower()
+		if phase_name == "setup" or phase_name == "countdown" or phase_name == "finished":
+			_set_vehicle_controls_enabled(false)
+
+
+func _set_vehicle_controls_enabled(enabled: bool) -> void:
+	var vehicles: Array[Node3D] = []
+	if _player_car != null:
+		vehicles.append(_player_car)
+	vehicles.append_array(_collect_npc_cars())
+	for vehicle: Node3D in vehicles:
+		if vehicle.has_method("set_controls_enabled"):
+			vehicle.call("set_controls_enabled", enabled)
+		else:
+			_set_if_property(vehicle, &"controls_enabled", enabled)
 
 
 func _npc_display_name(npc_index: int) -> String:

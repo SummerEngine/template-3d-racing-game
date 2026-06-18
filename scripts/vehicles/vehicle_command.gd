@@ -22,9 +22,9 @@ func set_values(
 		p_steer: float,
 		p_drift: bool
 ) -> RefCounted:
-	throttle = clampf(p_throttle, 0.0, 1.0)
-	brake = clampf(p_brake, 0.0, 1.0)
-	steer = clampf(p_steer, -1.0, 1.0)
+	throttle = clampf(_finite_or(p_throttle, 0.0), 0.0, 1.0)
+	brake = clampf(_finite_or(p_brake, 0.0), 0.0, 1.0)
+	steer = clampf(_finite_or(p_steer, 0.0), -1.0, 1.0)
 	drift = p_drift
 	return self
 
@@ -46,3 +46,9 @@ func clear() -> RefCounted:
 func duplicate_command() -> RefCounted:
 	var script: Script = get_script()
 	return script.new(throttle, brake, steer, drift)
+
+
+static func _finite_or(value: float, fallback: float) -> float:
+	if is_nan(value) or is_inf(value):
+		return fallback
+	return value

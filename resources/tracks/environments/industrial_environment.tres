@@ -24,8 +24,8 @@ prop_id = &"container"
 display_name = "Containers And Service Hints"
 placement_mode = 0
 sides = 2
-road_edge_offset_m = 24.0
-offset_jitter_m = 8.0
+road_edge_offset_m = 34.0
+offset_jitter_m = 6.0
 min_spacing_m = 60.0
 max_spacing_m = 130.0
 coverage_ratio_range = Vector2(0.2, 0.45)
@@ -39,8 +39,8 @@ prop_id = &"utility_props"
 display_name = "Utility Poles And Industrial Signs"
 placement_mode = 0
 sides = 2
-road_edge_offset_m = 18.0
-offset_jitter_m = 5.0
+road_edge_offset_m = 30.0
+offset_jitter_m = 4.0
 min_spacing_m = 50.0
 max_spacing_m = 120.0
 coverage_ratio_range = Vector2(0.25, 0.55)
@@ -68,9 +68,9 @@ coverage_targets = {
 "utility_props": Vector2(0.25, 0.55)
 }
 roadside_offset_rules = {
-"container": 24.0,
+"container": 34.0,
 "factory": 58.0,
-"utility_props": 18.0
+"utility_props": 30.0
 }
 transition_prop_rules = {
 "from_highway_crops": "Small utility props appear first, then larger gray factories move closer.",

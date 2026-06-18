@@ -18,7 +18,7 @@ last_tool_status = "Preview Regenerate refreshed lightweight authoring handles f
 metadata/last_authoring_record_counts = {
 "banking_markers": 2,
 "elevation_markers": 4,
-"road_points": 12,
+"road_points": 16,
 "set_piece_markers": 1,
 "start_grid_markers": 1,
 "width_markers": 3,
@@ -31,7 +31,7 @@ metadata/last_authoring_record_counts = {
 
 [node name="RP_000_Start" type="Marker3D" parent="Authoring/RoadPoints" unique_id=670630887]
 script = ExtResource("3_road_point")
-road_width_m = 13.0
+road_width_m = 20.0
 zone_id = &"start_coast"
 marker_id = &"rp_000_start"
 display_name = "Start straight"
@@ -52,7 +52,7 @@ road_distance_m = 150.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 16, 310)
 script = ExtResource("3_road_point")
 sequence_index = 2
-road_width_m = 11.5
+road_width_m = 18.0
 banking_degrees = -4.0
 zone_id = &"cliff_approach"
 preferred_speed_kmh = 185.0
@@ -65,7 +65,7 @@ road_distance_m = 300.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 28, 405)
 script = ExtResource("3_road_point")
 sequence_index = 3
-road_width_m = 12.0
+road_width_m = 18.0
 surface_type = &"ramp"
 zone_id = &"cliffside_jump"
 preferred_speed_kmh = 185.0
@@ -79,7 +79,7 @@ notes = "Extra approach control point to avoid a sudden ramp tangent."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160, 42.578094, 480)
 script = ExtResource("3_road_point")
 sequence_index = 4
-road_width_m = 12.0
+road_width_m = 18.0
 surface_type = &"ramp"
 zone_id = &"cliffside_jump"
 preferred_speed_kmh = 190.0
@@ -94,7 +94,7 @@ notes = "Engineered race-event ramp socket, not physics destruction."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 210, 38, 540)
 script = ExtResource("3_road_point")
 sequence_index = 5
-road_width_m = 14.0
+road_width_m = 22.0
 zone_id = &"jump_landing"
 preferred_speed_kmh = 175.0
 checkpoint_hint = true
@@ -108,7 +108,7 @@ notes = "Intermediate landing guide point so the post-jump road catches the play
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 285, 24, 625)
 script = ExtResource("3_road_point")
 sequence_index = 6
-road_width_m = 16.0
+road_width_m = 24.0
 banking_degrees = 2.0
 zone_id = &"jump_landing"
 preferred_speed_kmh = 160.0
@@ -123,7 +123,7 @@ notes = "Wider arcade recovery section after the jump."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 355, 24, 585)
 script = ExtResource("3_road_point")
 sequence_index = 7
-road_width_m = 15.0
+road_width_m = 22.0
 banking_degrees = 4.0
 zone_id = &"jump_landing"
 preferred_speed_kmh = 165.0
@@ -137,7 +137,7 @@ notes = "Keeps the landing from snapping directly into the mountain return bend.
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 410, 30, 500)
 script = ExtResource("3_road_point")
 sequence_index = 8
-road_width_m = 13.5
+road_width_m = 20.0
 banking_degrees = 7.0
 zone_id = &"mountain_return"
 marker_id = &"rp_008_mountain_entry"
@@ -150,7 +150,7 @@ notes = "Additional turn-in control point before the mountain return."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 430, 34, 420)
 script = ExtResource("3_road_point")
 sequence_index = 9
-road_width_m = 12.0
+road_width_m = 18.0
 banking_degrees = 10.0
 zone_id = &"mountain_return"
 preferred_speed_kmh = 145.0
@@ -173,36 +173,89 @@ authoring_order = 10
 road_distance_m = 1337.0
 
 [node name="RP_011_FinalBend" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1872135923]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110, 6, -65)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 10, -95)
 script = ExtResource("3_road_point")
 sequence_index = 11
-road_width_m = 13.0
+road_width_m = 20.0
 banking_degrees = -5.0
 zone_id = &"final_descent"
 preferred_speed_kmh = 155.0
 marker_id = &"rp_011_final_bend"
 display_name = "Final bend"
 authoring_order = 11
-road_distance_m = 1611.0
+road_distance_m = 1535.0
+
+[node name="RP_012_StartReturn" type="Marker3D" parent="Authoring/RoadPoints" unique_id=2026641326]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 230, 5, -255)
+script = ExtResource("3_road_point")
+sequence_index = 12
+road_width_m = 20.0
+banking_degrees = -1.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 145.0
+marker_id = &"rp_012_start_return"
+display_name = "Start return alignment"
+authoring_order = 12
+road_distance_m = 1740.0
+notes = "Starts the return arc on the outside of the start area without crossing the player grid."
+
+[node name="RP_013_OuterReturn" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1928127651]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135, 2.5, -235)
+script = ExtResource("3_road_point")
+sequence_index = 13
+road_width_m = 20.0
+banking_degrees = 2.0
+zone_id = &"final_descent"
+marker_id = &"rp_013_outer_return"
+display_name = "Outer return"
+authoring_order = 13
+road_distance_m = 1925.0
+notes = "Keeps the closing loop clear of the start straight while aligning the final approach."
+
+[node name="RP_014_StartMerge" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1018827345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 1, -165)
+script = ExtResource("3_road_point")
+sequence_index = 14
+road_width_m = 20.0
+banking_degrees = -2.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 135.0
+marker_id = &"rp_014_start_merge"
+display_name = "Start merge"
+authoring_order = 14
+road_distance_m = 2075.0
+notes = "Approaches the start line along the same tangent as the outgoing straight."
+
+[node name="RP_015_LoopClosure" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1472869011]
+script = ExtResource("3_road_point")
+sequence_index = 15
+road_width_m = 20.0
+zone_id = &"start_coast"
+preferred_speed_kmh = 150.0
+marker_id = &"rp_015_loop_closure"
+display_name = "Explicit loop closure"
+authoring_order = 15
+road_distance_m = 2225.0
+notes = "Matches RP_000_Start. TrackQueryV2 treats this as an explicit closure point instead of adding a duplicate implicit seam."
 
 [node name="WidthMarkers" type="Node3D" parent="Authoring" unique_id=848184978]
 
 [node name="Width_000_StartRoad" type="Marker3D" parent="Authoring/WidthMarkers" unique_id=1685577290]
 script = ExtResource("4_width")
-target_width_m = 13.0
+target_width_m = 20.0
 blend_before_m = 0.0
 blend_after_m = 40.0
-shoulder_width_m = 1.8
+shoulder_width_m = 2.4
 marker_id = &"width_000_start"
 display_name = "Start road width"
 
 [node name="Width_001_CliffApproach" type="Marker3D" parent="Authoring/WidthMarkers" unique_id=846739226]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 16, 310)
 script = ExtResource("4_width")
-target_width_m = 11.5
+target_width_m = 18.0
 blend_before_m = 65.0
 blend_after_m = 45.0
-shoulder_width_m = 1.0
+shoulder_width_m = 2.0
 marker_id = &"width_001_cliff_approach"
 display_name = "Narrow cliff approach"
 road_distance_m = 300.0
@@ -210,10 +263,10 @@ road_distance_m = 300.0
 [node name="Width_002_LandingCatch" type="Marker3D" parent="Authoring/WidthMarkers" unique_id=1006847935]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 285, 24, 625)
 script = ExtResource("4_width")
-target_width_m = 16.0
+target_width_m = 24.0
 blend_before_m = 110.0
 blend_after_m = 130.0
-shoulder_width_m = 2.2
+shoulder_width_m = 3.0
 marker_id = &"width_002_landing_catch"
 display_name = "Wide landing catch"
 road_distance_m = 743.0
@@ -312,11 +365,11 @@ display_name = "Mountain return"
 road_distance_m = 825.0
 
 [node name="Zone_003_FinalDescent" type="Marker3D" parent="Authoring/ZoneMarkers" unique_id=620859024]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110, 6, -65)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110, 4, -310)
 script = ExtResource("7_zone")
 zone_id = &"final_descent"
 environment_key = &"storm_coast_start_return"
-end_distance_m = 1740.0
+end_distance_m = 2260.0
 marker_id = &"zone_003_final_descent"
 display_name = "Final descent"
 road_distance_m = 1340.0
@@ -324,11 +377,14 @@ road_distance_m = 1340.0
 [node name="StartGrid" type="Node3D" parent="Authoring" unique_id=1024386526]
 
 [node name="StartGrid_000" type="Marker3D" parent="Authoring/StartGrid" unique_id=366553136]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, 18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 6.5, 224)
 script = ExtResource("8_start_grid")
+lane_spacing_m = 5.2
+row_spacing_m = 10.5
+stagger_offset_m = 3.0
 marker_id = &"start_grid_000"
 display_name = "Preset four-car start grid"
-road_distance_m = 18.0
+road_distance_m = 240.0
 
 [node name="Generated" type="Node3D" parent="." unique_id=418565497]
 metadata/bake_editable_requested = true
@@ -341,9 +397,14 @@ authoring_root_path = NodePath("../..")
 generate_on_ready = true
 assign_owner_in_editor = false
 closed_loop = true
-default_road_width_m = 13.0
+lane_spacing_m = 4.6
 sample_spacing_m = 6.0
 curve_subdivisions = 12
+terrain_edge_gap_m = 1.35
+guardrail_edge_offset_m = 1.8
+guardrail_collision_thickness_m = 1.1
+guardrail_collision_overlap_m = 0.45
+guardrail_seam_gap_m = 48.0
 
 [node name="ManualOverrides" type="Node3D" parent="." unique_id=1325956416]
 

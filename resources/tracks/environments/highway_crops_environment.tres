@@ -9,8 +9,8 @@ prop_id = &"billboard"
 display_name = "Highway Billboards"
 placement_mode = 0
 sides = 2
-road_edge_offset_m = 26.0
-offset_jitter_m = 8.0
+road_edge_offset_m = 34.0
+offset_jitter_m = 6.0
 min_spacing_m = 85.0
 max_spacing_m = 165.0
 coverage_ratio_range = Vector2(0, 1)
@@ -24,8 +24,8 @@ prop_id = &"crop_cluster"
 display_name = "Crop Clusters"
 placement_mode = 1
 sides = 2
-road_edge_offset_m = 34.0
-offset_jitter_m = 10.0
+road_edge_offset_m = 44.0
+offset_jitter_m = 8.0
 min_spacing_m = 70.0
 max_spacing_m = 140.0
 coverage_ratio_range = Vector2(0.3, 0.5)
@@ -39,8 +39,8 @@ prop_id = &"farmhouse_fenced_area"
 display_name = "Farmhouse And Fenced Animal Areas"
 placement_mode = 1
 sides = 2
-road_edge_offset_m = 48.0
-offset_jitter_m = 16.0
+road_edge_offset_m = 62.0
+offset_jitter_m = 10.0
 min_spacing_m = 180.0
 max_spacing_m = 360.0
 coverage_ratio_range = Vector2(0.05, 0.15)
@@ -67,9 +67,9 @@ coverage_targets = {
 "farmhouse_fenced_area": Vector2(0.05, 0.15)
 }
 roadside_offset_rules = {
-"billboard": 26.0,
-"crop_cluster": 34.0,
-"farmhouse_fenced_area": 48.0
+"billboard": 34.0,
+"crop_cluster": 44.0,
+"farmhouse_fenced_area": 62.0
 }
 transition_prop_rules = {
 "to_industrial": "Crop clusters and farmhouses taper out; billboards shift toward industrial signage.",

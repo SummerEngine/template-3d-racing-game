@@ -9,19 +9,46 @@
 [ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="8_m4m2u"]
 [ext_resource type="Script" uid="uid://bdy2leo4bnxur" path="res://scripts/audio/race_audio_controller.gd" id="9_audio"]
 [ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="10_overlay"]
+[ext_resource type="Script" path="res://scripts/environment/premium_track_dressing.gd" id="11_premium"]
+[ext_resource type="PackedScene" path="res://assets/environment/generated_grandstand_hunyuan.glb" id="12_grandstand"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(1.9, 1, 4.35)
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_showcase"]
+sky_top_color = Color(0.10, 0.20, 0.38, 1)
+sky_horizon_color = Color(1, 0.58, 0.28, 1)
+sky_curve = 0.12
+sky_energy_multiplier = 1.24
+ground_bottom_color = Color(0.08, 0.08, 0.09, 1)
+ground_horizon_color = Color(0.38, 0.24, 0.20, 1)
+sun_angle_max = 20.0
+sun_curve = 0.05
+
+[sub_resource type="Sky" id="Sky_showcase"]
+sky_material = SubResource("ProceduralSkyMaterial_showcase")
+
 [sub_resource type="Environment" id="Environment_55qj1"]
-background_mode = 1
-background_color = Color(0.48, 0.68, 0.95, 1)
+background_mode = 2
+background_color = Color(0.55, 0.66, 0.85, 1)
+sky = SubResource("Sky_showcase")
 ambient_light_source = 2
-ambient_light_color = Color(0.74, 0.82, 0.92, 1)
-ambient_light_energy = 0.65
+ambient_light_color = Color(0.88, 0.76, 0.65, 1)
+ambient_light_energy = 0.68
 tonemap_mode = 3
+tonemap_exposure = 1.16
+tonemap_white = 6.0
+ssr_enabled = true
+ssao_enabled = true
+ssao_radius = 2.0
+ssao_intensity = 0.52
 glow_enabled = true
-glow_intensity = 0.08
+glow_intensity = 0.28
+glow_strength = 0.62
+fog_enabled = true
+fog_light_color = Color(0.92, 0.64, 0.43, 1)
+fog_light_energy = 0.26
+fog_density = 0.00145
 
 [node name="ShowcaseCircuitRace" type="Node3D" unique_id=1398284230]
 script = ExtResource("1_a4f8a")
@@ -30,7 +57,25 @@ script = ExtResource("1_a4f8a")
 
 [node name="TrackRoot" type="Node3D" parent="World" unique_id=1140943829]
 script = ExtResource("2_1cygd")
-generate_on_ready = false
+generate_on_ready = true
+guardrail_seam_gap_m = 90.0
+
+[node name="PremiumVenueDressing" type="Node3D" parent="World" unique_id=855012144]
+script = ExtResource("11_premium")
+style = "city_sunset"
+building_count = 42
+skyline_distance_m = 186.0
+min_building_height_m = 32.0
+max_building_height_m = 132.0
+banner_count = 18
+floodlight_count = 12
+reflector_post_count = 16
+
+[node name="GeneratedGrandstandLeft" parent="World" instance=ExtResource("12_grandstand")]
+transform = Transform3D(22.8254, 0, -7.41641, 0, 24, 0, 7.41641, 0, 22.8254, -62, 1, -76)
+
+[node name="GeneratedGrandstandRight" parent="World" instance=ExtResource("12_grandstand")]
+transform = Transform3D(22.5526, 0, 8.20848, 0, 24, 0, -8.20848, 0, 22.5526, 82, 1, 62)
 
 [node name="Vehicles" type="Node3D" parent="World" unique_id=517205929]
 
@@ -113,13 +158,19 @@ current = true
 fov = 67.0
 script = ExtResource("6_5juuk")
 target_path = NodePath("../../Vehicles/PlayerCar")
+target_marker_name = &"CameraTarget2"
+
+[node name="AudioListener3D" type="AudioListener3D" parent="World/CameraRig/ChaseCamera"]
+current = true
 
 [node name="Lighting" type="Node3D" parent="World" unique_id=1388093698]
 
 [node name="Sun" type="DirectionalLight3D" parent="World/Lighting" unique_id=381049704]
 transform = Transform3D(0.8480481, -0.3938068, 0.35458517, 0, 0.66913056, 0.74314487, -0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
-light_color = Color(1, 0.95, 0.86, 1)
-light_energy = 1.35
+light_color = Color(1, 0.68, 0.38, 1)
+light_energy = 2.55
+light_indirect_energy = 1.05
+light_angular_distance = 0.9
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World/Lighting" unique_id=939563467]

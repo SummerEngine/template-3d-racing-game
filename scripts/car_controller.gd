@@ -57,6 +57,7 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export_category("Command Source")
 @export var driver_path: NodePath = NodePath("")
 @export var use_default_player_driver: bool = true
+@export var controls_enabled: bool = true
 
 @onready var visual_root: Node3D = get_node_or_null("VisualRoot")
 @onready var wheel_nodes: Array[Node3D] = [
@@ -148,6 +149,9 @@ func _exit_tree() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not _is_finite_float(delta) or delta <= 0.0:
+		return
+	_sanitize_physics_state()
 	var previous_planar_velocity: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
 	_wall_scrape_cooldown = maxf(0.0, _wall_scrape_cooldown - delta)
 	_vehicle_bump_cooldown = maxf(0.0, _vehicle_bump_cooldown - delta)
@@ -160,27 +164,32 @@ func _physics_process(delta: float) -> void:
 
 
 func get_speed() -> float:
-	return Vector3(velocity.x, 0.0, velocity.z).length()
+	var planar_velocity := Vector3(velocity.x, 0.0, velocity.z)
+	if not planar_velocity.is_finite():
+		return 0.0
+	return planar_velocity.length()
 
 
 func get_speed_ratio() -> float:
+	if not _is_finite_float(max_speed) or max_speed <= 0.0:
+		return 0.0
 	return clampf(get_speed() / max_speed, 0.0, 1.0)
 
 
 func get_forward_speed() -> float:
-	return _forward_speed
+	return _forward_speed if _is_finite_float(_forward_speed) else 0.0
 
 
 func get_effective_steering() -> float:
-	return effective_steer_amount
+	return effective_steer_amount if _is_finite_float(effective_steer_amount) else 0.0
 
 
 func get_effective_steer_amount() -> float:
-	return effective_steer_amount
+	return effective_steer_amount if _is_finite_float(effective_steer_amount) else 0.0
 
 
 func get_drift_intensity() -> float:
-	return drift_intensity
+	return drift_intensity if _is_finite_float(drift_intensity) else 0.0
 
 
 func set_vehicle_command(next_command: RefCounted) -> void:
@@ -190,6 +199,13 @@ func set_vehicle_command(next_command: RefCounted) -> void:
 
 func get_vehicle_command() -> RefCounted:
 	return vehicle_command.duplicate_command()
+
+
+func set_controls_enabled(enabled: bool) -> void:
+	controls_enabled = enabled
+	if not controls_enabled:
+		vehicle_command.clear()
+		_sync_command_state()
 
 
 func set_car_color_variant(variant_id: String) -> void:
@@ -204,6 +220,11 @@ func _resolve_driver() -> void:
 
 
 func _read_command() -> void:
+	if not controls_enabled:
+		vehicle_command.clear()
+		_sync_command_state()
+		return
+
 	var command_written: bool = false
 	if _driver_node == null and not String(driver_path).is_empty():
 		_resolve_driver()
@@ -230,22 +251,25 @@ func _read_command() -> void:
 
 
 func _sync_command_state() -> void:
-	throttle_amount = vehicle_command.throttle
-	brake_amount = vehicle_command.brake
-	steering_input = vehicle_command.steer
+	throttle_amount = clampf(_finite_or(vehicle_command.throttle, 0.0), 0.0, 1.0)
+	brake_amount = clampf(_finite_or(vehicle_command.brake, 0.0), 0.0, 1.0)
+	steering_input = clampf(_finite_or(vehicle_command.steer, 0.0), -1.0, 1.0)
 	_drift_input_active = vehicle_command.drift
 
 
 func _update_planar_velocity(delta: float) -> void:
 	var forward: Vector3 = _flat_forward()
 	var right: Vector3 = _flat_right()
-	var vertical_speed: float = velocity.y
+	var vertical_speed: float = _finite_or(velocity.y, 0.0)
 
 	_forward_speed = velocity.dot(forward)
 	_side_speed = velocity.dot(right)
+	_forward_speed = _finite_or(_forward_speed, 0.0)
+	_side_speed = _finite_or(_side_speed, 0.0)
 
-	var speed_ratio: float = clampf(absf(_forward_speed) / max_speed, 0.0, 1.0)
-	var forward_speed_ratio: float = clampf(_forward_speed / max_speed, 0.0, 1.0)
+	var safe_max_speed: float = maxf(_finite_or(max_speed, 1.0), 1.0)
+	var speed_ratio: float = clampf(absf(_forward_speed) / safe_max_speed, 0.0, 1.0)
+	var forward_speed_ratio: float = clampf(_forward_speed / safe_max_speed, 0.0, 1.0)
 	var can_steer: bool = absf(_forward_speed) >= min_steer_speed
 	effective_steer_amount = steering_input if can_steer else 0.0
 	steer_amount = effective_steer_amount
@@ -300,6 +324,8 @@ func _update_planar_velocity(delta: float) -> void:
 
 	velocity = forward * _forward_speed + right * _side_speed
 	velocity.y = vertical_speed
+	if not velocity.is_finite():
+		velocity = Vector3.ZERO
 
 
 func _update_visuals(delta: float) -> void:
@@ -497,10 +523,45 @@ func _find_first_node3d(paths: Array[String]) -> Node3D:
 func _flat_forward() -> Vector3:
 	var forward: Vector3 = -global_transform.basis.z
 	forward.y = 0.0
+	if not forward.is_finite() or forward.length_squared() <= 0.0001:
+		return Vector3(0.0, 0.0, -1.0)
 	return forward.normalized()
 
 
 func _flat_right() -> Vector3:
 	var right: Vector3 = global_transform.basis.x
 	right.y = 0.0
+	if not right.is_finite() or right.length_squared() <= 0.0001:
+		return Vector3.RIGHT
 	return right.normalized()
+
+
+func _sanitize_physics_state() -> void:
+	if not velocity.is_finite():
+		velocity = Vector3.ZERO
+		_forward_speed = 0.0
+		_side_speed = 0.0
+
+	var current_basis: Basis = global_transform.basis
+	if not current_basis.x.is_finite() or not current_basis.y.is_finite() or not current_basis.z.is_finite() \
+			or current_basis.x.length_squared() <= 0.0001 \
+			or current_basis.y.length_squared() <= 0.0001 \
+			or current_basis.z.length_squared() <= 0.0001:
+		var safe_origin: Vector3 = global_transform.origin if global_transform.origin.is_finite() else Vector3.ZERO
+		global_transform = Transform3D(Basis.IDENTITY, safe_origin)
+		velocity = Vector3.ZERO
+		_forward_speed = 0.0
+		_side_speed = 0.0
+		return
+
+	global_transform.basis = current_basis.orthonormalized()
+
+
+func _is_finite_float(value: float) -> bool:
+	return not is_nan(value) and not is_inf(value)
+
+
+func _finite_or(value: float, fallback: float) -> float:
+	if is_nan(value) or is_inf(value):
+		return fallback
+	return value

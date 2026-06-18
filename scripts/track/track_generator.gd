@@ -1,3 +1,4 @@
+@tool
 class_name TrackGenerator
 extends Node3D
 
@@ -28,6 +29,8 @@ const TERRAIN_MARGIN_M: float = 360.0
 @export var generate_spawn_marker: bool = true
 @export_range(1, 16, 1) var spawn_marker_count: int = 4
 @export var scenery_seed: int = 260616
+@export_range(0.0, 80.0, 0.5) var minimum_scenery_road_edge_clearance_m: float = 24.0
+@export_range(0.0, 200.0, 1.0) var guardrail_seam_gap_m: float = 80.0
 
 var _profile: Resource = null
 var _track_path: RefCounted = null
@@ -48,7 +51,7 @@ var _helpers_container: Node3D = null
 
 func _ready() -> void:
 	if generate_on_ready:
-		regenerate_track()
+		call_deferred("regenerate_track")
 
 
 func regenerate_track() -> void:
@@ -191,6 +194,8 @@ func _add_container(parent: Node, container_name: String) -> Node3D:
 	var container := Node3D.new()
 	container.name = container_name
 	parent.add_child(container)
+	if Engine.is_editor_hint() and owner != null:
+		container.owner = owner
 	return container
 
 
@@ -292,6 +297,10 @@ func _create_guardrail_collision() -> void:
 	for side: float in [-1.0, 1.0]:
 		for i: int in range(_centerline.size()):
 			var next_index: int = (i + 1) % _centerline.size()
+			var midpoint_distance_m: float = _guardrail_segment_midpoint_distance(i, next_index)
+			if not _guardrail_enabled_at_distance(midpoint_distance_m):
+				continue
+
 			var start: Vector3 = _offset_point(i, side * center_offset_m)
 			var end: Vector3 = _offset_point(next_index, side * center_offset_m)
 			var segment: Vector3 = end - start
@@ -428,8 +437,9 @@ func _place_rule_prop(
 	var side_normal: Vector3 = sample["normal"] * side
 	var offset_jitter_m: float = _resource_float(rule, "offset_jitter_m", 0.0)
 	var jitter_m: float = (lerpf(-offset_jitter_m, offset_jitter_m, _noise01(prop_seed, section_index, step_index)))
-	var road_edge_offset_m: float = _resource_float(rule, "road_edge_offset_m", 24.0)
-	var lateral_offset_m: float = _road_width_m * 0.5 + road_edge_offset_m + jitter_m
+	var road_edge_offset_m: float = maxf(_resource_float(rule, "road_edge_offset_m", 24.0), minimum_scenery_road_edge_clearance_m)
+	var clearance_m: float = maxf(road_edge_offset_m + jitter_m, minimum_scenery_road_edge_clearance_m)
+	var lateral_offset_m: float = _road_width_m * 0.5 + clearance_m
 	var prop_position: Vector3 = sample["position"] + side_normal * lateral_offset_m
 	prop_position.y = track_y
 
@@ -732,6 +742,10 @@ func _guardrail_beam_mesh(side: float) -> ArrayMesh:
 
 	for i: int in range(_centerline.size()):
 		var next: int = (i + 1) % _centerline.size()
+		var midpoint_distance_m: float = _guardrail_segment_midpoint_distance(i, next)
+		if not _guardrail_enabled_at_distance(midpoint_distance_m):
+			continue
+
 		var current_sample: Dictionary = _guardrail_cross_section(i, side)
 		var next_sample: Dictionary = _guardrail_cross_section(next, side)
 
@@ -778,7 +792,11 @@ func _guardrail_post_mesh(side: float) -> ArrayMesh:
 	var post_count: int = floori(_track_length_m / _guardrail_post_spacing_m())
 
 	for i: int in range(post_count):
-		var sample: Dictionary = _track_path.call("sample_at_distance", float(i) * _guardrail_post_spacing_m())
+		var distance_m: float = float(i) * _guardrail_post_spacing_m()
+		if not _guardrail_enabled_at_distance(distance_m):
+			continue
+
+		var sample: Dictionary = _track_path.call("sample_at_distance", distance_m)
 		var sample_position: Vector3 = sample["position"]
 		var tangent: Vector3 = sample["tangent"]
 		var side_normal: Vector3 = sample["normal"] * side
@@ -924,6 +942,30 @@ func _tangent_at(points: PackedVector3Array, index: int) -> Vector3:
 	if tangent.length_squared() <= 0.0001:
 		return Vector3(0.0, 0.0, 1.0)
 	return tangent.normalized()
+
+
+func _guardrail_segment_midpoint_distance(index: int, next_index: int) -> float:
+	var start_distance_m: float = _distance_for_centerline_index(index)
+	var end_distance_m: float = _distance_for_centerline_index(next_index)
+	if next_index == 0 and index >= _centerline.size() - 1:
+		end_distance_m = _track_length_m
+	return (start_distance_m + end_distance_m) * 0.5
+
+
+func _distance_for_centerline_index(index: int) -> float:
+	if _centerline.is_empty() or _track_length_m <= 0.0:
+		return 0.0
+	return _track_length_m * float(clampi(index, 0, _centerline.size() - 1)) / float(_centerline.size())
+
+
+func _guardrail_enabled_at_distance(distance_m: float) -> bool:
+	var seam_gap_m: float = maxf(guardrail_seam_gap_m, 0.0)
+	if seam_gap_m <= 0.0 or _track_length_m <= 0.0:
+		return true
+
+	seam_gap_m = minf(seam_gap_m, _track_length_m * 0.45)
+	var resolved_distance_m: float = fposmod(distance_m, _track_length_m)
+	return resolved_distance_m > seam_gap_m and resolved_distance_m < _track_length_m - seam_gap_m
 
 
 func _normal_from_tangent(tangent: Vector3) -> Vector3:

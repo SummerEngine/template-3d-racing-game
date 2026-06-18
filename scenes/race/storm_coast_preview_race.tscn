@@ -8,43 +8,51 @@
 [ext_resource type="Resource" path="res://resources/profiles/camera/cockpit_placeholder_camera_view.tres" id="6_cockpit_camera"]
 [ext_resource type="Resource" path="res://resources/profiles/camera/look_back_camera_view.tres" id="7_look_back_camera"]
 [ext_resource type="Script" uid="uid://dgtcgka78uvux" path="res://scripts/environment/coastal_backdrop.gd" id="8_backdrop"]
+[ext_resource type="Script" uid="uid://87q2ak68240e" path="res://scripts/environment/premium_track_dressing.gd" id="9_premium"]
+[ext_resource type="Script" uid="uid://b7ftvxk4rgrbn" path="res://scripts/vehicles/npc_driver.gd" id="10_npc_driver"]
+[ext_resource type="Script" uid="uid://camrubrc8108k" path="res://scripts/race/race_manager.gd" id="11_race_manager"]
+[ext_resource type="Script" uid="uid://bdy2leo4bnxur" path="res://scripts/audio/race_audio_controller.gd" id="12_race_audio"]
+[ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="13_race_hud"]
+[ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="14_flow_overlay"]
+[ext_resource type="PackedScene" uid="uid://jbhpsjba2hgg" path="res://assets/environment/generated_grandstand_hunyuan.glb" id="15_grandstand"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_storm_coast_preview"]
-sky_top_color = Color(0.3, 0.58, 0.96, 1)
-sky_horizon_color = Color(0.84, 0.92, 1, 1)
+sky_top_color = Color(0.08, 0.18, 0.36, 1)
+sky_horizon_color = Color(1, 0.58, 0.3, 1)
 sky_curve = 0.11
 sky_energy_multiplier = 1.18
-ground_bottom_color = Color(0.26, 0.38, 0.42, 1)
-ground_horizon_color = Color(0.72, 0.83, 0.9, 1)
+ground_bottom_color = Color(0.06, 0.07, 0.08, 1)
+ground_horizon_color = Color(0.38, 0.24, 0.2, 1)
 ground_curve = 0.05
-sun_angle_max = 18.0
-sun_curve = 0.04
+sun_angle_max = 20.0
+sun_curve = 0.05
 
 [sub_resource type="Sky" id="Sky_storm_coast_preview"]
 sky_material = SubResource("ProceduralSkyMaterial_storm_coast_preview")
 
 [sub_resource type="Environment" id="Environment_storm_coast_preview"]
 background_mode = 2
-background_color = Color(0.58, 0.76, 0.96, 1)
+background_color = Color(0.16, 0.26, 0.4, 1)
 sky = SubResource("Sky_storm_coast_preview")
 ambient_light_source = 2
-ambient_light_color = Color(0.78, 0.82, 0.88, 1)
-ambient_light_energy = 0.92
+ambient_light_color = Color(0.78, 0.68, 0.58, 1)
+ambient_light_energy = 0.58
 tonemap_mode = 3
-tonemap_exposure = 1.12
-tonemap_white = 5.5
-ssr_max_steps = 32
+tonemap_exposure = 1.08
+tonemap_white = 6.0
+ssr_enabled = true
+ssr_max_steps = 48
 ssao_enabled = true
 ssao_radius = 2.2
-ssao_intensity = 0.45
+ssao_intensity = 0.55
 glow_enabled = true
-glow_intensity = 0.18
+glow_intensity = 0.2
 glow_strength = 0.55
 glow_bloom = 0.08
 fog_enabled = true
-fog_light_color = Color(0.7, 0.82, 0.96, 1)
-fog_light_energy = 0.32
-fog_density = 0.0018
+fog_light_color = Color(0.98, 0.62, 0.36, 1)
+fog_light_energy = 0.28
+fog_density = 0.00145
 
 [node name="StormCoastPreviewRace" type="Node3D" unique_id=1039963252]
 script = ExtResource("1_scene")
@@ -52,17 +60,81 @@ script = ExtResource("1_scene")
 [node name="World" type="Node3D" parent="." unique_id=210362279]
 
 [node name="TrackAuthoring" parent="World" unique_id=1246797821 instance=ExtResource("2_track_authoring")]
+metadata/last_authoring_record_counts = {
+"banking_markers": 2,
+"elevation_markers": 4,
+"road_points": 13,
+"set_piece_markers": 1,
+"start_grid_markers": 1,
+"width_markers": 3,
+"zone_markers": 4
+}
 
 [node name="CoastalBackdrop" type="Node3D" parent="World" unique_id=679288389]
 script = ExtResource("8_backdrop")
 horizon_distance_m = 920.0
 backdrop_width_m = 2100.0
 ocean_height_m = -22.0
-cloud_color = Color(0.95, 0.97, 1, 0.34)
+ocean_color = Color(0.025, 0.12, 0.2, 1)
+near_hill_color = Color(0.13, 0.24, 0.18, 1)
+far_mountain_color = Color(0.2, 0.25, 0.31, 1)
+city_color = Color(0.72, 0.76, 0.74, 1)
+cloud_color = Color(1, 0.78, 0.58, 0.22)
+
+[node name="PremiumCoastalDressing" type="Node3D" parent="World" unique_id=2083054617]
+script = ExtResource("9_premium")
+style = "coastal_mountain"
+sponsor_texture_paths = PackedStringArray("res://assets/track/sponsors/sponsor_volt_racing.png", "res://assets/track/sponsors/sponsor_apex_energy.png", "res://assets/track/sponsors/sponsor_gripforge.png", "res://assets/track/sponsors/sponsor_neon_vector.png")
+reflector_post_count = 16
+cliff_cluster_count = 22
+cliff_distance_m = 255.0
+sailboat_count = 9
+warning_sign_count = 10
+powerline_pole_count = 8
+mist_bank_count = 6
+
+[node name="GeneratedGrandstandLeft" parent="World" unique_id=1203663954 instance=ExtResource("15_grandstand")]
+transform = Transform3D(-5.17638, 0, -19.3185, 0, 20, 0, 19.3185, 0, -5.17638, -44, 1, -42)
+visible = false
+
+[node name="GeneratedGrandstandRight" parent="World" unique_id=1937375422 instance=ExtResource("15_grandstand")]
+transform = Transform3D(-18.817837, 0, 6.7740993, 0, 20, 0, -6.7740993, 0, -18.817837, 0.9025564, 1, 68)
+visible = false
 
 [node name="Vehicles" type="Node3D" parent="World" unique_id=1380648959]
 
 [node name="PlayerCar" parent="World/Vehicles" unique_id=449766395 instance=ExtResource("3_player_car")]
+
+[node name="NpcCars" type="Node3D" parent="World/Vehicles" unique_id=1246201355]
+
+[node name="TechnicianCar" parent="World/Vehicles/NpcCars" unique_id=657029543 instance=ExtResource("3_player_car")]
+car_color_variant = "green"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=773884238]
+script = ExtResource("10_npc_driver")
+lane_index = 1
+
+[node name="BullyCar" parent="World/Vehicles/NpcCars" unique_id=97006669 instance=ExtResource("3_player_car")]
+car_color_variant = "red"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1859163831]
+script = ExtResource("10_npc_driver")
+personality_id = &"bully"
+
+[node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=1823916510 instance=ExtResource("3_player_car")]
+transform = Transform3D(-0.9181216, 0, 0.39629883, 0, 1, 0, -0.39629883, 0, -0.9181216, 0, 0, 0)
+car_color_variant = "yellow"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=1447713846]
+script = ExtResource("10_npc_driver")
+personality_id = &"showoff"
+lane_index = 1
 
 [node name="CameraRig" type="Node3D" parent="World" unique_id=428696892]
 script = ExtResource("4_camera_rig")
@@ -76,23 +148,70 @@ look_back_profile = ExtResource("7_look_back_camera")
 current = true
 fov = 67.0
 
+[node name="AudioListener3D" type="AudioListener3D" parent="World/CameraRig/Camera3D" unique_id=1618030441]
+current = true
+
 [node name="Sun" type="DirectionalLight3D" parent="World" unique_id=1313742438]
-transform = Transform3D(-0.61566156, -0.48514754, 0.62096065, 0, 0.78801024, 0.61566114, -0.78801095, 0.37903878, -0.48514757, 0, 80, 0)
-light_color = Color(1, 0.93, 0.82, 1)
-light_energy = 2.15
-light_indirect_energy = 1.35
-light_angular_distance = 0.65
+transform = Transform3D(0.66913074, 0.30226403, -0.67889625, 0, 0.9135448, 0.40673643, 0.74314505, -0.2721597, 0.6112808, 0, 80, 0)
+light_color = Color(1, 0.66, 0.36, 1)
+light_energy = 2.35
+light_angular_distance = 0.95
 shadow_enabled = true
-shadow_bias = 0.045
-shadow_normal_bias = 1.25
+shadow_bias = 0.025
+shadow_normal_bias = 0.85
 directional_shadow_blend_splits = true
-directional_shadow_max_distance = 280.0
+directional_shadow_max_distance = 320.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World" unique_id=666990856]
 environment = SubResource("Environment_storm_coast_preview")
 
 [node name="SkyFillLight" type="DirectionalLight3D" parent="World" unique_id=2122635602]
 transform = Transform3D(0.57357645, 0.33317915, -0.7483326, 0, 0.9135454, 0.40673664, 0.81915206, -0.23329456, 0.5239881, 0, 0, 0)
-light_color = Color(0.58, 0.74, 1, 1)
-light_energy = 0.38
-light_specular = 0.18
+light_color = Color(0.45, 0.56, 0.82, 1)
+light_energy = 0.18
+light_specular = 0.06
+
+[node name="Managers" type="Node" parent="." unique_id=1370992983]
+
+[node name="RaceManager" type="Node" parent="Managers" unique_id=1125280392]
+script = ExtResource("11_race_manager")
+
+[node name="RaceAudio" type="Node" parent="Managers" unique_id=711104228]
+script = ExtResource("12_race_audio")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1060862561]
+script = ExtResource("13_race_hud")
+race_manager_path = NodePath("../Managers/RaceManager")
+player_car_path = NodePath("../World/Vehicles/PlayerCar")
+
+[node name="Margin" type="MarginContainer" parent="UI" unique_id=1365332690]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 440.0
+offset_bottom = 170.0
+
+[node name="Panel" type="Panel" parent="UI/Margin" unique_id=1285412507]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/Margin/Panel" unique_id=975370557]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Readout" type="Label" parent="UI/Margin/Panel/Margin" unique_id=1541637724]
+layout_mode = 2
+text = "Speed 000 km/h
+Mode GRIP
+Race SETUP
+Lap 1/3
+Pos --/--
+Time 00:00.000"
+vertical_alignment = 1
+
+[node name="RaceFlowOverlay" type="CanvasLayer" parent="." unique_id=829298297]
+layer = 20
+script = ExtResource("14_flow_overlay")

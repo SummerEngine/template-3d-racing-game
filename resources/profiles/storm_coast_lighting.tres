@@ -5,26 +5,26 @@
 [resource]
 resource_name = "StormCoastLighting"
 script = ExtResource("1_lighting")
-lighting_id = &"storm_coast_overcast_wet"
-display_name = "Storm Coast Overcast Wet"
-time_of_day = "overcast_late_afternoon"
-weather_preset_id = &"light_rain_wet_road"
-sky_color = Color(0.30, 0.34, 0.38, 1)
-horizon_color = Color(0.42, 0.46, 0.50, 1)
-ambient_light_color = Color(0.47, 0.51, 0.55, 1)
-ambient_energy = 0.86
-sun_color = Color(0.72, 0.77, 0.82, 1)
-sun_energy = 1.05
-sun_rotation_degrees = Vector3(-38, -32, 0)
-shadow_softness = 6.5
+lighting_id = &"storm_coast_golden_hour_wet"
+display_name = "Storm Coast Golden Hour Wet"
+time_of_day = "storm_dusk"
+weather_preset_id = &"golden_hour_wet_road"
+sky_color = Color(0.08, 0.18, 0.36, 1)
+horizon_color = Color(1.0, 0.58, 0.30, 1)
+ambient_light_color = Color(0.78, 0.68, 0.58, 1)
+ambient_energy = 0.58
+sun_color = Color(1.0, 0.66, 0.36, 1)
+sun_energy = 2.35
+sun_rotation_degrees = Vector3(-24, -48, 0)
+shadow_softness = 0.95
 fog_enabled = true
-fog_color = Color(0.39, 0.44, 0.48, 1)
-fog_density = 0.085
-rain_intensity = 0.35
-wetness_multiplier = 0.92
+fog_color = Color(0.72, 0.50, 0.40, 1)
+fog_density = 0.00145
+rain_intensity = 0.18
+wetness_multiplier = 0.86
 reflection_probe_budget = {
 "garage": 1,
 "track_key_zones": 3,
 "set_piece": 1
 }
-notes = "Light rain and wet-road profile for Storm Coast. This is a foundation resource only; no WorldEnvironment or light nodes are wired here yet."
+notes = "Golden-hour wet-road profile for Storm Coast hero slice. The live preview scene mirrors these values until a runtime lighting applier is added."
