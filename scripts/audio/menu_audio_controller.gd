@@ -2,13 +2,13 @@ class_name MenuAudioController
 extends Node
 
 const DEFAULT_INSTANCE_NAME: StringName = &"MenuAudio"
-const DEFAULT_MUSIC_STREAM: AudioStream = preload("res://assets/audio/music/race_loop_arcade_drift.mp3")
+const DEFAULT_MUSIC_STREAM_PATH: String = "res://assets/audio/music/race_loop_arcade_drift.mp3"
 
-@export var menu_music_stream: AudioStream = DEFAULT_MUSIC_STREAM
+@export var menu_music_stream: AudioStream = null
 @export var hover_stream: AudioStream = null
 @export var click_stream: AudioStream = null
-@export var music_bus: StringName = &"Master"
-@export var sfx_bus: StringName = &"Master"
+@export var music_bus: StringName = &"Music"
+@export var sfx_bus: StringName = &"SFX"
 @export_range(-48.0, 6.0, 0.1) var music_volume_db: float = -17.5
 @export_range(-48.0, 6.0, 0.1) var hover_volume_db: float = -18.0
 @export_range(-48.0, 6.0, 0.1) var click_volume_db: float = -12.0
@@ -18,6 +18,7 @@ const DEFAULT_MUSIC_STREAM: AudioStream = preload("res://assets/audio/music/race
 var _music_player: AudioStreamPlayer = null
 var _hover_player: AudioStreamPlayer = null
 var _click_player: AudioStreamPlayer = null
+var _default_music_stream: AudioStream = null
 var _music_tween: Tween = null
 var _bound_roots: Array[NodePath] = []
 
@@ -48,11 +49,15 @@ static func resolve(context: Node) -> MenuAudioController:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if menu_music_stream == null:
+		menu_music_stream = _get_default_music_stream()
 	_ensure_players()
 
 
 func play_menu_music(fade_seconds: float = -1.0) -> void:
 	_ensure_players()
+	if menu_music_stream == null:
+		menu_music_stream = _get_default_music_stream()
 	if _music_player == null or menu_music_stream == null:
 		return
 
@@ -131,6 +136,8 @@ func bind_button(button: BaseButton) -> void:
 
 func _ensure_players() -> void:
 	if _music_player == null:
+		if menu_music_stream == null:
+			menu_music_stream = _get_default_music_stream()
 		_music_player = _make_player("MenuMusic", menu_music_stream, music_bus, music_volume_db)
 	if _hover_player == null:
 		hover_stream = hover_stream if hover_stream != null else _make_tone_stream(940.0, 0.045, 0.22)
@@ -149,6 +156,12 @@ func _make_player(player_name: String, stream: AudioStream, bus_name: StringName
 	player.max_polyphony = 4
 	add_child(player)
 	return player
+
+
+func _get_default_music_stream() -> AudioStream:
+	if _default_music_stream == null and ResourceLoader.exists(DEFAULT_MUSIC_STREAM_PATH):
+		_default_music_stream = load(DEFAULT_MUSIC_STREAM_PATH) as AudioStream
+	return _default_music_stream
 
 
 func _play_ui_sfx(player: AudioStreamPlayer, stream: AudioStream, volume_db: float, base_pitch: float) -> void:

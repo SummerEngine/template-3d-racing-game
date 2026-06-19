@@ -189,12 +189,15 @@ func _apply_session_configuration() -> void:
 	if session == null:
 		return
 
-	if _player_car != null and session.has_method("get_car_color"):
-		var color_variant: String = str(session.call("get_car_color"))
-		if _player_car.has_method("set_car_color_variant"):
-			_player_car.call("set_car_color_variant", color_variant)
-		else:
-			_set_if_property(_player_car, &"car_color_variant", color_variant)
+	if _player_car != null:
+		if session.has_method("apply_selected_car_to_vehicle"):
+			session.call("apply_selected_car_to_vehicle", _player_car)
+		elif session.has_method("get_car_color"):
+			var color_variant: String = str(session.call("get_car_color"))
+			if _player_car.has_method("set_car_color_variant"):
+				_player_car.call("set_car_color_variant", color_variant)
+			else:
+				_set_if_property(_player_car, &"car_color_variant", color_variant)
 
 	if _race_manager != null:
 		var config: RaceConfig = RaceConfigScript.new()

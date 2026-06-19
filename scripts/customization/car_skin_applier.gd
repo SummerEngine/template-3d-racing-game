@@ -286,6 +286,7 @@ func _material_with_texture(source_material: Material, texture: Texture2D) -> Ma
 		var base_material := material as BaseMaterial3D
 		base_material.albedo_texture = texture
 		base_material.albedo_color = Color.WHITE
+		base_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 		return _named_preview_material(base_material, source_material, "Texture")
 
 	if material is ShaderMaterial:
@@ -298,6 +299,7 @@ func _material_with_texture(source_material: Material, texture: Texture2D) -> Ma
 	var standard_material: StandardMaterial3D = _new_standard_body_material()
 	standard_material.albedo_texture = texture
 	standard_material.albedo_color = Color.WHITE
+	standard_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 	return _named_preview_material(standard_material, source_material, "Texture")
 
 

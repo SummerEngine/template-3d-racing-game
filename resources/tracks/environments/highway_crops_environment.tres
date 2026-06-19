@@ -1,20 +1,16 @@
-[gd_resource type="Resource" script_class="EnvironmentProfile" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnvironmentProfile" format=3 uid="uid://cjxfnw5v0y4ju"]
 
-[ext_resource type="Script" path="res://scripts/track/environment_profile.gd" id="1_environment"]
-[ext_resource type="Script" path="res://scripts/track/scenery_rule.gd" id="2_rule"]
+[ext_resource type="Script" uid="uid://3l1h47k887s" path="res://scripts/track/environment_profile.gd" id="1_environment"]
+[ext_resource type="Script" uid="uid://dci0sra62ed62" path="res://scripts/track/scenery_rule.gd" id="2_rule"]
 
 [sub_resource type="Resource" id="SceneryRule_billboard"]
 script = ExtResource("2_rule")
 prop_id = &"billboard"
 display_name = "Highway Billboards"
-placement_mode = 0
-sides = 2
 road_edge_offset_m = 34.0
 offset_jitter_m = 6.0
 min_spacing_m = 85.0
 max_spacing_m = 165.0
-coverage_ratio_range = Vector2(0, 1)
-scale_multiplier_range = Vector2(1, 1)
 color_tags = PackedStringArray("bright_ads", "toy_like")
 notes = "Billboards spawn on both sides and always use road-edge-relative offsets."
 
@@ -23,7 +19,6 @@ script = ExtResource("2_rule")
 prop_id = &"crop_cluster"
 display_name = "Crop Clusters"
 placement_mode = 1
-sides = 2
 road_edge_offset_m = 44.0
 offset_jitter_m = 8.0
 min_spacing_m = 70.0
@@ -38,7 +33,6 @@ script = ExtResource("2_rule")
 prop_id = &"farmhouse_fenced_area"
 display_name = "Farmhouse And Fenced Animal Areas"
 placement_mode = 1
-sides = 2
 road_edge_offset_m = 62.0
 offset_jitter_m = 10.0
 min_spacing_m = 180.0
@@ -61,7 +55,6 @@ terrain_palette = {
 }
 prop_rules = Array[Resource]([SubResource("SceneryRule_billboard"), SubResource("SceneryRule_crop_cluster"), SubResource("SceneryRule_farmhouse")])
 ambient_audio_key = &"open_road_countryside"
-ambient_audio_path = ""
 coverage_targets = {
 "crop_cluster": Vector2(0.3, 0.5),
 "farmhouse_fenced_area": Vector2(0.05, 0.15)
@@ -72,7 +65,7 @@ roadside_offset_rules = {
 "farmhouse_fenced_area": 62.0
 }
 transition_prop_rules = {
-"to_industrial": "Crop clusters and farmhouses taper out; billboards shift toward industrial signage.",
-"from_industrial": "Highway billboards and open sightlines return before the lap boundary."
+"from_industrial": "Highway billboards and open sightlines return before the lap boundary.",
+"to_industrial": "Crop clusters and farmhouses taper out; billboards shift toward industrial signage."
 }
 notes = "Open, readable countryside environment. Billboards use both sides; crop/farmhouse coverage applies per Highway/Crops section."

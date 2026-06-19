@@ -1,27 +1,15 @@
-[gd_resource type="Resource" script_class="TrackProfile" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="TrackProfile" format=3 uid="uid://efwsjf6wjdh8"]
 
-[ext_resource type="Script" path="res://scripts/track/track_profile.gd" id="1_profile"]
-[ext_resource type="Script" path="res://scripts/track/track_guardrail_settings.gd" id="2_guardrails"]
-[ext_resource type="Script" path="res://scripts/track/track_environment_section.gd" id="3_section"]
-[ext_resource type="Script" path="res://scripts/track/transition_profile.gd" id="4_transition"]
-[ext_resource type="Resource" path="res://resources/tracks/environments/highway_crops_environment.tres" id="5_highway"]
-[ext_resource type="Resource" path="res://resources/tracks/environments/industrial_environment.tres" id="6_industrial"]
-
-[sub_resource type="Resource" id="Guardrails_showcase"]
-script = ExtResource("2_guardrails")
-enabled = true
-center_offset_from_road_edge_m = 0.55
-thickness_m = 1.35
-height_m = 2.2
-post_spacing_m = 18.0
-post_size_m = 0.5
-material_key = &"guardrail_metal"
-color = Color(0.58, 0.6, 0.57, 1)
+[ext_resource type="Script" uid="uid://ctuore486bkmt" path="res://scripts/track/track_profile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://4p2yi355rk3s" path="res://scripts/track/track_guardrail_settings.gd" id="2_guardrails"]
+[ext_resource type="Script" uid="uid://djamug8sfr3fm" path="res://scripts/track/track_environment_section.gd" id="3_section"]
+[ext_resource type="Script" uid="uid://rdg3xk4pvo43" path="res://scripts/track/transition_profile.gd" id="4_transition"]
+[ext_resource type="Resource" uid="uid://cjxfnw5v0y4ju" path="res://resources/tracks/environments/highway_crops_environment.tres" id="5_highway"]
+[ext_resource type="Resource" uid="uid://djs8ejpjtvdfq" path="res://resources/tracks/environments/industrial_environment.tres" id="6_industrial"]
 
 [sub_resource type="Resource" id="Section_highway_open"]
 script = ExtResource("3_section")
 environment = ExtResource("5_highway")
-start_distance_ratio = 0.0
 end_distance_ratio = 0.45
 notes = "Primary Highway/Crops section."
 
@@ -31,6 +19,13 @@ environment = ExtResource("6_industrial")
 start_distance_ratio = 0.57
 end_distance_ratio = 0.88
 notes = "Primary Industrial section."
+
+[sub_resource type="Resource" id="Guardrails_showcase"]
+script = ExtResource("2_guardrails")
+thickness_m = 1.35
+height_m = 2.2
+post_spacing_m = 18.0
+post_size_m = 0.5
 
 [sub_resource type="Resource" id="Transition_highway_to_industrial"]
 script = ExtResource("4_transition")
@@ -59,7 +54,6 @@ script = ExtResource("4_transition")
 from_environment = ExtResource("6_industrial")
 to_environment = ExtResource("5_highway")
 start_distance_ratio = 0.88
-end_distance_ratio = 1.0
 prop_crossfade_rules = {
 "billboards": "Highway-style billboards return.",
 "containers": "Containers taper out.",
@@ -81,23 +75,12 @@ resource_name = "ShowcaseCircuit"
 script = ExtResource("1_profile")
 track_id = &"showcase_circuit"
 display_name = "Showcase Circuit"
-target_length_m = 1800.0
 road_width_m = 22.0
-road_material_key = &"toy_asphalt"
-road_color = Color(0.015, 0.016, 0.018, 1)
 guardrail_settings = SubResource("Guardrails_showcase")
 environment_sections = Array[Resource]([SubResource("Section_highway_open"), SubResource("Section_industrial")])
 transitions = Array[Resource]([SubResource("Transition_highway_to_industrial"), SubResource("Transition_industrial_to_highway")])
-auto_generate_transitions = true
-default_transition_fraction = 0.08
 music_key = &"showcase_race_loop"
-music_path = ""
-lap_count = 3
-spawn_lane_count = 2
 spawn_lane_spacing_m = 4.6
-spawn_row_spacing_m = 7.5
-spawn_start_distance_m = 18.0
-spawn_vertical_offset_m = 0.14
 difficulty_defaults = {
 "easy": {
 "assist": 1.0
@@ -109,5 +92,4 @@ difficulty_defaults = {
 "assist": 0.7
 }
 }
-closed_loop = true
 notes = "About 1.8km, 14m-wide closed loop. Environment flow: Highway/Crops 0-45%, transition 45-57%, Industrial 57-88%, transition 88-100%."

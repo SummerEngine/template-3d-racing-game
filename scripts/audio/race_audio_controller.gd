@@ -5,8 +5,8 @@ extends Node
 @export var music_stream: AudioStream = preload("res://assets/audio/music/race_loop_arcade_drift.mp3")
 @export var countdown_stream: AudioStream = preload("res://assets/audio/sfx/countdown_start_stinger.mp3")
 @export var finish_stream: AudioStream = preload("res://assets/audio/sfx/race_finish_stinger.mp3")
-@export var music_bus: StringName = &"Master"
-@export var sfx_bus: StringName = &"Master"
+@export var music_bus: StringName = &"Music"
+@export var sfx_bus: StringName = &"SFX"
 @export var music_volume_db: float = -12.0
 @export var stinger_volume_db: float = -4.0
 
