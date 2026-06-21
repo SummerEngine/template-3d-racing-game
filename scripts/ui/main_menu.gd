@@ -25,6 +25,13 @@ const CHOICE_CARD_SIDE_RATIO: float = 0.10
 const CARD_SCROLL_TWEEN_SECONDS: float = 0.24
 const PREVIEW_CAMERA_ELEVATION_DEGREES: float = 45.0
 const PREVIEW_CAMERA_DISTANCE: float = 7.4
+const COLOR_PANEL_DARK: Color = Color(0.020, 0.024, 0.031, 0.92)
+const COLOR_PANEL_LIGHT: Color = Color(0.055, 0.064, 0.078, 0.86)
+const COLOR_RACING_RED: Color = Color(0.92, 0.04, 0.10, 1.0)
+const COLOR_RACING_RED_HOVER: Color = Color(1.0, 0.14, 0.18, 1.0)
+const COLOR_RACING_BLUE: Color = Color(0.36, 0.82, 1.0, 1.0)
+const COLOR_TEXT_MAIN: Color = Color(0.96, 0.97, 0.93, 1.0)
+const COLOR_TEXT_MUTED: Color = Color(0.74, 0.77, 0.78, 1.0)
 
 var _active_view: StringName = VIEW_HOME
 var _settings_visible: bool = false
@@ -79,9 +86,11 @@ var _track_next_button: Button = null
 var _car_buttons: Dictionary = {}
 var _skin_buttons: Dictionary = {}
 var _track_buttons: Dictionary = {}
+var _difficulty_buttons: Dictionary = {}
 var _car_stat_labels: Dictionary = {}
 var _car_stat_bars: Dictionary = {}
 var _car_preview_scene_cache: Dictionary = {}
+var _difficulty_description_label: Label = null
 
 
 func _ready() -> void:
@@ -106,9 +115,11 @@ func _build_interface() -> void:
 	_car_buttons.clear()
 	_skin_buttons.clear()
 	_track_buttons.clear()
+	_difficulty_buttons.clear()
 	_car_stat_labels.clear()
 	_car_stat_bars.clear()
 	_track_preview_texture_rect = null
+	_difficulty_description_label = null
 
 	_add_background()
 
@@ -146,70 +157,184 @@ func _add_background() -> void:
 	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 
+	var left_vignette := ColorRect.new()
+	left_vignette.name = "LeftVignette"
+	left_vignette.color = Color(0.0, 0.0, 0.0, 0.34)
+	left_vignette.anchor_left = 0.0
+	left_vignette.anchor_top = 0.0
+	left_vignette.anchor_right = 0.38
+	left_vignette.anchor_bottom = 1.0
+	add_child(left_vignette)
+
+	var bottom_strip := ColorRect.new()
+	bottom_strip.name = "BottomRedAccent"
+	bottom_strip.color = Color(0.88, 0.02, 0.08, 0.30)
+	bottom_strip.anchor_left = 0.0
+	bottom_strip.anchor_top = 1.0
+	bottom_strip.anchor_right = 1.0
+	bottom_strip.anchor_bottom = 1.0
+	bottom_strip.offset_top = -_space(4, 8)
+	add_child(bottom_strip)
+
 
 func _build_home_view() -> Control:
 	var root := Control.new()
 	root.name = "Home"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-
-	var safe := _make_safe_area()
-	root.add_child(safe)
-
-	var columns := HBoxContainer.new()
-	columns.name = "HomeColumns"
-	columns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	columns.add_theme_constant_override("separation", _space(18, 34))
-	safe.add_child(columns)
-
-	var left := MarginContainer.new()
-	left.name = "LeftLogoColumn"
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.size_flags_stretch_ratio = 1.0
-	left.add_theme_constant_override("margin_left", _space(8, 28))
-	left.add_theme_constant_override("margin_top", _space(8, 28))
-	columns.add_child(left)
-
-	var logo_stack := VBoxContainer.new()
-	logo_stack.name = "LogoStack"
-	logo_stack.add_theme_constant_override("separation", _space(4, 8))
-	left.add_child(logo_stack)
-	var logo := _make_label("APEX\nRACING", _font_px(52, 96, 0.074), Color(0.96, 0.97, 0.93, 1.0), true)
-	logo.add_theme_constant_override("line_spacing", 0)
-	logo_stack.add_child(logo)
-	logo_stack.add_child(_make_label("RACE TEMPLATE", _font_px(13, 18, 0.017), Color(0.46, 0.84, 1.0, 1.0), false))
+	root.add_child(_make_home_background_overlay())
 
 	var center := CenterContainer.new()
-	center.name = "CenterActionColumn"
-	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	center.size_flags_stretch_ratio = 2.0
-	columns.add_child(center)
+	center.name = "HomeCenter"
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(center)
 
 	var actions := VBoxContainer.new()
-	actions.name = "PrimaryActions"
-	actions.custom_minimum_size = Vector2(_vw(0.28, 360.0, 620.0), 0.0)
-	actions.add_theme_constant_override("separation", _space(12, 22))
+	actions.name = "HomePrimaryStack"
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.custom_minimum_size = Vector2(_vw(0.43, 520.0, 820.0), 0.0)
+	actions.add_theme_constant_override("separation", _space(14, 24))
 	center.add_child(actions)
-	var start_button := _make_button("START GAME", true, _font_px(34, 54, 0.046), _vh(0.105, 82.0, 126.0))
+
+	actions.add_child(_make_home_eyebrow())
+	actions.add_child(_make_home_brand())
+
+	var subtitle := _make_label("PUSH BEYOND THE LIMIT", _font_px(12, 18, 0.016), Color(0.52, 0.50, 0.66, 1.0), false)
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	actions.add_child(subtitle)
+
+	var button_gap := Control.new()
+	button_gap.custom_minimum_size = Vector2(1.0, _space(24, 42))
+	actions.add_child(button_gap)
+
+	var start_button := _make_button("START RACE", true, _font_px(19, 28, 0.026), _vh(0.070, 58.0, 78.0))
+	start_button.custom_minimum_size.x = _vw(0.24, 320.0, 460.0)
+	start_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	start_button.pressed.connect(Callable(self, "_show_car_select"))
 	actions.add_child(start_button)
-	var settings_button := _make_button("SETTINGS", false, _font_px(22, 34, 0.030), _vh(0.066, 54.0, 78.0))
+
+	var settings_button := _make_home_settings_button()
 	settings_button.pressed.connect(Callable(self, "_toggle_settings"))
 	actions.add_child(settings_button)
 
-	var right := CenterContainer.new()
-	right.name = "RightSettingsColumn"
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right.size_flags_stretch_ratio = 1.0
-	columns.add_child(right)
 	_settings_panel = _build_settings_panel()
 	_settings_panel.visible = _settings_visible
-	right.add_child(_settings_panel)
-
+	_settings_panel.anchor_left = 0.70
+	_settings_panel.anchor_top = 0.20
+	_settings_panel.anchor_right = 0.96
+	_settings_panel.anchor_bottom = 0.88
+	_settings_panel.offset_left = 0.0
+	_settings_panel.offset_top = 0.0
+	_settings_panel.offset_right = 0.0
+	_settings_panel.offset_bottom = 0.0
+	root.add_child(_settings_panel)
 	return root
+
+
+func _make_home_background_overlay() -> Control:
+	var overlay := Control.new()
+	overlay.name = "HomeFigmaOverlay"
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	var dark := ColorRect.new()
+	dark.name = "DarkGridBase"
+	dark.color = Color(0.006, 0.007, 0.011, 0.94)
+	dark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dark.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(dark)
+
+	var red_core := ColorRect.new()
+	red_core.name = "RedCoreGlow"
+	red_core.color = Color(0.22, 0.0, 0.035, 0.045)
+	red_core.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	red_core.anchor_left = 0.22
+	red_core.anchor_top = 0.26
+	red_core.anchor_right = 0.78
+	red_core.anchor_bottom = 0.62
+	overlay.add_child(red_core)
+
+	for index: int in range(1, 16):
+		var line := ColorRect.new()
+		line.name = "VerticalGridLine"
+		line.color = Color(1.0, 0.05, 0.12, 0.045)
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ratio := float(index) / 16.0
+		line.anchor_left = ratio
+		line.anchor_right = ratio
+		line.anchor_top = 0.0
+		line.anchor_bottom = 1.0
+		line.offset_right = 1.0
+		overlay.add_child(line)
+
+	for index: int in range(1, 10):
+		var line := ColorRect.new()
+		line.name = "HorizontalGridLine"
+		line.color = Color(1.0, 0.05, 0.12, 0.040)
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ratio := float(index) / 10.0
+		line.anchor_left = 0.0
+		line.anchor_right = 1.0
+		line.anchor_top = ratio
+		line.anchor_bottom = ratio
+		line.offset_bottom = 1.0
+		overlay.add_child(line)
+
+	return overlay
+
+
+func _make_home_eyebrow() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "HomeEyebrow"
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", _space(10, 18))
+
+	for side: int in range(2):
+		if side == 1:
+			var label := _make_label("RACING SERIES", _font_px(9, 13, 0.012), COLOR_RACING_RED, false)
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			row.add_child(label)
+		var line := ColorRect.new()
+		line.color = Color(COLOR_RACING_RED, 0.66)
+		line.custom_minimum_size = Vector2(_space(42, 68), 1.0)
+		row.add_child(line)
+	return row
+
+
+func _make_home_brand() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "HomeBrand"
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 0)
+
+	var apex := _make_label("APEX", _font_px(62, 112, 0.096), Color(0.86, 0.85, 0.86, 1.0), true)
+	apex.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(apex)
+
+	var drive := _make_label("DRIVE", _font_px(62, 112, 0.096), COLOR_RACING_RED, true)
+	drive.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.add_child(drive)
+	return row
+
+
+func _make_home_settings_button() -> Button:
+	var button := Button.new()
+	button.name = "SettingsButton"
+	button.text = "SETTINGS"
+	button.custom_minimum_size = Vector2(_vw(0.24, 320.0, 460.0), _vh(0.052, 42.0, 58.0))
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.add_theme_font_size_override("font_size", _font_px(13, 19, 0.018))
+	button.add_theme_stylebox_override("normal", _make_panel_style(Color(0.0, 0.0, 0.0, 0.0), Color(0.36, 0.34, 0.48, 0.35), 1, 0))
+	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.08, 0.075, 0.12, 0.34), Color(0.62, 0.60, 0.80, 0.62), 1, 0))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.12, 0.020, 0.035, 0.44), COLOR_RACING_RED, 1, 0))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, COLOR_RACING_BLUE, 2, 0))
+	button.add_theme_color_override("font_color", Color(0.58, 0.56, 0.72, 1.0))
+	button.add_theme_color_override("font_hover_color", COLOR_TEXT_MAIN)
+	button.add_theme_color_override("font_pressed_color", COLOR_TEXT_MAIN)
+	return button
 
 
 func _build_settings_panel() -> PanelContainer:
@@ -252,6 +377,7 @@ func _build_car_select_view() -> Control:
 	var root := Control.new()
 	root.name = "CarSelect"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var top_bar := _make_logo_top_bar()
 
 	var safe := _make_safe_area()
 	root.add_child(safe)
@@ -282,6 +408,7 @@ func _build_car_select_view() -> Control:
 	continue_button.size_flags_stretch_ratio = 1.22
 	continue_button.pressed.connect(Callable(self, "_show_track_select"))
 	action_row.add_child(continue_button)
+	root.add_child(top_bar)
 	return root
 
 
@@ -289,6 +416,7 @@ func _build_track_select_view() -> Control:
 	var root := Control.new()
 	root.name = "TrackSelect"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var top_bar := _make_logo_top_bar()
 
 	var safe := _make_safe_area()
 	root.add_child(safe)
@@ -319,6 +447,7 @@ func _build_track_select_view() -> Control:
 	start_button.size_flags_stretch_ratio = 1.22
 	start_button.pressed.connect(Callable(self, "_start_race_loading"))
 	action_row.add_child(start_button)
+	root.add_child(top_bar)
 	return root
 
 
@@ -660,10 +789,26 @@ func _build_track_preview_column() -> PanelContainer:
 
 func _build_track_description_column() -> VBoxContainer:
 	var column := _make_equal_top_column("TrackDetails")
-	column.add_child(_make_label("ROUTE BRIEF", _font_px(15, 20, 0.018), Color(0.46, 0.84, 1.0, 1.0), true))
+	column.add_child(_make_label("ROUTE BRIEF", _font_px(15, 20, 0.018), COLOR_RACING_BLUE, true))
 	_track_description_label = _make_label("", _font_px(16, 22, 0.020), Color(0.82, 0.85, 0.86, 1.0), false)
 	_track_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_track_description_label)
+	var difficulty_gap := Control.new()
+	difficulty_gap.custom_minimum_size = Vector2(1.0, _space(8, 18))
+	column.add_child(difficulty_gap)
+	column.add_child(_make_label("RIVAL DIFFICULTY", _font_px(15, 20, 0.018), COLOR_RACING_BLUE, true))
+	var difficulty_row := HBoxContainer.new()
+	difficulty_row.name = "DifficultyRow"
+	difficulty_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	difficulty_row.add_theme_constant_override("separation", _space(8, 12))
+	column.add_child(difficulty_row)
+	for difficulty: Dictionary in _difficulty_options():
+		var button := _make_difficulty_button(difficulty)
+		_difficulty_buttons[StringName(difficulty.get("id", &""))] = button
+		difficulty_row.add_child(button)
+	_difficulty_description_label = _make_label("", _font_px(14, 19, 0.017), COLOR_TEXT_MUTED, false)
+	_difficulty_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_difficulty_description_label)
 	return column
 
 
@@ -687,10 +832,71 @@ func _make_safe_area() -> MarginContainer:
 	safe.name = "SafeArea"
 	safe.set_anchors_preset(Control.PRESET_FULL_RECT)
 	safe.add_theme_constant_override("margin_left", _space(36, 70))
-	safe.add_theme_constant_override("margin_top", _space(24, 44))
+	safe.add_theme_constant_override("margin_top", _space(84, 112))
 	safe.add_theme_constant_override("margin_right", _space(36, 70))
 	safe.add_theme_constant_override("margin_bottom", _space(24, 44))
 	return safe
+
+
+func _make_logo_top_bar() -> PanelContainer:
+	var bar := PanelContainer.new()
+	bar.name = "TopStatusBar"
+	bar.anchor_left = 0.0
+	bar.anchor_top = 0.0
+	bar.anchor_right = 1.0
+	bar.anchor_bottom = 0.0
+	bar.offset_bottom = _vh(0.085, 66.0, 92.0)
+	bar.add_theme_stylebox_override("panel", _make_panel_style(Color(0.010, 0.012, 0.016, 0.60), Color(1.0, 1.0, 1.0, 0.08), 1, 0))
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", _space(32, 56))
+	margin.add_theme_constant_override("margin_right", _space(32, 56))
+	margin.add_theme_constant_override("margin_top", _space(8, 14))
+	margin.add_theme_constant_override("margin_bottom", _space(8, 14))
+	bar.add_child(margin)
+
+	var center := CenterContainer.new()
+	center.name = "TopBarLogoCenter"
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(center)
+
+	var brand := _make_label("APEXDRIVE", _font_px(24, 40, 0.036), COLOR_TEXT_MAIN, true)
+	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	brand.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	center.add_child(brand)
+	return bar
+
+
+func _make_top_bar_badge(text: String, fill: Color, border: Color) -> PanelContainer:
+	var badge := PanelContainer.new()
+	badge.name = "TopBarBadge"
+	badge.custom_minimum_size = Vector2(_space(72, 128), 1.0)
+	badge.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	badge.add_theme_stylebox_override("panel", _make_panel_style(fill, border, 1, 5))
+	var label := _make_label(text, _font_px(12, 17, 0.016), COLOR_TEXT_MAIN, true)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	badge.add_child(label)
+	return badge
+
+
+func _make_top_bar_button(text: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(_space(86, 136), 1.0)
+	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.add_theme_font_size_override("font_size", _font_px(12, 17, 0.016))
+	button.add_theme_stylebox_override("normal", _make_panel_style(Color(0.045, 0.050, 0.062, 0.80), Color(1.0, 1.0, 1.0, 0.22), 1, 5))
+	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.10, 0.11, 0.13, 0.92), COLOR_RACING_BLUE, 1, 5))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.16, 0.035, 0.045, 0.96), COLOR_RACING_RED_HOVER, 1, 5))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, COLOR_RACING_BLUE, 2, 5))
+	button.add_theme_color_override("font_color", COLOR_TEXT_MAIN)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	return button
 
 
 func _make_equal_top_column(node_name: String) -> VBoxContainer:
@@ -821,6 +1027,22 @@ func _make_skin_button(skin: Dictionary) -> Button:
 	return button
 
 
+func _make_difficulty_button(difficulty: Dictionary) -> Button:
+	var difficulty_id := StringName(difficulty.get("id", &""))
+	var button := Button.new()
+	button.name = "DifficultyButton"
+	button.toggle_mode = true
+	button.text = str(difficulty.get("display_name", difficulty_id)).to_upper()
+	button.tooltip_text = str(difficulty.get("description", ""))
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size = Vector2(1.0, _vh(0.050, 42.0, 62.0))
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.add_theme_font_size_override("font_size", _font_px(12, 17, 0.016))
+	_apply_difficulty_button_style(button, false)
+	button.pressed.connect(Callable(self, "_select_difficulty").bind(difficulty_id))
+	return button
+
+
 func _make_slider_row(label_text: String, callback: Callable) -> Dictionary:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", _space(5, 8))
@@ -914,6 +1136,22 @@ func _apply_choice_card_style(button: Button) -> void:
 	button.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
 
 
+func _apply_difficulty_button_style(button: Button, selected: bool) -> void:
+	var normal_fill := Color(0.045, 0.052, 0.064, 0.88)
+	var normal_border := Color(1.0, 1.0, 1.0, 0.16)
+	if selected:
+		normal_fill = Color(0.18, 0.025, 0.040, 0.96)
+		normal_border = COLOR_RACING_RED_HOVER
+	button.add_theme_stylebox_override("normal", _make_panel_style(normal_fill, normal_border, 1 if not selected else 2, 6))
+	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.11, 0.040, 0.050, 0.96), COLOR_RACING_RED_HOVER, 2, 6))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.22, 0.025, 0.040, 1.0), Color(1.0, 0.68, 0.62, 1.0), 2, 6))
+	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(Color(0.24, 0.030, 0.045, 1.0), Color(1.0, 0.72, 0.66, 1.0), 2, 6))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, COLOR_RACING_BLUE, 2, 6))
+	button.add_theme_color_override("font_color", COLOR_TEXT_MAIN)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+
+
 func _apply_button_style(button: Button, primary: bool) -> void:
 	var normal_fill := Color(0.075, 0.088, 0.108, 0.96)
 	var hover_fill := Color(0.11, 0.13, 0.16, 1.0)
@@ -921,15 +1159,18 @@ func _apply_button_style(button: Button, primary: bool) -> void:
 	var border := Color(1.0, 1.0, 1.0, 0.18)
 	var font_color := Color(0.92, 0.94, 0.92, 1.0)
 	if primary:
-		normal_fill = Color(0.90, 0.07, 0.12, 1.0)
-		hover_fill = Color(1.0, 0.14, 0.20, 1.0)
+		normal_fill = COLOR_RACING_RED
+		hover_fill = COLOR_RACING_RED_HOVER
 		pressed_fill = Color(0.72, 0.04, 0.08, 1.0)
 		border = Color(1.0, 0.78, 0.70, 0.52)
 		font_color = Color(1.0, 0.98, 0.93, 1.0)
 	button.add_theme_stylebox_override("normal", _make_panel_style(normal_fill, border, 1, 8))
 	button.add_theme_stylebox_override("hover", _make_panel_style(hover_fill, Color(0.46, 0.84, 1.0, 0.55), 1, 8))
 	button.add_theme_stylebox_override("pressed", _make_panel_style(pressed_fill, Color(0.46, 0.84, 1.0, 0.75), 1, 8))
-	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(0.46, 0.84, 1.0, 0.95), 2, 8))
+	var focus_border := Color(0.46, 0.84, 1.0, 0.95)
+	if primary:
+		focus_border = Color(1.0, 0.78, 0.70, 0.52)
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, focus_border, 2, 8))
 	button.add_theme_color_override("font_color", font_color)
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
@@ -1018,6 +1259,14 @@ func _select_track(track_id: StringName) -> void:
 		session.call("set_track", track_id, str(track.get("scene_path", "")))
 	_sync_from_session()
 	_rebuild_track_select()
+
+
+func _select_difficulty(difficulty_id: StringName) -> void:
+	var session := _session()
+	if session != null and session.has_method("set_difficulty"):
+		session.call("set_difficulty", str(difficulty_id))
+	_sync_from_session()
+	_sync_difficulty_ui()
 
 
 func _preview_car(car_id: StringName) -> void:
@@ -1145,6 +1394,7 @@ func _sync_all_ui() -> void:
 	_sync_card_buttons()
 	_sync_car_labels()
 	_sync_track_labels()
+	_sync_difficulty_ui()
 	_rebuild_car_preview()
 
 
@@ -1183,6 +1433,12 @@ func _sync_card_buttons() -> void:
 		var button := _track_buttons[key] as Button
 		if button != null:
 			button.button_pressed = StringName(key) == _selected_track_id
+	for key: Variant in _difficulty_buttons.keys():
+		var button := _difficulty_buttons[key] as Button
+		if button != null:
+			var selected := StringName(key) == StringName(_selected_difficulty_id)
+			button.button_pressed = selected
+			_apply_difficulty_button_style(button, selected)
 	_sync_card_nav()
 
 
@@ -1226,6 +1482,19 @@ func _sync_track_labels() -> void:
 		_track_description_label.text = str(track.get("description", ""))
 	if _track_preview_texture_rect != null:
 		_track_preview_texture_rect.texture = _load_track_preview_texture(track)
+
+
+func _sync_difficulty_ui() -> void:
+	var difficulty := _selected_difficulty_option()
+	for key: Variant in _difficulty_buttons.keys():
+		var button := _difficulty_buttons[key] as Button
+		if button == null:
+			continue
+		var selected := StringName(key) == StringName(_selected_difficulty_id)
+		button.button_pressed = selected
+		_apply_difficulty_button_style(button, selected)
+	if _difficulty_description_label != null:
+		_difficulty_description_label.text = str(difficulty.get("description", ""))
 
 
 func _rebuild_car_select() -> void:
@@ -1434,6 +1703,15 @@ func _track_options() -> Array:
 	return []
 
 
+func _difficulty_options() -> Array:
+	var session := _session()
+	if session != null and session.has_method("get_difficulty_options"):
+		var value: Variant = session.call("get_difficulty_options")
+		if value is Array:
+			return value
+	return []
+
+
 func _skin_presets() -> Array:
 	var session := _session()
 	if session != null and session.has_method("get_skin_presets"):
@@ -1476,6 +1754,10 @@ func _displayed_track_option() -> Dictionary:
 	return _track_option(_preview_track_id) if _preview_track_id != &"" else _selected_track_option()
 
 
+func _selected_difficulty_option() -> Dictionary:
+	return _difficulty_option(StringName(_selected_difficulty_id))
+
+
 func _car_option(car_id: StringName) -> Dictionary:
 	for option: Dictionary in _car_options():
 		if StringName(option.get("id", &"")) == car_id:
@@ -1489,6 +1771,14 @@ func _track_option(track_id: StringName) -> Dictionary:
 		if StringName(option.get("id", &"")) == track_id:
 			return option
 	var options := _track_options()
+	return options[0] if not options.is_empty() else {}
+
+
+func _difficulty_option(difficulty_id: StringName) -> Dictionary:
+	for option: Dictionary in _difficulty_options():
+		if StringName(option.get("id", &"")) == difficulty_id:
+			return option
+	var options := _difficulty_options()
 	return options[0] if not options.is_empty() else {}
 
 
