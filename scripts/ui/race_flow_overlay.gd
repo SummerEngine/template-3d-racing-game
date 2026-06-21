@@ -3,7 +3,17 @@ extends CanvasLayer
 @export var race_manager_path: NodePath = ^"../Managers/RaceManager"
 @export var main_menu_scene_path: String = "res://scenes/ui/main_menu.tscn"
 
+const COUNTDOWN_TEXTURE_PATHS: Dictionary = {
+	3: "res://assets/ui/countdown_3.png",
+	2: "res://assets/ui/countdown_2.png",
+	1: "res://assets/ui/countdown_1.png",
+}
+
 var _race_manager: Node = null
+var _countdown_root: Control = null
+var _countdown_texture: TextureRect = null
+var _countdown_tween: Tween = null
+var _last_countdown_whole_seconds: int = -1
 var _overlay_root: Control = null
 var _title_label: Label = null
 var _body_label: Label = null
@@ -27,6 +37,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build_interface() -> void:
+	_build_countdown_interface()
+
 	_overlay_root = Control.new()
 	_overlay_root.name = "OverlayRoot"
 	_overlay_root.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -86,6 +98,30 @@ func _build_interface() -> void:
 	box.add_child(_main_menu_button)
 
 
+func _build_countdown_interface() -> void:
+	_countdown_root = Control.new()
+	_countdown_root.name = "CountdownRoot"
+	_countdown_root.process_mode = Node.PROCESS_MODE_ALWAYS
+	_countdown_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_countdown_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_countdown_root.visible = false
+	add_child(_countdown_root)
+
+	var center := CenterContainer.new()
+	center.name = "CountdownCenter"
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_countdown_root.add_child(center)
+
+	_countdown_texture = TextureRect.new()
+	_countdown_texture.name = "CountdownNumber"
+	_countdown_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_countdown_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_countdown_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_countdown_texture.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	center.add_child(_countdown_texture)
+
+
 func _connect_race_manager() -> void:
 	_race_manager = get_node_or_null(race_manager_path)
 	if _race_manager == null:
@@ -93,6 +129,12 @@ func _connect_race_manager() -> void:
 	if _race_manager != null and _race_manager.has_signal("race_finished"):
 		if not _race_manager.race_finished.is_connected(Callable(self, "_on_race_finished")):
 			_race_manager.race_finished.connect(Callable(self, "_on_race_finished"))
+	if _race_manager != null and _race_manager.has_signal("countdown_changed"):
+		if not _race_manager.countdown_changed.is_connected(Callable(self, "_on_countdown_changed")):
+			_race_manager.countdown_changed.connect(Callable(self, "_on_countdown_changed"))
+	if _race_manager != null and _race_manager.has_signal("race_started"):
+		if not _race_manager.race_started.is_connected(Callable(self, "_hide_countdown")):
+			_race_manager.race_started.connect(Callable(self, "_hide_countdown"))
 
 
 func _toggle_pause() -> void:
@@ -130,6 +172,7 @@ func _return_to_main_menu() -> void:
 
 
 func _on_race_finished(results: Array) -> void:
+	_hide_countdown()
 	_results_visible = true
 	_title_label.text = "Race Complete"
 	_body_label.text = _format_results(results)
@@ -137,6 +180,71 @@ func _on_race_finished(results: Array) -> void:
 	_overlay_root.visible = true
 	get_tree().paused = true
 	_restart_button.grab_focus()
+
+
+func _on_countdown_changed(_time_remaining_seconds: float, whole_seconds: int) -> void:
+	if whole_seconds <= 0:
+		_last_countdown_whole_seconds = 0
+		_hide_countdown()
+		return
+	if whole_seconds > 3 or whole_seconds == _last_countdown_whole_seconds:
+		return
+	_last_countdown_whole_seconds = whole_seconds
+	_show_countdown_number(whole_seconds)
+
+
+func _show_countdown_number(value: int) -> void:
+	if _countdown_root == null or _countdown_texture == null:
+		return
+	var texture_path := _countdown_texture_path(value)
+	if texture_path.is_empty():
+		return
+	var texture := load(texture_path) as Texture2D
+	if texture == null:
+		return
+
+	var side := _countdown_sprite_side()
+	_countdown_texture.texture = texture
+	_countdown_texture.custom_minimum_size = Vector2(side, side)
+	_countdown_texture.pivot_offset = Vector2(side, side) * 0.5
+	_countdown_texture.scale = Vector2(0.82, 0.82)
+	_countdown_texture.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_countdown_root.visible = true
+
+	if _countdown_tween != null:
+		_countdown_tween.kill()
+	_countdown_tween = create_tween()
+	_countdown_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_countdown_tween.set_trans(Tween.TRANS_QUAD)
+	_countdown_tween.set_ease(Tween.EASE_OUT)
+	_countdown_tween.tween_property(_countdown_texture, "modulate:a", 1.0, 0.14)
+	_countdown_tween.parallel().tween_property(_countdown_texture, "scale", Vector2(1.08, 1.08), 0.14)
+	_countdown_tween.tween_interval(0.18)
+	_countdown_tween.tween_property(_countdown_texture, "scale", Vector2(1.24, 1.24), 0.30)
+	_countdown_tween.parallel().tween_property(_countdown_texture, "modulate:a", 0.0, 0.30)
+	_countdown_tween.finished.connect(Callable(self, "_hide_countdown_after_number").bind(value))
+
+
+func _hide_countdown_after_number(value: int) -> void:
+	if _last_countdown_whole_seconds == value and _countdown_root != null:
+		_countdown_root.visible = false
+
+
+func _hide_countdown() -> void:
+	if _countdown_tween != null:
+		_countdown_tween.kill()
+		_countdown_tween = null
+	if _countdown_root != null:
+		_countdown_root.visible = false
+
+
+func _countdown_texture_path(value: int) -> String:
+	return str(COUNTDOWN_TEXTURE_PATHS.get(value, ""))
+
+
+func _countdown_sprite_side() -> float:
+	var viewport_size := get_viewport().get_visible_rect().size
+	return clampf(minf(viewport_size.x, viewport_size.y) * 0.28, 180.0, 420.0)
 
 
 func _format_results(results: Array) -> String:

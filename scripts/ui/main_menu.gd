@@ -3,6 +3,7 @@ extends Control
 const RACE_LOADING_SCENE_PATH: String = "res://scenes/ui/race_loading.tscn"
 const MENU_AUDIO_CONTROLLER_SCRIPT_PATH: String = "res://scripts/audio/menu_audio_controller.gd"
 const MENU_BACKGROUND_TEXTURE_PATH: String = "res://assets/ui/menu_showroom_background.png"
+const DEFAULT_CAR_CARD_TEXTURE_PATH: String = MENU_BACKGROUND_TEXTURE_PATH
 
 const VIEW_HOME: StringName = &"home"
 const VIEW_CAR_SELECT: StringName = &"car_select"
@@ -20,7 +21,7 @@ const STAT_COLORS: Dictionary = {
 	"braking": Color(0.12, 0.74, 1.0, 1.0),
 	"cornering": Color(0.12, 0.84, 0.42, 1.0),
 }
-const SELECTION_CARD_WIDTH_RATIO: float = 0.30
+const CHOICE_CARD_SIDE_RATIO: float = 0.10
 const CARD_SCROLL_TWEEN_SECONDS: float = 0.24
 const PREVIEW_CAMERA_ELEVATION_DEGREES: float = 45.0
 const PREVIEW_CAMERA_DISTANCE: float = 7.4
@@ -30,9 +31,12 @@ var _settings_visible: bool = false
 var _selected_car_id: StringName = &""
 var _selected_skin_id: StringName = &""
 var _selected_track_id: StringName = &""
+var _preview_car_id: StringName = &""
+var _preview_track_id: StringName = &""
 var _selected_difficulty_id: String = "medium"
 var _menu_audio: Node = null
 var _menu_background_texture: Texture2D = null
+var _car_card_texture: Texture2D = null
 var _rebuild_queued: bool = false
 
 var _home_view: Control = null
@@ -53,6 +57,7 @@ var _car_description_label: Label = null
 var _track_name_label: Label = null
 var _track_description_label: Label = null
 var _track_meta_label: Label = null
+var _track_preview_texture_rect: TextureRect = null
 var _preview_subviewport: SubViewport = null
 var _preview_turntable: Node3D = null
 var _preview_car_mount: Node3D = null
@@ -74,6 +79,9 @@ var _track_next_button: Button = null
 var _car_buttons: Dictionary = {}
 var _skin_buttons: Dictionary = {}
 var _track_buttons: Dictionary = {}
+var _car_stat_labels: Dictionary = {}
+var _car_stat_bars: Dictionary = {}
+var _car_preview_scene_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -98,6 +106,9 @@ func _build_interface() -> void:
 	_car_buttons.clear()
 	_skin_buttons.clear()
 	_track_buttons.clear()
+	_car_stat_labels.clear()
+	_car_stat_bars.clear()
+	_track_preview_texture_rect = null
 
 	_add_background()
 
@@ -360,11 +371,17 @@ func _make_selection_rows(node_name: String, card_group: StringName) -> VBoxCont
 	top.clip_contents = true
 	rows.add_child(top)
 
+	var selection_gap := Control.new()
+	selection_gap.name = "SelectionGap"
+	selection_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	selection_gap.size_flags_stretch_ratio = 1.0
+	rows.add_child(selection_gap)
+
 	var cards := HBoxContainer.new()
 	cards.name = "CardsRow"
 	cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cards.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cards.size_flags_stretch_ratio = 3.0
+	cards.size_flags_stretch_ratio = 2.0
 	cards.add_theme_constant_override("separation", _space(10, 16))
 
 	var previous_button := _make_arrow_button("<")
@@ -518,21 +535,24 @@ func _build_car_preview_column() -> PanelContainer:
 func _build_car_stats_column() -> VBoxContainer:
 	var column := _make_equal_top_column("CarStats")
 	column.add_child(_make_label("PERFORMANCE", _font_px(15, 20, 0.018), Color(0.46, 0.84, 1.0, 1.0), true))
-	var stats: Dictionary = _selected_car_option().get("stats", {})
+	var stats: Dictionary = _displayed_car_option().get("stats", {})
 	for stat_name: String in STAT_ORDER:
-		column.add_child(_make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE)))
+		var row := _make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
+		_car_stat_labels[stat_name] = row.get_child(0)
+		_car_stat_bars[stat_name] = row.get_child(1)
+		column.add_child(row)
 	return column
 
 
 func _build_preview_room(root3d: Node3D) -> void:
-	var floor := MeshInstance3D.new()
-	floor.name = "PreviewRoomFloor"
+	var floor_node := MeshInstance3D.new()
+	floor_node.name = "PreviewRoomFloor"
 	var floor_mesh := BoxMesh.new()
 	floor_mesh.size = Vector3(8.7, 0.08, 7.9)
-	floor.mesh = floor_mesh
-	floor.position = Vector3(0.0, -0.08, 0.0)
-	floor.material_override = _make_preview_material(Color(0.035, 0.040, 0.048, 1.0), 0.12, 0.46)
-	root3d.add_child(floor)
+	floor_node.mesh = floor_mesh
+	floor_node.position = Vector3(0.0, -0.08, 0.0)
+	floor_node.material_override = _make_preview_material(Color(0.035, 0.040, 0.048, 1.0), 0.12, 0.46)
+	root3d.add_child(floor_node)
 
 	var back_wall := MeshInstance3D.new()
 	back_wall.name = "PreviewRoomBackWall"
@@ -589,28 +609,25 @@ func _build_preview_platform(parent: Node3D) -> void:
 
 
 func _make_preview_material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = metallic
-	material.roughness = roughness
-	return material
+	var preview_material := StandardMaterial3D.new()
+	preview_material.albedo_color = color
+	preview_material.metallic = metallic
+	preview_material.roughness = roughness
+	return preview_material
 
 
 func _build_car_card(option: Dictionary) -> Button:
+	var car_id := StringName(option.get("id", &""))
 	var card := _make_card_button("CarCard")
-	card.pressed.connect(Callable(self, "_select_car").bind(StringName(option.get("id", &""))))
-	_car_buttons[StringName(option.get("id", &""))] = card
-	var content := _card_content(card)
-	var color_strip := ColorRect.new()
-	color_strip.color = _swatch_for_car(option)
-	color_strip.custom_minimum_size = Vector2(1.0, _vh(0.055, 42.0, 72.0))
-	content.add_child(color_strip)
-	var name_label := _make_label(str(option.get("short_name", option.get("display_name", ""))), _font_px(17, 24, 0.022), Color(0.96, 0.97, 0.93, 1.0), true)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(name_label)
-	var stats: Dictionary = option.get("stats", {})
-	for stat_name: String in STAT_ORDER:
-		content.add_child(_make_mini_stat_bar(int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE)))
+	card.tooltip_text = str(option.get("display_name", "Car"))
+	card.mouse_entered.connect(Callable(self, "_preview_car").bind(car_id))
+	card.mouse_exited.connect(Callable(self, "_clear_car_preview").bind(car_id))
+	card.focus_entered.connect(Callable(self, "_preview_car").bind(car_id))
+	card.focus_exited.connect(Callable(self, "_clear_car_preview").bind(car_id))
+	card.pressed.connect(Callable(self, "_select_car").bind(car_id))
+	_car_buttons[car_id] = card
+	var image := _card_image(card)
+	image.texture = _load_car_card_texture(option)
 	return card
 
 
@@ -631,11 +648,12 @@ func _build_track_preview_column() -> PanelContainer:
 	var panel := _make_panel("TrackPreviewColumn")
 	var texture := TextureRect.new()
 	texture.name = "TrackPreview"
-	texture.texture = _load_track_preview_texture(_selected_track_option())
+	texture.texture = _load_track_preview_texture(_displayed_track_option())
 	texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	texture.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	texture.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_track_preview_texture_rect = texture
 	panel.add_child(texture)
 	return panel
 
@@ -650,22 +668,17 @@ func _build_track_description_column() -> VBoxContainer:
 
 
 func _build_track_card(option: Dictionary) -> Button:
+	var track_id := StringName(option.get("id", &""))
 	var card := _make_card_button("TrackCard")
-	card.pressed.connect(Callable(self, "_select_track").bind(StringName(option.get("id", &""))))
-	_track_buttons[StringName(option.get("id", &""))] = card
-	var content := _card_content(card)
-	var image := TextureRect.new()
+	card.tooltip_text = str(option.get("display_name", "Track"))
+	card.mouse_entered.connect(Callable(self, "_preview_track").bind(track_id))
+	card.mouse_exited.connect(Callable(self, "_clear_track_preview").bind(track_id))
+	card.focus_entered.connect(Callable(self, "_preview_track").bind(track_id))
+	card.focus_exited.connect(Callable(self, "_clear_track_preview").bind(track_id))
+	card.pressed.connect(Callable(self, "_select_track").bind(track_id))
+	_track_buttons[track_id] = card
+	var image := _card_image(card)
 	image.texture = _load_track_preview_texture(option)
-	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	image.custom_minimum_size = Vector2(1.0, _vh(0.065, 46.0, 82.0))
-	content.add_child(image)
-	var name_label := _make_label(str(option.get("short_name", option.get("display_name", ""))), _font_px(17, 24, 0.022), Color(0.96, 0.97, 0.93, 1.0), true)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(name_label)
-	var meta := _make_label("%d laps  /  %.0fm" % [int(option.get("lap_count", 1)), float(option.get("target_length_m", 0.0))], _font_px(13, 17, 0.016), Color(0.72, 0.76, 0.79, 1.0), false)
-	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(meta)
 	return card
 
 
@@ -709,12 +722,14 @@ func _make_card_button(node_name: String) -> Button:
 	button.name = node_name
 	button.text = ""
 	button.toggle_mode = true
-	button.custom_minimum_size = Vector2(_selection_card_width(), 1.0)
+	var side := _selection_card_width()
+	button.custom_minimum_size = Vector2(side, side)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.clip_contents = true
 	button.focus_mode = Control.FOCUS_ALL
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_apply_button_style(button, false)
+	_apply_choice_card_style(button)
 	return button
 
 
@@ -763,6 +778,26 @@ func _card_content(card: Button) -> VBoxContainer:
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(content)
 	return content
+
+
+func _card_image(card: Button) -> TextureRect:
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", _space(5, 8))
+	margin.add_theme_constant_override("margin_top", _space(5, 8))
+	margin.add_theme_constant_override("margin_right", _space(5, 8))
+	margin.add_theme_constant_override("margin_bottom", _space(5, 8))
+	card.add_child(margin)
+
+	var image := TextureRect.new()
+	image.name = "PreviewImage"
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	image.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	image.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(image)
+	return image
 
 
 func _make_skin_button(skin: Dictionary) -> Button:
@@ -868,6 +903,17 @@ func _make_mini_stat_bar(value: int, accent: Color) -> ProgressBar:
 	return bar
 
 
+func _apply_choice_card_style(button: Button) -> void:
+	button.add_theme_stylebox_override("normal", _make_panel_style(Color(0.035, 0.045, 0.055, 0.90), Color(1.0, 1.0, 1.0, 0.18), 1, 10))
+	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.055, 0.075, 0.090, 1.0), Color(0.46, 0.84, 1.0, 0.88), 2, 10))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.12, 0.035, 0.045, 1.0), Color(1.0, 0.16, 0.20, 1.0), 4, 10))
+	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(Color(0.17, 0.045, 0.055, 1.0), Color(1.0, 0.72, 0.72, 1.0), 4, 10))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(0.46, 0.84, 1.0, 1.0), 2, 10))
+	button.add_theme_color_override("font_color", Color.TRANSPARENT)
+	button.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
+	button.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
+
+
 func _apply_button_style(button: Button, primary: bool) -> void:
 	var normal_fill := Color(0.075, 0.088, 0.108, 0.96)
 	var hover_fill := Color(0.11, 0.13, 0.16, 1.0)
@@ -945,6 +991,7 @@ func _toggle_settings() -> void:
 
 
 func _select_car(car_id: StringName) -> void:
+	_preview_car_id = &""
 	var session := _session()
 	if session != null and session.has_method("set_car"):
 		session.call("set_car", car_id)
@@ -953,6 +1000,7 @@ func _select_car(car_id: StringName) -> void:
 
 
 func _select_skin(skin_id: StringName) -> void:
+	_preview_car_id = &""
 	var session := _session()
 	if session != null and session.has_method("set_car_skin"):
 		session.call("set_car_skin", _selected_car_id, skin_id)
@@ -961,6 +1009,7 @@ func _select_skin(skin_id: StringName) -> void:
 
 
 func _select_track(track_id: StringName) -> void:
+	_preview_track_id = &""
 	var track := _track_option(track_id)
 	if track.is_empty():
 		return
@@ -969,6 +1018,36 @@ func _select_track(track_id: StringName) -> void:
 		session.call("set_track", track_id, str(track.get("scene_path", "")))
 	_sync_from_session()
 	_rebuild_track_select()
+
+
+func _preview_car(car_id: StringName) -> void:
+	if car_id == &"" or car_id == _preview_car_id:
+		return
+	_preview_car_id = car_id
+	_sync_car_labels()
+	_rebuild_car_preview()
+
+
+func _clear_car_preview(car_id: StringName) -> void:
+	if _preview_car_id != car_id:
+		return
+	_preview_car_id = &""
+	_sync_car_labels()
+	_rebuild_car_preview()
+
+
+func _preview_track(track_id: StringName) -> void:
+	if track_id == &"" or track_id == _preview_track_id:
+		return
+	_preview_track_id = track_id
+	_sync_track_labels()
+
+
+func _clear_track_preview(track_id: StringName) -> void:
+	if _preview_track_id != track_id:
+		return
+	_preview_track_id = &""
+	_sync_track_labels()
 
 
 func _scroll_cards(card_group: StringName, direction: int) -> void:
@@ -1119,24 +1198,34 @@ func _sync_card_nav() -> void:
 
 
 func _sync_car_labels() -> void:
-	var car := _selected_car_option()
-	var skin := _selected_skin_option()
+	var car := _displayed_car_option()
+	var skin := _displayed_skin_option()
 	if _car_name_label != null:
 		_car_name_label.text = str(car.get("display_name", ""))
 	if _car_class_label != null:
 		_car_class_label.text = "%s  /  %s" % [str(car.get("vehicle_class", "")), str(skin.get("display_name", ""))]
 	if _car_description_label != null:
 		_car_description_label.text = str(car.get("description", ""))
+	var stats: Dictionary = car.get("stats", {})
+	for stat_name: String in STAT_ORDER:
+		var label := _car_stat_labels.get(stat_name, null) as Label
+		if label != null:
+			label.text = "%s  %d" % [STAT_LABELS.get(stat_name, stat_name).to_upper(), int(stats.get(stat_name, 0))]
+		var bar := _car_stat_bars.get(stat_name, null) as ProgressBar
+		if bar != null:
+			bar.value = int(stats.get(stat_name, 0))
 
 
 func _sync_track_labels() -> void:
-	var track := _selected_track_option()
+	var track := _displayed_track_option()
 	if _track_name_label != null:
 		_track_name_label.text = str(track.get("display_name", ""))
 	if _track_meta_label != null:
 		_track_meta_label.text = "%d laps  /  %.0fm" % [int(track.get("lap_count", 1)), float(track.get("target_length_m", 0.0))]
 	if _track_description_label != null:
 		_track_description_label.text = str(track.get("description", ""))
+	if _track_preview_texture_rect != null:
+		_track_preview_texture_rect.texture = _load_track_preview_texture(track)
 
 
 func _rebuild_car_select() -> void:
@@ -1155,9 +1244,10 @@ func _rebuild_car_preview() -> void:
 	if _preview_car_mount == null:
 		return
 	for child: Node in _preview_car_mount.get_children():
+		_preview_car_mount.remove_child(child)
 		child.queue_free()
 	var scene_path := _car_preview_instance_path()
-	var packed := load(scene_path) as PackedScene
+	var packed := _load_preview_packed_scene(scene_path)
 	if packed == null:
 		return
 	var car := packed.instantiate()
@@ -1166,11 +1256,86 @@ func _rebuild_car_preview() -> void:
 	if car is Node3D:
 		var car3d := car as Node3D
 		car3d.scale = Vector3.ONE
+		car3d.rotation_degrees = Vector3.ZERO
+		_fit_preview_model_to_platform(car3d)
 		car3d.rotation_degrees = Vector3(0.0, -35.0, 0.0)
 	if car.has_method("set_controls_enabled"):
 		car.call("set_controls_enabled", false)
 	if car.has_method("set_car_color_variant"):
-		car.call("set_car_color_variant", _selected_car_color())
+		car.call("set_car_color_variant", _displayed_car_color())
+
+
+func _load_preview_packed_scene(scene_path: String) -> PackedScene:
+	if scene_path.is_empty():
+		return null
+	if _car_preview_scene_cache.has(scene_path):
+		return _car_preview_scene_cache[scene_path] as PackedScene
+	var packed := load(scene_path) as PackedScene
+	if packed != null:
+		_car_preview_scene_cache[scene_path] = packed
+	return packed
+
+
+func _fit_preview_model_to_platform(root: Node3D) -> void:
+	var bounds_info := _calculate_preview_bounds(root)
+	if not bool(bounds_info.get("has_bounds", false)):
+		return
+	var bounds := bounds_info.get("bounds", AABB()) as AABB
+	var horizontal_size := maxf(bounds.size.x, bounds.size.z)
+	if horizontal_size <= 0.001:
+		return
+	var scale_factor := clampf(4.15 / horizontal_size, 0.08, 9.0)
+	var center := bounds.get_center()
+	root.scale *= scale_factor
+	root.position = Vector3(-center.x * scale_factor, -bounds.position.y * scale_factor, -center.z * scale_factor)
+
+
+func _calculate_preview_bounds(root: Node3D) -> Dictionary:
+	var mesh_instances: Array[MeshInstance3D] = []
+	_collect_preview_mesh_instances(root, mesh_instances)
+	var has_bounds := false
+	var bounds := AABB()
+	for mesh_instance: MeshInstance3D in mesh_instances:
+		if mesh_instance.mesh == null:
+			continue
+		var local_transform := _local_transform_to_root(root, mesh_instance)
+		var local_bounds := _transform_aabb(local_transform, mesh_instance.mesh.get_aabb())
+		if not has_bounds:
+			bounds = local_bounds
+			has_bounds = true
+		else:
+			bounds = bounds.merge(local_bounds)
+	return {"has_bounds": has_bounds, "bounds": bounds}
+
+
+func _collect_preview_mesh_instances(root: Node, output: Array[MeshInstance3D]) -> void:
+	if root is MeshInstance3D:
+		output.append(root as MeshInstance3D)
+	for child: Node in root.get_children():
+		_collect_preview_mesh_instances(child, output)
+
+
+func _local_transform_to_root(root: Node3D, node: Node3D) -> Transform3D:
+	var result := Transform3D.IDENTITY
+	var current: Node = node
+	while current != null and current != root:
+		if current is Node3D:
+			result = (current as Node3D).transform * result
+		current = current.get_parent()
+	return result
+
+
+func _transform_aabb(transform: Transform3D, source: AABB) -> AABB:
+	var has_point := false
+	var transformed := AABB()
+	for index: int in range(8):
+		var point := transform * source.get_endpoint(index)
+		if not has_point:
+			transformed = AABB(point, Vector3.ZERO)
+			has_point = true
+		else:
+			transformed = transformed.expand(point)
+	return transformed
 
 
 func _disable_preview_processing(root: Node) -> void:
@@ -1282,6 +1447,10 @@ func _selected_car_option() -> Dictionary:
 	return _car_option(_selected_car_id)
 
 
+func _displayed_car_option() -> Dictionary:
+	return _car_option(_preview_car_id) if _preview_car_id != &"" else _selected_car_option()
+
+
 func _selected_skin_option() -> Dictionary:
 	var session := _session()
 	if session != null and session.has_method("get_selected_skin_preset"):
@@ -1291,8 +1460,20 @@ func _selected_skin_option() -> Dictionary:
 	return {}
 
 
+func _displayed_skin_option() -> Dictionary:
+	var car := _displayed_car_option()
+	var car_id := StringName(car.get("id", &""))
+	if car_id == _selected_car_id:
+		return _selected_skin_option()
+	return _skin_option(StringName(car.get("default_skin_id", _selected_skin_id)))
+
+
 func _selected_track_option() -> Dictionary:
 	return _track_option(_selected_track_id)
+
+
+func _displayed_track_option() -> Dictionary:
+	return _track_option(_preview_track_id) if _preview_track_id != &"" else _selected_track_option()
 
 
 func _car_option(car_id: StringName) -> Dictionary:
@@ -1309,6 +1490,13 @@ func _track_option(track_id: StringName) -> Dictionary:
 			return option
 	var options := _track_options()
 	return options[0] if not options.is_empty() else {}
+
+
+func _skin_option(skin_id: StringName) -> Dictionary:
+	for skin: Dictionary in _skin_presets():
+		if StringName(skin.get("id", &"")) == skin_id:
+			return skin
+	return _selected_skin_option()
 
 
 func _skin_options_for_selected_car() -> Array:
@@ -1328,9 +1516,16 @@ func _selected_car_color() -> String:
 	return "blue"
 
 
+func _displayed_car_color() -> String:
+	var skin := _displayed_skin_option()
+	if not skin.is_empty():
+		return str(skin.get("color_variant", _selected_car_color()))
+	return _selected_car_color()
+
+
 func _car_preview_instance_path() -> String:
-	var car := _selected_car_option()
-	return str(car.get("scene_path", "res://scenes/player_car.tscn"))
+	var car := _displayed_car_option()
+	return str(car.get("preview_scene_path", car.get("scene_path", "res://scenes/player_car.tscn")))
 
 
 func _swatch_for_car(car: Dictionary) -> Color:
@@ -1355,6 +1550,18 @@ func _load_track_preview_texture(track: Dictionary) -> Texture2D:
 	return texture if texture != null else _get_menu_background_texture()
 
 
+func _load_car_card_texture(car: Dictionary) -> Texture2D:
+	var path := str(car.get("preview_texture_path", DEFAULT_CAR_CARD_TEXTURE_PATH))
+	if path.is_empty():
+		path = DEFAULT_CAR_CARD_TEXTURE_PATH
+	var texture := load(path) as Texture2D
+	if texture != null:
+		return texture
+	if _car_card_texture == null and ResourceLoader.exists(DEFAULT_CAR_CARD_TEXTURE_PATH):
+		_car_card_texture = load(DEFAULT_CAR_CARD_TEXTURE_PATH) as Texture2D
+	return _car_card_texture if _car_card_texture != null else _get_menu_background_texture()
+
+
 func _get_menu_background_texture() -> Texture2D:
 	if _menu_background_texture == null and ResourceLoader.exists(MENU_BACKGROUND_TEXTURE_PATH):
 		_menu_background_texture = load(MENU_BACKGROUND_TEXTURE_PATH) as Texture2D
@@ -1362,16 +1569,24 @@ func _get_menu_background_texture() -> Texture2D:
 
 
 func _selection_card_width() -> float:
+	var usable_width := _estimated_card_viewport_width()
+	return clampf(usable_width * CHOICE_CARD_SIDE_RATIO, 68.0, 138.0)
+
+
+func _estimated_card_viewport_width() -> float:
 	var viewport_width := get_viewport_rect().size.x
 	var estimated_safe_margins := float(_space(36, 70) * 2)
 	var estimated_thin_columns := float(_space(34, 62) * 2)
 	var estimated_arrows := float(_space(68, 92) * 2)
 	var usable_width := maxf(1.0, viewport_width - estimated_safe_margins - estimated_thin_columns - estimated_arrows)
-	return clampf(usable_width * SELECTION_CARD_WIDTH_RATIO, 220.0, 460.0)
+	return usable_width
 
 
 func _visible_card_capacity() -> int:
-	return 3
+	var step := _selection_card_width() + float(_card_gap())
+	if step <= 0.001:
+		return 1
+	return maxi(1, floori(_estimated_card_viewport_width() / step))
 
 
 func _card_gap() -> int:
@@ -1383,8 +1598,8 @@ func _font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
 
 
 func _space(minimum: int, maximum: int) -> int:
-	var scale := clampf(get_viewport_rect().size.y / 1080.0, 0.72, 1.35)
-	return roundi(clampf(float(maximum) * scale, float(minimum), float(maximum)))
+	var ui_scale := clampf(get_viewport_rect().size.y / 1080.0, 0.72, 1.35)
+	return roundi(clampf(float(maximum) * ui_scale, float(minimum), float(maximum)))
 
 
 func _vh(ratio: float, minimum: float, maximum: float) -> float:
