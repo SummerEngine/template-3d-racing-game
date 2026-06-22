@@ -26,6 +26,11 @@ signal effective_view_changed(view_id: StringName, temporary: bool)
 @export var camera_toggle_primary_action: StringName = &"camera_toggle_primary"
 @export var camera_look_back_action: StringName = &"camera_look_back"
 
+@export_category("Controller Input")
+@export var controller_input_enabled: bool = true
+@export var controller_toggle_primary_buttons: Array[int] = [JOY_BUTTON_Y]
+@export var controller_look_back_buttons: Array[int] = [JOY_BUTTON_RIGHT_SHOULDER]
+
 @export_category("View Profiles")
 @export var chase_profile: Resource = null
 @export var cockpit_profile: Resource = null
@@ -48,6 +53,7 @@ var _last_effective_view_id: StringName = &""
 var _current_roll: float = 0.0
 var _last_anchor_position: Vector3 = Vector3.ZERO
 var _estimated_velocity: Vector3 = Vector3.ZERO
+var _controller_toggle_was_pressed: bool = false
 
 
 func _ready() -> void:
@@ -222,13 +228,19 @@ func _ensure_camera() -> void:
 
 func _handle_input() -> void:
 	if not input_enabled:
+		_controller_toggle_was_pressed = false
 		_set_look_back_active(false)
 		return
 
-	if _is_action_just_pressed(camera_toggle_primary_action):
+	var controller_toggle_pressed: bool = _is_controller_button_pressed(controller_toggle_primary_buttons)
+	var controller_toggle_just_pressed: bool = controller_toggle_pressed and not _controller_toggle_was_pressed
+	if _is_action_just_pressed(camera_toggle_primary_action) or controller_toggle_just_pressed:
 		toggle_primary_view()
 
-	_set_look_back_active(_is_action_pressed(camera_look_back_action))
+	var look_back_pressed: bool = _is_action_pressed(camera_look_back_action) \
+			or _is_controller_button_pressed(controller_look_back_buttons)
+	_set_look_back_active(look_back_pressed)
+	_controller_toggle_was_pressed = controller_toggle_pressed
 
 
 func _set_look_back_active(active: bool) -> void:
@@ -642,6 +654,16 @@ func _is_action_just_pressed(action: StringName) -> bool:
 	if String(action).is_empty() or not InputMap.has_action(action):
 		return false
 	return Input.is_action_just_pressed(action)
+
+
+func _is_controller_button_pressed(buttons: Array[int]) -> bool:
+	if not controller_input_enabled:
+		return false
+	for device_id: int in Input.get_connected_joypads():
+		for button_index: int in buttons:
+			if Input.is_joy_button_pressed(device_id, button_index):
+				return true
+	return false
 
 
 func _emit_effective_view_if_changed() -> void:

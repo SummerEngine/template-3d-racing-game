@@ -6,6 +6,8 @@ const ACTION_BRAKE: StringName = &"brake"
 const ACTION_STEER: StringName = &"steer"
 const ACTION_DRIFT: StringName = &"drift"
 const ACTION_HAND_BRAKE: StringName = &"handbrake"
+const ACTION_SHIFT_UP: StringName = &"shift_up"
+const ACTION_SHIFT_DOWN: StringName = &"shift_down"
 const ACTION_CAMERA_TOGGLE_PRIMARY: StringName = &"camera_toggle_primary"
 const ACTION_CAMERA_LOOK_BACK: StringName = &"camera_look_back"
 const ACTION_PAUSE: StringName = &"pause"
@@ -16,6 +18,8 @@ const ACTION_RACE_MENU_OVERLAY: StringName = &"race_menu_overlay"
 @export var allow_steer: bool = true
 @export var allow_drift: bool = true
 @export var allow_handbrake: bool = true
+@export var allow_shift_up: bool = true
+@export var allow_shift_down: bool = true
 @export var allow_camera_toggle_primary: bool = true
 @export var allow_camera_look_back: bool = true
 @export var allow_pause: bool = true
@@ -40,6 +44,8 @@ static func create_vehicle_locked_profile() -> RaceInputPermissionProfile:
 	profile.allow_steer = false
 	profile.allow_drift = false
 	profile.allow_handbrake = false
+	profile.allow_shift_up = false
+	profile.allow_shift_down = false
 	profile.allow_camera_toggle_primary = true
 	profile.allow_camera_look_back = true
 	profile.allow_pause = true
@@ -54,6 +60,8 @@ func configure_countdown_permissions() -> RaceInputPermissionProfile:
 	allow_steer = false
 	allow_drift = false
 	allow_handbrake = false
+	allow_shift_up = false
+	allow_shift_down = false
 	allow_camera_toggle_primary = true
 	allow_camera_look_back = true
 	allow_pause = true
@@ -75,6 +83,10 @@ func allows_action(action: Variant) -> bool:
 		return allow_drift
 	if normalized in [&"handbrake", &"hand_brake", &"drive_handbrake"]:
 		return allow_handbrake
+	if normalized in [&"shift_up", &"gear_up", &"drive_shift_up"]:
+		return allow_shift_up
+	if normalized in [&"shift_down", &"gear_down", &"drive_shift_down"]:
+		return allow_shift_down
 	if normalized in [&"camera_toggle_primary", &"camera_cycle", &"camera_toggle"]:
 		return allow_camera_toggle_primary
 	if normalized in [&"camera_look_back", &"look_back"]:
@@ -94,6 +106,8 @@ func to_dictionary() -> Dictionary:
 		"steer": allow_steer,
 		"drift": allow_drift,
 		"handbrake": allow_handbrake,
+		"shift_up": allow_shift_up,
+		"shift_down": allow_shift_down,
 		"camera_toggle_primary": allow_camera_toggle_primary,
 		"camera_look_back": allow_camera_look_back,
 		"pause": allow_pause,
@@ -109,6 +123,8 @@ func duplicate_profile() -> RaceInputPermissionProfile:
 	copy.allow_steer = allow_steer
 	copy.allow_drift = allow_drift
 	copy.allow_handbrake = allow_handbrake
+	copy.allow_shift_up = allow_shift_up
+	copy.allow_shift_down = allow_shift_down
 	copy.allow_camera_toggle_primary = allow_camera_toggle_primary
 	copy.allow_camera_look_back = allow_camera_look_back
 	copy.allow_pause = allow_pause

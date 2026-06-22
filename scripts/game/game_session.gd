@@ -291,7 +291,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"coastal_mountain",
 		"lap_count": 1,
 		"target_length_m": 2200.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_speedway.jpg",
 	},
 	{
 		"id": &"showcase_circuit",
@@ -303,7 +303,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"test_circuit",
 		"lap_count": 3,
 		"target_length_m": 1800.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_oval.jpg",
 	},
 	{
 		"id": &"glass_city",
@@ -315,7 +315,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"city_night",
 		"lap_count": 2,
 		"target_length_m": 2400.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_urban.jpg",
 	},
 	{
 		"id": &"solar_pass",
@@ -327,7 +327,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"desert_pass",
 		"lap_count": 3,
 		"target_length_m": 2100.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_serpentine.jpg",
 	},
 	{
 		"id": &"neon_harbor",
@@ -339,7 +339,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"industrial_harbor",
 		"lap_count": 4,
 		"target_length_m": 1650.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_speedway.jpg",
 	},
 	{
 		"id": &"alpine_link",
@@ -351,7 +351,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"alpine_road",
 		"lap_count": 2,
 		"target_length_m": 2750.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_alps_pass.jpg",
 	},
 	{
 		"id": &"metro_loop",
@@ -363,7 +363,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"metro_loop",
 		"lap_count": 5,
 		"target_length_m": 1300.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_urban.jpg",
 	},
 	{
 		"id": &"aurora_ring",
@@ -375,7 +375,7 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"environment": &"twilight_ring",
 		"lap_count": 3,
 		"target_length_m": 1950.0,
-		"preview_texture_path": "res://assets/ui/menu_showroom_background.png",
+		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_oval.jpg",
 	},
 ]
 
@@ -709,7 +709,6 @@ func get_pending_loading_target() -> String:
 
 
 func get_race_loading_manifest() -> Array[String]:
-	var track_option: Dictionary = get_selected_track_option()
 	var paths: Array[String] = [
 		get_track_scene_path(),
 		get_car_scene_path(),
@@ -721,9 +720,6 @@ func get_race_loading_manifest() -> Array[String]:
 		"res://assets/audio/sfx/engine_hybrid_accel_loop.mp3",
 		"res://assets/audio/sfx/engine_hybrid_high_rpm_loop.mp3",
 	]
-	var preview_texture_path: String = str(track_option.get("preview_texture_path", ""))
-	if not preview_texture_path.is_empty():
-		paths.append(preview_texture_path)
 	return _dedupe_paths(paths)
 
 

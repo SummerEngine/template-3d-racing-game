@@ -3,6 +3,7 @@ extends CharacterBody3D
 
 const VehicleCommandScript := preload("res://scripts/vehicles/vehicle_command.gd")
 const PlayerDriverScript := preload("res://scripts/vehicles/player_driver.gd")
+const KMH_TO_MPS: float = 1.0 / 3.6
 
 signal drift_started(intensity: float)
 signal drift_ended
@@ -18,11 +19,19 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export var brake_force: float = 70.0
 @export var rolling_drag: float = 18.0
 
+@export_category("Transmission")
+@export_range(1, 8, 1) var gear_count: int = 6
+@export_range(1, 8, 1) var starting_gear: int = 1
+@export var gear_speed_limits_kmh: PackedFloat32Array = PackedFloat32Array([60.0, 110.0, 155.0, 195.0, 230.0, 260.0])
+@export_range(0.0, 0.5, 0.01) var gear_shift_cooldown_seconds: float = 0.12
+@export_range(0.0, 1.0, 0.01) var downshift_speed_blend: float = 0.08
+
 @export_category("Handling")
 @export var low_speed_turn_rate: float = 1.8
 @export var high_speed_turn_rate: float = 0.95
 @export var min_steer_speed: float = 2.0
 @export var reverse_turn_multiplier: float = 0.72
+@export_range(0.5, 2.5, 0.05) var steering_response_exponent: float = 1.0
 @export var normal_lateral_grip: float = 58.0
 @export var ground_stick_force: float = 4.0
 @export var gravity: float = 28.0
@@ -37,6 +46,14 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export var drift_side_slip: float = 11.0
 @export var drift_turn_multiplier: float = 1.45
 @export var drift_steering_gain: float = 0.75
+
+@export_category("Collision Feel")
+@export_range(0.0, 1.0, 0.01) var wall_glance_speed_retention: float = 0.74
+@export_range(0.0, 1.0, 0.01) var wall_head_on_speed_retention: float = 0.34
+@export_range(0.0, 1.0, 0.01) var vehicle_bump_speed_retention: float = 0.58
+@export_range(0.0, 1.0, 0.01) var collision_slide_push: float = 0.18
+@export_range(0.0, 20.0, 0.1) var collision_min_response_speed: float = 4.5
+@export_range(0.0, 1.0, 0.01) var wall_contact_max_up_dot: float = 0.48
 
 @export_category("Visual Feel")
 @export var body_roll_degrees: float = 7.5
@@ -124,6 +141,8 @@ var _side_speed: float = 0.0
 var _wheel_spin: float = 0.0
 var _front_wheel_rest_y: Array[float] = []
 var _fallback_player_driver: Node = null
+var _current_gear: int = 1
+var _shift_cooldown: float = 0.0
 var _was_drifting: bool = false
 var _last_reported_drift_intensity: float = 0.0
 var _wall_scrape_cooldown: float = 0.0
@@ -131,6 +150,7 @@ var _vehicle_bump_cooldown: float = 0.0
 
 
 func _ready() -> void:
+	_current_gear = clampi(starting_gear, 1, maxi(gear_count, 1))
 	_resolve_driver()
 	_apply_car_color_variant()
 	_apply_imported_model_material_override()
@@ -155,10 +175,12 @@ func _physics_process(delta: float) -> void:
 	var previous_planar_velocity: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
 	_wall_scrape_cooldown = maxf(0.0, _wall_scrape_cooldown - delta)
 	_vehicle_bump_cooldown = maxf(0.0, _vehicle_bump_cooldown - delta)
-	_read_command()
+	_shift_cooldown = maxf(0.0, _shift_cooldown - delta)
+	_read_command(delta)
 	_update_planar_velocity(delta)
 	_update_visuals(delta)
 	move_and_slide()
+	_apply_collision_recovery(previous_planar_velocity)
 	_emit_drift_feedback()
 	_emit_collision_feedback(previous_planar_velocity)
 
@@ -180,6 +202,26 @@ func get_forward_speed() -> float:
 	return _forward_speed if _is_finite_float(_forward_speed) else 0.0
 
 
+func get_current_gear() -> int:
+	return clampi(_current_gear, 1, maxi(gear_count, 1))
+
+
+func get_gear_count() -> int:
+	return maxi(gear_count, 1)
+
+
+func get_current_gear_ratio() -> float:
+	var gear: int = get_current_gear()
+	var lower_limit: float = 0.0 if gear <= 1 else _gear_speed_limit(gear - 1)
+	var upper_limit: float = maxf(_gear_speed_limit(gear), lower_limit + 1.0)
+	var speed: float = maxf(get_forward_speed(), 0.0)
+	return clampf((speed - lower_limit) / maxf(upper_limit - lower_limit, 1.0), 0.0, 1.0)
+
+
+func get_current_gear_speed_limit_kmh() -> float:
+	return _gear_speed_limit(get_current_gear()) * 3.6
+
+
 func get_effective_steering() -> float:
 	return effective_steer_amount if _is_finite_float(effective_steer_amount) else 0.0
 
@@ -188,8 +230,38 @@ func get_effective_steer_amount() -> float:
 	return effective_steer_amount if _is_finite_float(effective_steer_amount) else 0.0
 
 
+func get_throttle_amount() -> float:
+	return throttle_amount if _is_finite_float(throttle_amount) else 0.0
+
+
+func get_brake_amount() -> float:
+	return brake_amount if _is_finite_float(brake_amount) else 0.0
+
+
+func get_steering_input() -> float:
+	return steering_input if _is_finite_float(steering_input) else 0.0
+
+
 func get_drift_intensity() -> float:
 	return drift_intensity if _is_finite_float(drift_intensity) else 0.0
+
+
+func are_controls_enabled() -> bool:
+	return controls_enabled
+
+
+func get_last_input_device() -> StringName:
+	var driver: Node = _active_driver_node()
+	if driver != null and driver.has_method("get_last_input_device"):
+		return StringName(driver.call("get_last_input_device"))
+	return &"none"
+
+
+func get_last_controller_device() -> int:
+	var driver: Node = _active_driver_node()
+	if driver != null and driver.has_method("get_last_controller_device"):
+		return int(driver.call("get_last_controller_device"))
+	return -1
 
 
 func set_vehicle_command(next_command: RefCounted) -> void:
@@ -205,6 +277,7 @@ func set_controls_enabled(enabled: bool) -> void:
 	controls_enabled = enabled
 	if not controls_enabled:
 		vehicle_command.clear()
+		_clear_driver_input_state()
 		_sync_command_state()
 
 
@@ -219,9 +292,22 @@ func _resolve_driver() -> void:
 		_driver_node = get_node_or_null(driver_path)
 
 
-func _read_command() -> void:
+func _active_driver_node() -> Node:
+	if _driver_node != null and is_instance_valid(_driver_node):
+		return _driver_node
+	if _fallback_player_driver != null and is_instance_valid(_fallback_player_driver):
+		return _fallback_player_driver
+	if not String(driver_path).is_empty():
+		_resolve_driver()
+		if _driver_node != null:
+			return _driver_node
+	return null
+
+
+func _read_command(delta: float) -> void:
 	if not controls_enabled:
 		vehicle_command.clear()
+		_clear_driver_input_state()
 		_sync_command_state()
 		return
 
@@ -230,7 +316,10 @@ func _read_command() -> void:
 		_resolve_driver()
 
 	if _driver_node != null:
-		if _driver_node.has_method("write_command"):
+		if _driver_node.has_method("write_command_with_delta"):
+			_driver_node.call("write_command_with_delta", vehicle_command, delta)
+			command_written = true
+		elif _driver_node.has_method("write_command"):
 			_driver_node.call("write_command", vehicle_command)
 			command_written = true
 		elif _driver_node.has_method("get_command"):
@@ -243,7 +332,10 @@ func _read_command() -> void:
 		if use_default_player_driver:
 			if _fallback_player_driver == null:
 				_fallback_player_driver = PlayerDriverScript.new()
-			_fallback_player_driver.write_command(vehicle_command)
+			if _fallback_player_driver.has_method("write_command_with_delta"):
+				_fallback_player_driver.call("write_command_with_delta", vehicle_command, delta)
+			else:
+				_fallback_player_driver.write_command(vehicle_command)
 		else:
 			vehicle_command.clear()
 
@@ -255,6 +347,7 @@ func _sync_command_state() -> void:
 	brake_amount = clampf(_finite_or(vehicle_command.brake, 0.0), 0.0, 1.0)
 	steering_input = clampf(_finite_or(vehicle_command.steer, 0.0), -1.0, 1.0)
 	_drift_input_active = vehicle_command.drift
+	_apply_gear_delta(int(vehicle_command.get(&"gear_delta")))
 
 
 func _update_planar_velocity(delta: float) -> void:
@@ -268,10 +361,12 @@ func _update_planar_velocity(delta: float) -> void:
 	_side_speed = _finite_or(_side_speed, 0.0)
 
 	var safe_max_speed: float = maxf(_finite_or(max_speed, 1.0), 1.0)
+	var current_gear_speed_limit: float = maxf(_gear_speed_limit(get_current_gear()), 1.0)
 	var speed_ratio: float = clampf(absf(_forward_speed) / safe_max_speed, 0.0, 1.0)
 	var forward_speed_ratio: float = clampf(_forward_speed / safe_max_speed, 0.0, 1.0)
 	var can_steer: bool = absf(_forward_speed) >= min_steer_speed
-	effective_steer_amount = steering_input if can_steer else 0.0
+	var shaped_steering: float = _shape_axis(steering_input, steering_response_exponent)
+	effective_steer_amount = shaped_steering if can_steer else 0.0
 	steer_amount = effective_steer_amount
 
 	is_drifting = _drift_input_active and _forward_speed >= drift_min_speed
@@ -299,7 +394,7 @@ func _update_planar_velocity(delta: float) -> void:
 	right = _flat_right()
 
 	if throttle_amount > 0.0:
-		_forward_speed = move_toward(_forward_speed, max_speed, acceleration * throttle_amount * delta)
+		_forward_speed = move_toward(_forward_speed, current_gear_speed_limit, acceleration * throttle_amount * delta)
 	elif brake_amount > 0.0:
 		if _forward_speed > 2.0:
 			_forward_speed = move_toward(_forward_speed, 0.0, brake_force * brake_amount * delta)
@@ -326,6 +421,46 @@ func _update_planar_velocity(delta: float) -> void:
 	velocity.y = vertical_speed
 	if not velocity.is_finite():
 		velocity = Vector3.ZERO
+
+
+func _apply_gear_delta(gear_delta: int) -> void:
+	if gear_delta == 0 or _shift_cooldown > 0.0:
+		return
+	var direction: int = 1 if gear_delta > 0 else -1
+	var next_gear: int = clampi(_current_gear + direction, 1, maxi(gear_count, 1))
+	if next_gear == _current_gear:
+		return
+
+	var shifted_down: bool = next_gear < _current_gear
+	_current_gear = next_gear
+	_shift_cooldown = gear_shift_cooldown_seconds
+	if shifted_down:
+		_soften_downshift_overspeed()
+
+
+func _soften_downshift_overspeed() -> void:
+	var forward: Vector3 = _flat_forward()
+	var right: Vector3 = _flat_right()
+	var forward_speed: float = velocity.dot(forward)
+	var gear_limit: float = _gear_speed_limit(get_current_gear())
+	if forward_speed <= gear_limit:
+		return
+
+	var side_speed: float = velocity.dot(right)
+	var softened_speed: float = lerpf(forward_speed, gear_limit, clampf(downshift_speed_blend, 0.0, 1.0))
+	velocity = forward * softened_speed + right * side_speed + Vector3.UP * _finite_or(velocity.y, 0.0)
+	_forward_speed = softened_speed
+	_side_speed = side_speed
+
+
+func _gear_speed_limit(gear: int) -> float:
+	var safe_gear_count: int = maxi(gear_count, 1)
+	var clamped_gear: int = clampi(gear, 1, safe_gear_count)
+	if gear_speed_limits_kmh.size() >= clamped_gear:
+		var explicit_limit_kmh: float = float(gear_speed_limits_kmh[clamped_gear - 1])
+		if _is_finite_float(explicit_limit_kmh) and explicit_limit_kmh > 0.0:
+			return minf(explicit_limit_kmh * KMH_TO_MPS, maxf(max_speed, 1.0))
+	return maxf(max_speed, 1.0) * (float(clamped_gear) / float(safe_gear_count))
 
 
 func _update_visuals(delta: float) -> void:
@@ -463,6 +598,58 @@ func _emit_drift_feedback() -> void:
 	_was_drifting = is_drifting
 
 
+func _apply_collision_recovery(previous_planar_velocity: Vector3) -> void:
+	var previous_speed: float = previous_planar_velocity.length()
+	if previous_speed < collision_min_response_speed:
+		return
+
+	var best_recovered_velocity: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
+	var strongest_impact: float = 0.0
+	for collision_index: int in range(get_slide_collision_count()):
+		var collision: KinematicCollision3D = get_slide_collision(collision_index)
+		if collision == null:
+			continue
+		var contact_normal: Vector3 = collision.get_normal()
+		var collider: Object = collision.get_collider()
+		if not _is_vehicle_collider(collider) and contact_normal.y > wall_contact_max_up_dot:
+			continue
+		var flat_normal: Vector3 = contact_normal
+		flat_normal.y = 0.0
+		if not flat_normal.is_finite() or flat_normal.length_squared() <= 0.0001:
+			continue
+		flat_normal = flat_normal.normalized()
+
+		var normal_impact: float = maxf(0.0, -previous_planar_velocity.dot(flat_normal))
+		if normal_impact < collision_min_response_speed or normal_impact <= strongest_impact:
+			continue
+
+		var head_on_weight: float = clampf(normal_impact / maxf(previous_speed, 0.001), 0.0, 1.0)
+		var retention: float = vehicle_bump_speed_retention if _is_vehicle_collider(collider) else lerpf(
+				wall_glance_speed_retention,
+				wall_head_on_speed_retention,
+				head_on_weight
+		)
+		var tangent_velocity: Vector3 = previous_planar_velocity.slide(flat_normal)
+		var push_away: Vector3 = flat_normal * normal_impact * collision_slide_push
+		if _is_vehicle_collider(collider):
+			push_away *= 0.65
+		var candidate_velocity: Vector3 = tangent_velocity * retention + push_away
+		var max_recovered_speed: float = previous_speed * 0.96
+		if candidate_velocity.length() > max_recovered_speed:
+			candidate_velocity = candidate_velocity.normalized() * max_recovered_speed
+		if candidate_velocity.is_finite():
+			best_recovered_velocity = candidate_velocity
+			strongest_impact = normal_impact
+
+	if strongest_impact <= 0.0:
+		return
+
+	velocity.x = best_recovered_velocity.x
+	velocity.z = best_recovered_velocity.z
+	_forward_speed = velocity.dot(_flat_forward())
+	_side_speed = velocity.dot(_flat_right())
+
+
 func _emit_collision_feedback(previous_planar_velocity: Vector3) -> void:
 	var impact_speed: float = previous_planar_velocity.length()
 	if impact_speed < 4.0:
@@ -506,9 +693,36 @@ func _is_guardrail_collider(collider: Object) -> bool:
 	var node: Node = collider as Node
 	while node != null:
 		var node_name: String = String(node.name).to_lower()
-		if node_name.contains("guardrail"):
+		if node_name.contains("guardrail") or node_name.contains("barrier") or node_name.contains("wall"):
+			return true
+		if _node_has_track_wall_metadata(node):
+			return true
+		if node.is_in_group("guardrails") or node.is_in_group("barriers") or node.is_in_group("track_walls"):
 			return true
 		node = node.get_parent()
+	return false
+
+
+func _node_has_track_wall_metadata(node: Node) -> bool:
+	for key: String in [
+		"collision_role",
+		"track_collision_role",
+		"collision_kind",
+		"track_part",
+		"role",
+		"kind",
+		"type",
+		"category",
+		"tag",
+		"tags",
+		"asset_kind",
+		"asset_type",
+	]:
+		if not node.has_meta(key):
+			continue
+		var value: String = String(node.get_meta(key)).to_lower()
+		if value.contains("guardrail") or value.contains("barrier") or value.contains("wall"):
+			return true
 	return false
 
 
@@ -518,6 +732,19 @@ func _find_first_node3d(paths: Array[String]) -> Node3D:
 		if node is Node3D:
 			return node as Node3D
 	return null
+
+
+func _clear_driver_input_state() -> void:
+	if _driver_node != null and _driver_node.has_method("clear_input_state"):
+		_driver_node.call("clear_input_state")
+	if _fallback_player_driver != null and _fallback_player_driver.has_method("clear_input_state"):
+		_fallback_player_driver.call("clear_input_state")
+
+
+func _shape_axis(value: float, exponent: float) -> float:
+	value = clampf(_finite_or(value, 0.0), -1.0, 1.0)
+	exponent = maxf(_finite_or(exponent, 1.0), 0.01)
+	return signf(value) * pow(absf(value), exponent)
 
 
 func _flat_forward() -> Vector3:

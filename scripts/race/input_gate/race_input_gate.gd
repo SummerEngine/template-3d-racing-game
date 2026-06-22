@@ -36,6 +36,7 @@ func filter_command_with_profile(
 	var brake: float = _command_float(raw_command, &"brake")
 	var steer: float = _command_float(raw_command, &"steer")
 	var drift: bool = _command_bool(raw_command, &"drift")
+	var gear_delta: int = _command_int(raw_command, &"gear_delta")
 
 	if not profile.allows_action(PermissionProfileScript.ACTION_ACCELERATE):
 		throttle = 0.0
@@ -46,18 +47,23 @@ func filter_command_with_profile(
 	if not profile.allows_action(PermissionProfileScript.ACTION_DRIFT) \
 			or not profile.allows_action(PermissionProfileScript.ACTION_HAND_BRAKE):
 		drift = false
+	if gear_delta > 0 and not profile.allows_action(PermissionProfileScript.ACTION_SHIFT_UP):
+		gear_delta = 0
+	elif gear_delta < 0 and not profile.allows_action(PermissionProfileScript.ACTION_SHIFT_DOWN):
+		gear_delta = 0
 
 	var output: RefCounted = target_command
 	if output == null:
 		output = VehicleCommandScript.new()
 
 	if output.has_method("set_values"):
-		output.call("set_values", throttle, brake, steer, drift)
+		output.call("set_values", throttle, brake, steer, drift, gear_delta)
 	else:
 		output.set("throttle", clampf(throttle, 0.0, 1.0))
 		output.set("brake", clampf(brake, 0.0, 1.0))
 		output.set("steer", clampf(steer, -1.0, 1.0))
 		output.set("drift", drift)
+		output.set("gear_delta", gear_delta)
 	return output
 
 
@@ -135,3 +141,12 @@ static func _command_bool(raw_command: RefCounted, property_name: StringName) ->
 	if value is bool:
 		return value
 	return false
+
+
+static func _command_int(raw_command: RefCounted, property_name: StringName) -> int:
+	if raw_command == null:
+		return 0
+	var value: Variant = raw_command.get(property_name)
+	if value is int or value is float:
+		return clampi(int(value), -1, 1)
+	return 0

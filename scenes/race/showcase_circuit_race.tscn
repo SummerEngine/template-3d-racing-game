@@ -5,13 +5,16 @@
 [ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="3_ho65n"]
 [ext_resource type="Resource" uid="uid://efwsjf6wjdh8" path="res://resources/tracks/showcase_circuit.tres" id="3_j05bb"]
 [ext_resource type="Script" uid="uid://b7ftvxk4rgrbn" path="res://scripts/vehicles/npc_driver.gd" id="5_j05bb"]
-[ext_resource type="Script" uid="uid://b38xmpvltaog7" path="res://scripts/elastic_chase_camera.gd" id="6_5juuk"]
+[ext_resource type="Script" uid="uid://d4ec4dtsyad7u" path="res://scripts/camera/camera_rig.gd" id="6_5juuk"]
 [ext_resource type="Script" uid="uid://camrubrc8108k" path="res://scripts/race/race_manager.gd" id="7_ym5jb"]
 [ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="8_m4m2u"]
 [ext_resource type="Script" uid="uid://bdy2leo4bnxur" path="res://scripts/audio/race_audio_controller.gd" id="9_audio"]
 [ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="10_overlay"]
 [ext_resource type="Script" uid="uid://87q2ak68240e" path="res://scripts/environment/premium_track_dressing.gd" id="11_premium"]
 [ext_resource type="PackedScene" uid="uid://jbhpsjba2hgg" path="res://assets/environment/generated_grandstand_hunyuan.glb" id="12_grandstand"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/chase_camera_view.tres" id="13_chase_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/cockpit_placeholder_camera_view.tres" id="14_cockpit_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/look_back_camera_view.tres" id="15_look_back_camera"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(1.9, 1, 4.35)
@@ -106,7 +109,6 @@ transform = Transform3D(22.5526, 0, 8.20848, 0, 24, 0, -8.20848, 0, 22.5526, 82,
 [node name="Vehicles" type="Node3D" parent="World" unique_id=517205929]
 
 [node name="PlayerCar" parent="World/Vehicles" unique_id=211797938 instance=ExtResource("3_ho65n")]
-max_speed = 60.0
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="World/Vehicles/PlayerCar" unique_id=953982835]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
@@ -178,13 +180,18 @@ personality_id = &"showoff"
 lane_index = 1
 
 [node name="CameraRig" type="Node3D" parent="World" unique_id=1452391880]
+script = ExtResource("6_5juuk")
+target_path = NodePath("../Vehicles/PlayerCar")
+target_marker_name = &"CameraTarget2"
+camera_path = NodePath("ChaseCamera")
+track_query_provider_path = NodePath("../TrackRoot")
+chase_profile = ExtResource("13_chase_camera")
+cockpit_profile = ExtResource("14_cockpit_camera")
+look_back_profile = ExtResource("15_look_back_camera")
 
 [node name="ChaseCamera" type="Camera3D" parent="World/CameraRig" unique_id=2075822441]
 current = true
 fov = 67.0
-script = ExtResource("6_5juuk")
-target_path = NodePath("../../Vehicles/PlayerCar")
-target_marker_name = &"CameraTarget2"
 
 [node name="AudioListener3D" type="AudioListener3D" parent="World/CameraRig/ChaseCamera" unique_id=63301414]
 current = true

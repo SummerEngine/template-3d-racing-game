@@ -126,7 +126,7 @@ script = ExtResource("10_npc_driver")
 personality_id = &"bully"
 
 [node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=1823916510 instance=ExtResource("3_player_car")]
-transform = Transform3D(-0.9181216, 0, 0.39629883, 0, 1, 0, -0.39629883, 0, -0.9181216, 0, 0, 0)
+transform = Transform3D(-0.9181216, 0, 0.39629883, 0, 1, 0, -0.39629883, 0, -0.9181216, 0.0026307106, -1.1920929e-07, -0.001437664)
 car_color_variant = "yellow"
 driver_path = NodePath("NpcDriver")
 use_default_player_driver = false

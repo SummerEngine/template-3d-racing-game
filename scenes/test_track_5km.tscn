@@ -67,7 +67,7 @@ car_path = NodePath("../PlayerCar")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 530.0
-offset_bottom = 118.0
+offset_bottom = 172.0
 
 [node name="Panel" type="Panel" parent="DebugHUD/Margin" unique_id=1670814391]
 layout_mode = 2
@@ -85,7 +85,9 @@ theme_override_constants/margin_bottom = 10
 [node name="Readout" type="Label" parent="DebugHUD/Margin/Panel/Margin" unique_id=114944844]
 layout_mode = 2
 text = "Speed 000 km/h
-Mode GRIP
+Mode GRIP  Drift 0%
+Input NONE  Controls ON
+Throttle 000  Brake 000  Steer +00
 W/Up accelerate  S/Down brake/reverse
-A/D steer while moving  Shift drift"
+A/D steer  Shift drift  Q/E gears"
 vertical_alignment = 1

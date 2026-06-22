@@ -20,9 +20,13 @@ func get_command() -> RefCounted:
 
 
 func write_command(target_command: RefCounted) -> void:
+	write_command_with_delta(target_command, 1.0 / 60.0)
+
+
+func write_command_with_delta(target_command: RefCounted, delta: float) -> void:
 	if target_command == null:
 		return
-	_sample_filtered_command(target_command)
+	_sample_filtered_command(target_command, delta)
 
 
 func is_action_allowed(action: Variant) -> bool:
@@ -33,18 +37,20 @@ func get_permission_profile_for_current_phase() -> Resource:
 	return _gate.call("get_permission_profile_for_phase", _current_phase())
 
 
-func _sample_filtered_command(target_command: RefCounted) -> RefCounted:
-	_sample_raw_command()
+func _sample_filtered_command(target_command: RefCounted, delta: float = 1.0 / 60.0) -> RefCounted:
+	_sample_raw_command(delta)
 	return _gate.call("filter_command", _raw_command, _current_phase(), target_command)
 
 
-func _sample_raw_command() -> void:
+func _sample_raw_command(delta: float = 1.0 / 60.0) -> void:
 	_raw_command.clear()
 	var raw_driver: Node = _resolve_raw_driver()
 	if raw_driver == null:
 		return
 
-	if raw_driver.has_method("write_command"):
+	if raw_driver.has_method("write_command_with_delta"):
+		raw_driver.call("write_command_with_delta", _raw_command, delta)
+	elif raw_driver.has_method("write_command"):
 		raw_driver.call("write_command", _raw_command)
 	elif raw_driver.has_method("get_command"):
 		var command_value: Variant = raw_driver.call("get_command")

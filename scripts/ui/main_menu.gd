@@ -1,5 +1,6 @@
 extends Control
 
+const FigmaUIFontScript := preload("res://scripts/ui/figma_ui_fonts.gd")
 const RACE_LOADING_SCENE_PATH: String = "res://scenes/ui/race_loading.tscn"
 const MENU_AUDIO_CONTROLLER_SCRIPT_PATH: String = "res://scripts/audio/menu_audio_controller.gd"
 const MENU_BACKGROUND_TEXTURE_PATH: String = "res://assets/ui/menu_showroom_background.png"
@@ -25,13 +26,17 @@ const CHOICE_CARD_SIDE_RATIO: float = 0.10
 const CARD_SCROLL_TWEEN_SECONDS: float = 0.24
 const PREVIEW_CAMERA_ELEVATION_DEGREES: float = 45.0
 const PREVIEW_CAMERA_DISTANCE: float = 7.4
+const SELECTION_INFO_RAIL_RATIO: float = 0.166
+const UI_REFERENCE_SIZE: Vector2 = Vector2(1920.0, 1080.0)
+const UI_MIN_SCALE: float = 0.50
+const UI_MAX_SCALE: float = 1.35
 const COLOR_PANEL_DARK: Color = Color(0.020, 0.024, 0.031, 0.92)
 const COLOR_PANEL_LIGHT: Color = Color(0.055, 0.064, 0.078, 0.86)
-const COLOR_RACING_RED: Color = Color(0.92, 0.04, 0.10, 1.0)
-const COLOR_RACING_RED_HOVER: Color = Color(1.0, 0.14, 0.18, 1.0)
+const COLOR_RACING_RED: Color = Color(0.91, 0.0, 0.18, 1.0)
+const COLOR_RACING_RED_HOVER: Color = Color(1.0, 0.10, 0.26, 1.0)
 const COLOR_RACING_BLUE: Color = Color(0.36, 0.82, 1.0, 1.0)
-const COLOR_TEXT_MAIN: Color = Color(0.96, 0.97, 0.93, 1.0)
-const COLOR_TEXT_MUTED: Color = Color(0.74, 0.77, 0.78, 1.0)
+const COLOR_TEXT_MAIN: Color = Color(0.94, 0.94, 0.94, 1.0)
+const COLOR_TEXT_MUTED: Color = Color(0.48, 0.48, 0.60, 1.0)
 
 var _active_view: StringName = VIEW_HOME
 var _settings_visible: bool = false
@@ -64,6 +69,10 @@ var _car_description_label: Label = null
 var _track_name_label: Label = null
 var _track_description_label: Label = null
 var _track_meta_label: Label = null
+var _track_length_label: Label = null
+var _track_lap_label: Label = null
+var _track_difficulty_label: Label = null
+var _track_environment_label: Label = null
 var _track_preview_texture_rect: TextureRect = null
 var _preview_subviewport: SubViewport = null
 var _preview_turntable: Node3D = null
@@ -95,6 +104,8 @@ var _difficulty_description_label: Label = null
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	if not get_viewport().size_changed.is_connected(Callable(self, "_queue_rebuild")):
+		get_viewport().size_changed.connect(Callable(self, "_queue_rebuild"))
 	_sync_from_session()
 	_build_interface()
 	call_deferred("_start_menu_audio")
@@ -120,6 +131,10 @@ func _build_interface() -> void:
 	_car_stat_bars.clear()
 	_track_preview_texture_rect = null
 	_difficulty_description_label = null
+	_track_length_label = null
+	_track_lap_label = null
+	_track_difficulty_label = null
+	_track_environment_label = null
 
 	_add_background()
 
@@ -132,6 +147,7 @@ func _build_interface() -> void:
 
 	_show_view(_active_view, false)
 	_sync_all_ui()
+	FigmaUIFontScript.apply_tree(self)
 	call_deferred("_bind_menu_audio")
 
 
@@ -340,20 +356,33 @@ func _make_home_settings_button() -> Button:
 func _build_settings_panel() -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = "SettingsPanel"
-	panel.custom_minimum_size = Vector2(_vw(0.19, 280.0, 390.0), 0.0)
-	panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.045, 0.052, 0.065, 0.94), Color(1.0, 1.0, 1.0, 0.16), 1, 8))
+	panel.custom_minimum_size = Vector2(_vw(0.22, 300.0, 420.0), 0.0)
+	panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.050, 0.058, 0.094, 0.96), Color(1.0, 1.0, 1.0, 0.08), 1, 0))
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", _space(16, 24))
-	margin.add_theme_constant_override("margin_top", _space(16, 24))
-	margin.add_theme_constant_override("margin_right", _space(16, 24))
-	margin.add_theme_constant_override("margin_bottom", _space(16, 24))
+	margin.add_theme_constant_override("margin_left", _space(20, 28))
+	margin.add_theme_constant_override("margin_top", _space(18, 26))
+	margin.add_theme_constant_override("margin_right", _space(20, 28))
+	margin.add_theme_constant_override("margin_bottom", _space(18, 26))
 	panel.add_child(margin)
 
 	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", _space(12, 18))
+	content.add_theme_constant_override("separation", _space(18, 28))
 	margin.add_child(content)
-	content.add_child(_make_label("SETTINGS", _font_px(24, 36, 0.034), Color(0.96, 0.97, 0.93, 1.0), true))
+
+	var header := HBoxContainer.new()
+	header.name = "SettingsHeader"
+	header.add_theme_constant_override("separation", _space(8, 12))
+	content.add_child(header)
+	var accent := ColorRect.new()
+	accent.color = COLOR_RACING_RED
+	accent.custom_minimum_size = Vector2(3.0, _space(22, 34))
+	header.add_child(accent)
+	var title := _make_label("SETTINGS", _font_px(15, 22, 0.020), Color(0.94, 0.94, 0.94, 1.0), true)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
 	var master_row := _make_slider_row("Global", Callable(self, "_on_master_percent_changed"))
 	_master_slider = master_row["slider"]
 	_master_value_label = master_row["value_label"]
@@ -370,6 +399,10 @@ func _build_settings_panel() -> PanelContainer:
 	_brightness_slider = brightness_row["slider"]
 	_brightness_value_label = brightness_row["value_label"]
 	content.add_child(brightness_row["root"])
+
+	var close_button := _make_button("SAVE & CLOSE", true, _font_px(12, 17, 0.016), _vh(0.052, 42.0, 58.0))
+	close_button.pressed.connect(Callable(self, "_toggle_settings"))
+	content.add_child(close_button)
 	return panel
 
 
@@ -377,38 +410,23 @@ func _build_car_select_view() -> Control:
 	var root := Control.new()
 	root.name = "CarSelect"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var top_bar := _make_logo_top_bar()
+	var layout := VBoxContainer.new()
+	layout.name = "CarSelectLayout"
+	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layout.add_theme_constant_override("separation", 0)
+	root.add_child(layout)
+	layout.add_child(_make_selection_header("SELECT CAR", Callable(self, "_show_home"), _selected_car_index(), _car_options().size()))
 
-	var safe := _make_safe_area()
-	root.add_child(safe)
-	var rows := _make_selection_rows("CarSelectRows", VIEW_CAR_SELECT)
-	safe.add_child(_make_selection_shell(rows))
+	var body := HBoxContainer.new()
+	body.name = "CarSelectBody"
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 0)
+	layout.add_child(body)
+	body.add_child(_make_car_hero_area())
+	body.add_child(_build_car_info_rail())
 
-	var top := rows.get_node("TopContent") as Control
-	_add_top_column(top, _build_car_details_column(), 0)
-	_add_top_column(top, _build_car_preview_column(), 1)
-	_add_top_column(top, _build_car_stats_column(), 2)
-
-	var cards := rows.get_node("CardsRow/CardViewport/CardsList") as HBoxContainer
-	_car_cards_leading_spacer = _make_card_spacer("LeadingCardSpacer")
-	cards.add_child(_car_cards_leading_spacer)
-	for option: Dictionary in _car_options():
-		cards.add_child(_build_car_card(option))
-	_car_cards_trailing_spacer = _make_card_spacer("TrailingCardSpacer")
-	cards.add_child(_car_cards_trailing_spacer)
-
-	var bottom := rows.get_node("BottomActions") as CenterContainer
-	var action_row := _make_bottom_action_row()
-	bottom.add_child(action_row)
-	var back_button := _make_button("BACK", false, _font_px(20, 32, 0.030), _vh(0.07, 58.0, 86.0))
-	back_button.size_flags_stretch_ratio = 0.78
-	back_button.pressed.connect(Callable(self, "_show_home"))
-	action_row.add_child(back_button)
-	var continue_button := _make_button("CONTINUE", true, _font_px(24, 38, 0.034), _vh(0.07, 58.0, 86.0))
-	continue_button.size_flags_stretch_ratio = 1.22
-	continue_button.pressed.connect(Callable(self, "_show_track_select"))
-	action_row.add_child(continue_button)
-	root.add_child(top_bar)
+	layout.add_child(_build_car_carousel())
 	return root
 
 
@@ -416,39 +434,366 @@ func _build_track_select_view() -> Control:
 	var root := Control.new()
 	root.name = "TrackSelect"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var top_bar := _make_logo_top_bar()
+	var layout := VBoxContainer.new()
+	layout.name = "TrackSelectLayout"
+	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layout.add_theme_constant_override("separation", 0)
+	root.add_child(layout)
+	layout.add_child(_make_selection_header("SELECT TRACK", Callable(self, "_show_car_select"), _selected_track_index(), _track_options().size()))
 
-	var safe := _make_safe_area()
-	root.add_child(safe)
-	var rows := _make_selection_rows("TrackSelectRows", VIEW_TRACK_SELECT)
-	safe.add_child(_make_selection_shell(rows))
+	var body := HBoxContainer.new()
+	body.name = "TrackSelectBody"
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 0)
+	layout.add_child(body)
+	body.add_child(_make_track_hero_area())
+	body.add_child(_build_track_info_rail())
 
-	var top := rows.get_node("TopContent") as Control
-	_add_top_column(top, _build_track_title_column(), 0)
-	_add_top_column(top, _build_track_preview_column(), 1)
-	_add_top_column(top, _build_track_description_column(), 2)
+	layout.add_child(_build_track_carousel())
+	return root
 
-	var cards := rows.get_node("CardsRow/CardViewport/CardsList") as HBoxContainer
+
+func _make_selection_header(title_text: String, back_callback: Callable, selected_index: int, total_count: int) -> PanelContainer:
+	var header := PanelContainer.new()
+	header.name = "SelectionHeader"
+	header.custom_minimum_size = Vector2(1.0, _vh(0.082, 58.0, 76.0))
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_theme_stylebox_override("panel", _make_panel_style(Color(0.010, 0.012, 0.020, 0.96), Color(1.0, 1.0, 1.0, 0.06), 1, 0))
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", _space(18, 28))
+	margin.add_theme_constant_override("margin_right", _space(18, 28))
+	margin.add_theme_constant_override("margin_top", _space(8, 12))
+	margin.add_theme_constant_override("margin_bottom", _space(8, 12))
+	header.add_child(margin)
+
+	var row := HBoxContainer.new()
+	row.name = "HeaderRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", _space(12, 18))
+	margin.add_child(row)
+
+	var back := _make_top_bar_button("<  BACK")
+	back.custom_minimum_size.x = _space(98, 132)
+	back.pressed.connect(back_callback)
+	row.add_child(back)
+
+	var center := HBoxContainer.new()
+	center.name = "HeaderTitle"
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.add_theme_constant_override("separation", _space(8, 12))
+	row.add_child(center)
+	var red_mark := ColorRect.new()
+	red_mark.color = COLOR_RACING_RED
+	red_mark.custom_minimum_size = Vector2(_space(14, 18), _space(14, 18))
+	center.add_child(red_mark)
+	var title := _make_label(title_text, _font_px(13, 18, 0.017), COLOR_TEXT_MAIN, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	center.add_child(title)
+
+	var counter := _make_label("%d / %d" % [maxi(selected_index + 1, 1), maxi(total_count, 1)], _font_px(11, 15, 0.014), Color(0.42, 0.42, 0.56, 1.0), false)
+	counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	counter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	counter.custom_minimum_size.x = _space(74, 112)
+	row.add_child(counter)
+	return header
+
+
+func _make_car_hero_area() -> Control:
+	var area := Control.new()
+	area.name = "CarHeroArea"
+	area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	area.clip_contents = true
+
+	var glow := ColorRect.new()
+	glow.name = "CarHeroRedGlow"
+	glow.color = Color(0.22, 0.0, 0.035, 0.08)
+	glow.anchor_left = 0.16
+	glow.anchor_top = 0.54
+	glow.anchor_right = 0.86
+	glow.anchor_bottom = 1.0
+	area.add_child(glow)
+
+	var preview := _build_car_preview_column()
+	preview.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0, 0.0, 0.0, 0.0), Color(1.0, 1.0, 1.0, 0.0), 0, 0))
+	preview.set_anchors_preset(Control.PRESET_FULL_RECT)
+	preview.offset_left = _space(16, 28)
+	preview.offset_top = _space(12, 22)
+	preview.offset_right = -_space(16, 28)
+	preview.offset_bottom = -_space(12, 22)
+	area.add_child(preview)
+	return area
+
+
+func _build_car_info_rail() -> PanelContainer:
+	var panel := _make_info_rail_panel("CarInfoRail")
+	var content := _make_info_rail_content(panel)
+
+	var car := _displayed_car_option()
+	var class_chip := _make_chip_label("CLASS  %s" % str(car.get("vehicle_class", "GT")).to_upper())
+	content.add_child(class_chip)
+
+	_car_name_label = _make_label("", _font_px(22, 34, 0.032), COLOR_TEXT_MAIN, true)
+	_configure_top_title_label(_car_name_label)
+	content.add_child(_car_name_label)
+	_car_class_label = _make_label("", _font_px(12, 17, 0.016), COLOR_RACING_RED, true)
+	content.add_child(_car_class_label)
+	_car_description_label = _make_label("", _font_px(13, 17, 0.016), Color(0.48, 0.48, 0.62, 1.0), false)
+	_car_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(_car_description_label)
+
+	content.add_child(_make_section_label("SKIN"))
+	var swatches := GridContainer.new()
+	swatches.name = "SkinSwatches"
+	swatches.columns = 2
+	swatches.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	swatches.add_theme_constant_override("h_separation", _space(7, 11))
+	swatches.add_theme_constant_override("v_separation", _space(7, 11))
+	content.add_child(swatches)
+	for skin_option: Dictionary in _skin_options_for_selected_car():
+		var button := _make_skin_button(skin_option)
+		_skin_buttons[StringName(skin_option.get("id", &""))] = button
+		swatches.add_child(button)
+
+	content.add_child(_make_section_label("PERFORMANCE"))
+	var stats: Dictionary = car.get("stats", {})
+	for stat_name: String in STAT_ORDER:
+		var row := _make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
+		_car_stat_labels[stat_name] = row.get_child(0)
+		_car_stat_bars[stat_name] = row.get_child(1)
+		content.add_child(row)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(spacer)
+	var confirm := _make_button("CONFIRM", true, _font_px(12, 18, 0.017), _vh(0.054, 42.0, 58.0))
+	confirm.pressed.connect(Callable(self, "_show_track_select"))
+	content.add_child(confirm)
+	return panel
+
+
+func _make_track_hero_area() -> Control:
+	var area := Control.new()
+	area.name = "TrackHeroArea"
+	area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	area.clip_contents = true
+
+	_track_preview_texture_rect = TextureRect.new()
+	_track_preview_texture_rect.name = "TrackHeroImage"
+	_track_preview_texture_rect.texture = _load_track_preview_texture(_displayed_track_option())
+	_track_preview_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_track_preview_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_track_preview_texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_track_preview_texture_rect.modulate = Color(1.0, 1.0, 1.0, 0.72)
+	area.add_child(_track_preview_texture_rect)
+
+	var right_scrim := ColorRect.new()
+	right_scrim.name = "RightScrim"
+	right_scrim.color = Color(0.007, 0.008, 0.013, 0.34)
+	right_scrim.anchor_left = 0.58
+	right_scrim.anchor_right = 1.0
+	right_scrim.anchor_top = 0.0
+	right_scrim.anchor_bottom = 1.0
+	area.add_child(right_scrim)
+
+	var bottom_scrim := ColorRect.new()
+	bottom_scrim.name = "BottomScrim"
+	bottom_scrim.color = Color(0.007, 0.008, 0.013, 0.72)
+	bottom_scrim.anchor_left = 0.0
+	bottom_scrim.anchor_right = 1.0
+	bottom_scrim.anchor_top = 0.62
+	bottom_scrim.anchor_bottom = 1.0
+	area.add_child(bottom_scrim)
+
+	var title_stack := VBoxContainer.new()
+	title_stack.name = "TrackHeroTitle"
+	title_stack.anchor_left = 0.045
+	title_stack.anchor_right = 0.58
+	title_stack.anchor_top = 0.68
+	title_stack.anchor_bottom = 0.94
+	title_stack.add_theme_constant_override("separation", _space(4, 8))
+	area.add_child(title_stack)
+	_track_meta_label = _make_label("", _font_px(10, 14, 0.013), Color(0.48, 0.48, 0.62, 1.0), false)
+	title_stack.add_child(_track_meta_label)
+	_track_name_label = _make_label("", _font_px(28, 48, 0.044), COLOR_TEXT_MAIN, true)
+	_configure_top_title_label(_track_name_label)
+	title_stack.add_child(_track_name_label)
+	return area
+
+
+func _build_track_info_rail() -> PanelContainer:
+	var panel := _make_info_rail_panel("TrackInfoRail")
+	var content := _make_info_rail_content(panel)
+	content.add_child(_make_section_label("CIRCUIT LAYOUT"))
+	var map_panel := PanelContainer.new()
+	map_panel.custom_minimum_size = Vector2(1.0, _vh(0.15, 104.0, 150.0))
+	map_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.015, 0.018, 0.028, 0.82), Color(1.0, 1.0, 1.0, 0.08), 1, 0))
+	content.add_child(map_panel)
+	var map_label := _make_label("ROUTE MAP", _font_px(13, 18, 0.017), Color(0.42, 0.42, 0.56, 1.0), true)
+	map_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	map_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	map_panel.add_child(map_label)
+
+	content.add_child(_make_section_label("TRACK INFO"))
+	_track_length_label = _make_label("", _font_px(12, 16, 0.015), COLOR_TEXT_MAIN, true)
+	content.add_child(_make_info_value_row("Length", _track_length_label))
+	_track_lap_label = _make_label("", _font_px(12, 16, 0.015), COLOR_TEXT_MAIN, true)
+	content.add_child(_make_info_value_row("Race Laps", _track_lap_label))
+	_track_environment_label = _make_label("", _font_px(12, 16, 0.015), COLOR_TEXT_MAIN, true)
+	content.add_child(_make_info_value_row("Weather", _track_environment_label))
+	_track_difficulty_label = _make_label("", _font_px(11, 15, 0.014), COLOR_RACING_RED, true)
+	content.add_child(_make_info_value_row("Difficulty", _track_difficulty_label))
+
+	content.add_child(_make_section_label("ROUTE BRIEF"))
+	_track_description_label = _make_label("", _font_px(13, 17, 0.016), Color(0.66, 0.68, 0.76, 1.0), false)
+	_track_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(_track_description_label)
+
+	var difficulty_row := HBoxContainer.new()
+	difficulty_row.name = "DifficultyRow"
+	difficulty_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	difficulty_row.add_theme_constant_override("separation", _space(6, 10))
+	content.add_child(difficulty_row)
+	for difficulty: Dictionary in _difficulty_options():
+		var button := _make_difficulty_button(difficulty)
+		_difficulty_buttons[StringName(difficulty.get("id", &""))] = button
+		difficulty_row.add_child(button)
+	_difficulty_description_label = _make_label("", _font_px(12, 16, 0.014), COLOR_TEXT_MUTED, false)
+	_difficulty_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(_difficulty_description_label)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(spacer)
+	var start_button := _make_button("RACE NOW", true, _font_px(12, 18, 0.017), _vh(0.054, 42.0, 58.0))
+	start_button.pressed.connect(Callable(self, "_start_race_loading"))
+	content.add_child(start_button)
+	return panel
+
+
+func _make_info_rail_panel(node_name: String) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.name = node_name
+	panel.custom_minimum_size = Vector2(_vw(SELECTION_INFO_RAIL_RATIO, 230.0, 320.0), 1.0)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.050, 0.058, 0.094, 0.96), Color(1.0, 1.0, 1.0, 0.08), 1, 0))
+	return panel
+
+
+func _make_info_rail_content(panel: PanelContainer) -> VBoxContainer:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", _space(16, 24))
+	margin.add_theme_constant_override("margin_top", _space(16, 24))
+	margin.add_theme_constant_override("margin_right", _space(16, 24))
+	margin.add_theme_constant_override("margin_bottom", _space(16, 24))
+	panel.add_child(margin)
+	var content := VBoxContainer.new()
+	content.name = "InfoContent"
+	content.add_theme_constant_override("separation", _space(10, 16))
+	margin.add_child(content)
+	return content
+
+
+func _make_section_label(text: String) -> Label:
+	var label := _make_label(text, _font_px(9, 13, 0.012), Color(0.36, 0.36, 0.50, 1.0), true)
+	label.text = text.to_upper()
+	return label
+
+
+func _make_chip_label(text: String) -> PanelContainer:
+	var chip := PanelContainer.new()
+	chip.name = "Chip"
+	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	chip.add_theme_stylebox_override("panel", _make_panel_style(COLOR_RACING_RED, COLOR_RACING_RED, 0, 0))
+	var label := _make_label(text, _font_px(10, 14, 0.013), Color(0.0, 0.0, 0.0, 1.0), true)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chip.add_child(label)
+	return chip
+
+
+func _make_info_value_row(label_text: String, value_label: Label) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "InfoValueRow"
+	row.add_theme_constant_override("separation", _space(8, 12))
+	var label := _make_label(label_text.to_upper(), _font_px(11, 15, 0.014), Color(0.48, 0.48, 0.62, 1.0), false)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(value_label)
+	return row
+
+
+func _build_car_carousel() -> HBoxContainer:
+	var row := _make_carousel_row(VIEW_CAR_SELECT)
+	var cards := row.get_node("CardViewport/CardsList") as HBoxContainer
+	_car_cards_leading_spacer = _make_card_spacer("LeadingCardSpacer")
+	cards.add_child(_car_cards_leading_spacer)
+	for option: Dictionary in _car_options():
+		cards.add_child(_build_car_card(option))
+	_car_cards_trailing_spacer = _make_card_spacer("TrailingCardSpacer")
+	cards.add_child(_car_cards_trailing_spacer)
+	return row
+
+
+func _build_track_carousel() -> HBoxContainer:
+	var row := _make_carousel_row(VIEW_TRACK_SELECT)
+	var cards := row.get_node("CardViewport/CardsList") as HBoxContainer
 	_track_cards_leading_spacer = _make_card_spacer("LeadingCardSpacer")
 	cards.add_child(_track_cards_leading_spacer)
 	for option: Dictionary in _track_options():
 		cards.add_child(_build_track_card(option))
 	_track_cards_trailing_spacer = _make_card_spacer("TrailingCardSpacer")
 	cards.add_child(_track_cards_trailing_spacer)
+	return row
 
-	var bottom := rows.get_node("BottomActions") as CenterContainer
-	var action_row := _make_bottom_action_row()
-	bottom.add_child(action_row)
-	var back_button := _make_button("BACK", false, _font_px(20, 32, 0.030), _vh(0.07, 58.0, 86.0))
-	back_button.size_flags_stretch_ratio = 0.78
-	back_button.pressed.connect(Callable(self, "_show_car_select"))
-	action_row.add_child(back_button)
-	var start_button := _make_button("START RACE", true, _font_px(24, 38, 0.034), _vh(0.07, 58.0, 86.0))
-	start_button.size_flags_stretch_ratio = 1.22
-	start_button.pressed.connect(Callable(self, "_start_race_loading"))
-	action_row.add_child(start_button)
-	root.add_child(top_bar)
-	return root
+
+func _make_carousel_row(card_group: StringName) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "CarouselRow"
+	row.custom_minimum_size = Vector2(1.0, _vh(0.155, 98.0, 138.0))
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", _space(8, 12))
+
+	var previous_button := _make_arrow_button("<")
+	previous_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, -1))
+	row.add_child(previous_button)
+
+	var viewport := ScrollContainer.new()
+	viewport.name = "CardViewport"
+	viewport.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	viewport.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	viewport.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	viewport.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	row.add_child(viewport)
+
+	var cards_list := HBoxContainer.new()
+	cards_list.name = "CardsList"
+	cards_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cards_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards_list.alignment = BoxContainer.ALIGNMENT_CENTER
+	cards_list.add_theme_constant_override("separation", _card_gap())
+	viewport.add_child(cards_list)
+
+	var next_button := _make_arrow_button(">")
+	next_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, 1))
+	row.add_child(next_button)
+
+	if card_group == VIEW_CAR_SELECT:
+		_car_cards_scroll = viewport
+		_car_prev_button = previous_button
+		_car_next_button = next_button
+	else:
+		_track_cards_scroll = viewport
+		_track_prev_button = previous_button
+		_track_next_button = next_button
+	return row
 
 
 func _make_selection_shell(rows: VBoxContainer) -> HBoxContainer:
@@ -928,8 +1273,7 @@ func _make_card_button(node_name: String) -> Button:
 	button.name = node_name
 	button.text = ""
 	button.toggle_mode = true
-	var side := _selection_card_width()
-	button.custom_minimum_size = Vector2(side, side)
+	button.custom_minimum_size = Vector2(_selection_card_width(), _selection_card_height())
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.clip_contents = true
@@ -1045,13 +1389,14 @@ func _make_difficulty_button(difficulty: Dictionary) -> Button:
 
 func _make_slider_row(label_text: String, callback: Callable) -> Dictionary:
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", _space(5, 8))
+	root.add_theme_constant_override("separation", _space(7, 10))
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", _space(8, 12))
 	root.add_child(header)
-	var label := _make_label(label_text, _font_px(15, 20, 0.018), Color(0.86, 0.89, 0.90, 1.0), false)
+	var label := _make_label(label_text.to_upper(), _font_px(11, 15, 0.014), Color(0.76, 0.76, 0.84, 1.0), false)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(label)
-	var value_label := _make_label("100", _font_px(15, 20, 0.018), Color(0.46, 0.84, 1.0, 1.0), true)
+	var value_label := _make_label("100", _font_px(12, 16, 0.015), COLOR_RACING_RED, true)
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.custom_minimum_size = Vector2(_space(42, 58), 1.0)
 	header.add_child(value_label)
@@ -1060,7 +1405,10 @@ func _make_slider_row(label_text: String, callback: Callable) -> Dictionary:
 	slider.max_value = 100.0
 	slider.step = 1.0
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.custom_minimum_size = Vector2(1.0, _space(30, 40))
+	slider.custom_minimum_size = Vector2(1.0, _space(22, 32))
+	slider.add_theme_stylebox_override("slider", _make_panel_style(Color(1.0, 1.0, 1.0, 0.08), Color.TRANSPARENT, 0, 3))
+	slider.add_theme_stylebox_override("grabber_area", _make_panel_style(COLOR_RACING_RED, COLOR_RACING_RED, 0, 3))
+	slider.add_theme_stylebox_override("grabber_area_highlight", _make_panel_style(COLOR_RACING_RED_HOVER, COLOR_RACING_RED_HOVER, 0, 3))
 	slider.value_changed.connect(callback)
 	root.add_child(slider)
 	return {"root": root, "slider": slider, "value_label": value_label}
@@ -1477,11 +1825,23 @@ func _sync_track_labels() -> void:
 	if _track_name_label != null:
 		_track_name_label.text = str(track.get("display_name", ""))
 	if _track_meta_label != null:
-		_track_meta_label.text = "%d laps  /  %.0fm" % [int(track.get("lap_count", 1)), float(track.get("target_length_m", 0.0))]
+		_track_meta_label.text = "%s  /  %d LAPS  /  %.0fM" % [
+			str(track.get("environment", &"circuit")).replace("_", " ").to_upper(),
+			int(track.get("lap_count", 1)),
+			float(track.get("target_length_m", 0.0)),
+		]
 	if _track_description_label != null:
 		_track_description_label.text = str(track.get("description", ""))
 	if _track_preview_texture_rect != null:
 		_track_preview_texture_rect.texture = _load_track_preview_texture(track)
+	if _track_length_label != null:
+		_track_length_label.text = "%.1f KM" % (float(track.get("target_length_m", 0.0)) / 1000.0)
+	if _track_lap_label != null:
+		_track_lap_label.text = str(int(track.get("lap_count", 1)))
+	if _track_environment_label != null:
+		_track_environment_label.text = str(track.get("environment", &"circuit")).replace("_", " ").to_upper()
+	if _track_difficulty_label != null:
+		_track_difficulty_label.text = _selected_difficulty_id.to_upper()
 
 
 func _sync_difficulty_ui() -> void:
@@ -1495,6 +1855,8 @@ func _sync_difficulty_ui() -> void:
 		_apply_difficulty_button_style(button, selected)
 	if _difficulty_description_label != null:
 		_difficulty_description_label.text = str(difficulty.get("description", ""))
+	if _track_difficulty_label != null:
+		_track_difficulty_label.text = _selected_difficulty_id.to_upper()
 
 
 func _rebuild_car_select() -> void:
@@ -1725,6 +2087,15 @@ func _selected_car_option() -> Dictionary:
 	return _car_option(_selected_car_id)
 
 
+func _selected_car_index() -> int:
+	var options := _car_options()
+	for index: int in range(options.size()):
+		var option: Dictionary = options[index]
+		if StringName(option.get("id", &"")) == _selected_car_id:
+			return index
+	return 0
+
+
 func _displayed_car_option() -> Dictionary:
 	return _car_option(_preview_car_id) if _preview_car_id != &"" else _selected_car_option()
 
@@ -1748,6 +2119,15 @@ func _displayed_skin_option() -> Dictionary:
 
 func _selected_track_option() -> Dictionary:
 	return _track_option(_selected_track_id)
+
+
+func _selected_track_index() -> int:
+	var options := _track_options()
+	for index: int in range(options.size()):
+		var option: Dictionary = options[index]
+		if StringName(option.get("id", &"")) == _selected_track_id:
+			return index
+	return 0
 
 
 func _displayed_track_option() -> Dictionary:
@@ -1836,7 +2216,7 @@ func _load_track_preview_texture(track: Dictionary) -> Texture2D:
 	var path := str(track.get("preview_texture_path", ""))
 	if path.is_empty():
 		return _get_menu_background_texture()
-	var texture := load(path) as Texture2D
+	var texture := _load_texture_safely(path)
 	return texture if texture != null else _get_menu_background_texture()
 
 
@@ -1844,7 +2224,7 @@ func _load_car_card_texture(car: Dictionary) -> Texture2D:
 	var path := str(car.get("preview_texture_path", DEFAULT_CAR_CARD_TEXTURE_PATH))
 	if path.is_empty():
 		path = DEFAULT_CAR_CARD_TEXTURE_PATH
-	var texture := load(path) as Texture2D
+	var texture := _load_texture_safely(path)
 	if texture != null:
 		return texture
 	if _car_card_texture == null and ResourceLoader.exists(DEFAULT_CAR_CARD_TEXTURE_PATH):
@@ -1858,17 +2238,41 @@ func _get_menu_background_texture() -> Texture2D:
 	return _menu_background_texture
 
 
+func _load_texture_safely(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
+	if FileAccess.file_exists("%s.import" % path):
+		var imported_texture := load(path) as Texture2D
+		if imported_texture != null:
+			return imported_texture
+	return _load_raw_texture(path)
+
+
+func _load_raw_texture(path: String) -> Texture2D:
+	var image := Image.new()
+	var error := image.load(ProjectSettings.globalize_path(path))
+	if error != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
 func _selection_card_width() -> float:
 	var usable_width := _estimated_card_viewport_width()
-	return clampf(usable_width * CHOICE_CARD_SIDE_RATIO, 68.0, 138.0)
+	var ui_scale := _responsive_scale()
+	var minimum_side := maxf(54.0, 72.0 * ui_scale)
+	var maximum_side := maxf(84.0, 170.0 * minf(ui_scale, 1.0))
+	return clampf(usable_width * CHOICE_CARD_SIDE_RATIO, minimum_side, maximum_side)
+
+
+func _selection_card_height() -> float:
+	return _selection_card_width()
 
 
 func _estimated_card_viewport_width() -> float:
 	var viewport_width := get_viewport_rect().size.x
-	var estimated_safe_margins := float(_space(36, 70) * 2)
-	var estimated_thin_columns := float(_space(34, 62) * 2)
 	var estimated_arrows := float(_space(68, 92) * 2)
-	var usable_width := maxf(1.0, viewport_width - estimated_safe_margins - estimated_thin_columns - estimated_arrows)
+	var estimated_gaps := float(_space(18, 32) * 2)
+	var usable_width := maxf(1.0, viewport_width - estimated_arrows - estimated_gaps)
 	return usable_width
 
 
@@ -1884,17 +2288,35 @@ func _card_gap() -> int:
 
 
 func _font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
-	return roundi(clampf(get_viewport_rect().size.y * vh_ratio, float(minimum), float(maximum)))
+	var ui_scale := _responsive_scale()
+	var scaled_size := float(maximum) * ui_scale
+	var scaled_minimum := maxf(8.0, float(minimum) * minf(ui_scale, 1.0))
+	var height_size := get_viewport_rect().size.y * vh_ratio
+	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, float(maximum)))
 
 
 func _space(minimum: int, maximum: int) -> int:
-	var ui_scale := clampf(get_viewport_rect().size.y / 1080.0, 0.72, 1.35)
-	return roundi(clampf(float(maximum) * ui_scale, float(minimum), float(maximum)))
+	var ui_scale := _responsive_scale()
+	var scaled_minimum := maxf(1.0, float(minimum) * minf(ui_scale, 1.0))
+	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, float(maximum)))
 
 
 func _vh(ratio: float, minimum: float, maximum: float) -> float:
-	return clampf(get_viewport_rect().size.y * ratio, minimum, maximum)
+	var ui_scale := _responsive_scale()
+	return clampf(get_viewport_rect().size.y * ratio, minimum * minf(ui_scale, 1.0), maximum)
 
 
 func _vw(ratio: float, minimum: float, maximum: float) -> float:
-	return clampf(get_viewport_rect().size.x * ratio, minimum, maximum)
+	var ui_scale := _responsive_scale()
+	return clampf(get_viewport_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum)
+
+
+func _responsive_scale() -> float:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return 1.0
+	return clampf(
+		minf(viewport_size.x / UI_REFERENCE_SIZE.x, viewport_size.y / UI_REFERENCE_SIZE.y),
+		UI_MIN_SCALE,
+		UI_MAX_SCALE
+	)
