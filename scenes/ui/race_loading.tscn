@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://3eivrh0jwlvc"]
 
-[ext_resource type="Script" path="res://scripts/ui/race_loading.gd" id="1_race_loading"]
+[ext_resource type="Script" uid="uid://dq0eugdhlyyv2" path="res://scripts/ui/race_loading.gd" id="1_race_loading"]
 
-[node name="RaceLoading" type="Control"]
+[node name="RaceLoading" type="Control" unique_id=405071852]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

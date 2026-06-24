@@ -19,7 +19,7 @@ const RESULT_BACKGROUND_FALLBACK_PATH: String = "res://assets/ui/menu_showroom_b
 const RESULT_MAX_STANDINGS: int = 6
 const UI_REFERENCE_SIZE: Vector2 = Vector2(1920.0, 1080.0)
 const UI_MIN_SCALE: float = 0.52
-const UI_MAX_SCALE: float = 1.35
+const UI_MAX_SCALE: float = 2.25
 const COUNTDOWN_GO_SECONDS: float = 0.64
 
 var _race_manager: Node = null
@@ -117,28 +117,32 @@ func _build_interface() -> void:
 
 	var margin := MarginContainer.new()
 	margin.name = "Margin"
-	margin.add_theme_constant_override("margin_left", 28)
-	margin.add_theme_constant_override("margin_top", 24)
-	margin.add_theme_constant_override("margin_right", 28)
-	margin.add_theme_constant_override("margin_bottom", 24)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_theme_constant_override("margin_left", _overlay_space(20, 34))
+	margin.add_theme_constant_override("margin_top", _overlay_space(18, 30))
+	margin.add_theme_constant_override("margin_right", _overlay_space(20, 34))
+	margin.add_theme_constant_override("margin_bottom", _overlay_space(18, 30))
 	panel.add_child(margin)
 
 	var box := VBoxContainer.new()
 	box.name = "Content"
-	box.add_theme_constant_override("separation", 10)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", _overlay_space(9, 16))
 	margin.add_child(box)
 
 	var header := HBoxContainer.new()
 	header.name = "PauseHeader"
-	header.add_theme_constant_override("separation", 12)
+	header.add_theme_constant_override("separation", _overlay_space(9, 14))
 	box.add_child(header)
 	var accent := ColorRect.new()
 	accent.color = COLOR_RACING_RED
-	accent.custom_minimum_size = Vector2(3, 34)
+	accent.custom_minimum_size = Vector2(maxf(3.0, _overlay_scale() * 3.0), _overlay_space(28, 42))
 	header.add_child(accent)
 	_title_label = Label.new()
 	_title_label.name = "Title"
-	_title_label.add_theme_font_size_override("font_size", 28)
+	_title_label.add_theme_font_size_override("font_size", _overlay_font_px(20, 32, 0.030))
 	_title_label.add_theme_color_override("font_color", COLOR_TEXT_MAIN)
 	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -147,12 +151,14 @@ func _build_interface() -> void:
 	_body_label = Label.new()
 	_body_label.name = "Body"
 	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body_label.add_theme_font_size_override("font_size", 15)
+	_body_label.add_theme_font_size_override("font_size", _overlay_font_px(12, 18, 0.017))
 	_body_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 	box.add_child(_body_label)
+	box.add_child(_make_pause_spacer(0.7))
 
 	_resume_button = _make_button("RESUME", Callable(self, "_resume_race"), true)
 	box.add_child(_resume_button)
+	box.add_child(_make_pause_spacer(0.6))
 
 	box.add_child(_make_section_label("SETTINGS"))
 	var master_row := _make_slider_row("Global", Callable(self, "_on_master_percent_changed"))
@@ -175,6 +181,7 @@ func _build_interface() -> void:
 	_brightness_slider_fill = brightness_row["fill"]
 	_brightness_value_label = brightness_row["value_label"]
 	box.add_child(brightness_row["root"])
+	box.add_child(_make_pause_spacer(0.9))
 
 	box.add_child(_make_section_label("RACE"))
 	_restart_button = _make_button("RESTART", Callable(self, "_restart_race"))
@@ -367,9 +374,11 @@ func _build_results_interface() -> void:
 	stage.add_child(button_row)
 	_results_main_menu_button = _make_button("<  MAIN MENU", Callable(self, "_return_to_main_menu"))
 	_results_main_menu_button.custom_minimum_size = Vector2(_overlay_vw(0.22, 220.0, 420.0), _overlay_vh(0.058, 44.0, 68.0))
+	_apply_result_button_typography(_results_main_menu_button)
 	button_row.add_child(_results_main_menu_button)
 	_results_race_again_button = _make_button(">  RACE AGAIN", Callable(self, "_restart_race"), true)
 	_results_race_again_button.custom_minimum_size = Vector2(_overlay_vw(0.32, 280.0, 520.0), _overlay_vh(0.066, 50.0, 78.0))
+	_apply_result_button_typography(_results_race_again_button)
 	button_row.add_child(_results_race_again_button)
 
 
@@ -1021,16 +1030,25 @@ func _wrap_with_margin(child: Control, horizontal_margin: int, vertical_margin: 
 func _make_section_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text.to_upper()
-	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_font_size_override("font_size", _overlay_font_px(9, 13, 0.012))
 	label.add_theme_color_override("font_color", Color(0.34, 0.34, 0.48, 1.0))
 	return label
+
+
+func _make_pause_spacer(stretch_ratio: float = 1.0) -> Control:
+	var spacer := Control.new()
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	spacer.custom_minimum_size = Vector2(1.0, _overlay_space(6, 12))
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer.size_flags_stretch_ratio = maxf(stretch_ratio, 0.1)
+	return spacer
 
 
 func _pause_panel_size() -> Vector2:
 	var viewport_size := get_viewport().get_visible_rect().size
 	return Vector2(
-		clampf(viewport_size.x * 0.42, 300.0 * minf(_overlay_scale(), 1.0), 560.0),
-		clampf(viewport_size.y * 0.86, 360.0 * minf(_overlay_scale(), 1.0), 600.0)
+		_overlay_vw(0.42, 300.0, 560.0),
+		clampf(viewport_size.y * 0.86, 360.0 * minf(_overlay_scale(), 1.0), 600.0 * maxf(_overlay_scale(), 1.0))
 	)
 
 
@@ -1056,24 +1074,26 @@ func _overlay_font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
 	var ui_scale := _overlay_scale()
 	var scaled_size := float(maximum) * ui_scale
 	var scaled_minimum := maxf(8.0, float(minimum) * minf(ui_scale, 1.0))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
 	var height_size := get_viewport().get_visible_rect().size.y * vh_ratio
-	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, float(maximum)))
+	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, scaled_maximum))
 
 
 func _overlay_space(minimum: int, maximum: int) -> int:
 	var ui_scale := _overlay_scale()
 	var scaled_minimum := maxf(0.0, float(minimum) * minf(ui_scale, 1.0))
-	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, float(maximum)))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
+	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, scaled_maximum))
 
 
 func _overlay_vh(ratio: float, minimum: float, maximum: float) -> float:
 	var ui_scale := _overlay_scale()
-	return clampf(get_viewport().get_visible_rect().size.y * ratio, minimum * minf(ui_scale, 1.0), maximum)
+	return clampf(get_viewport().get_visible_rect().size.y * ratio, minimum * minf(ui_scale, 1.0), maximum * maxf(ui_scale, 1.0))
 
 
 func _overlay_vw(ratio: float, minimum: float, maximum: float) -> float:
 	var ui_scale := _overlay_scale()
-	return clampf(get_viewport().get_visible_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum)
+	return clampf(get_viewport().get_visible_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum * maxf(ui_scale, 1.0))
 
 
 func _overlay_scale() -> float:
@@ -1090,30 +1110,30 @@ func _overlay_scale() -> float:
 func _make_slider_row(label_text: String, callback: Callable) -> Dictionary:
 	var root := VBoxContainer.new()
 	root.process_mode = Node.PROCESS_MODE_ALWAYS
-	root.add_theme_constant_override("separation", 4)
+	root.add_theme_constant_override("separation", _overlay_space(3, 5))
 	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
+	header.add_theme_constant_override("separation", _overlay_space(8, 12))
 	root.add_child(header)
 
 	var label := Label.new()
 	label.text = label_text.to_upper()
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", _overlay_font_px(10, 14, 0.013))
 	label.add_theme_color_override("font_color", Color(0.76, 0.76, 0.84, 1.0))
 	header.add_child(label)
 
 	var value_label := Label.new()
 	value_label.text = "100"
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	value_label.custom_minimum_size = Vector2(54, 1)
-	value_label.add_theme_font_size_override("font_size", 13)
+	value_label.custom_minimum_size = Vector2(_overlay_space(44, 62), 1)
+	value_label.add_theme_font_size_override("font_size", _overlay_font_px(11, 15, 0.014))
 	value_label.add_theme_color_override("font_color", COLOR_RACING_RED)
 	header.add_child(value_label)
 
 	var track := Control.new()
 	track.name = "%sTrack" % label_text.replace(" ", "")
 	track.clip_contents = true
-	track.custom_minimum_size = Vector2(1, 22)
+	track.custom_minimum_size = Vector2(1, _overlay_space(18, 26))
 	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var track_base := ColorRect.new()
@@ -1240,9 +1260,9 @@ func _make_button(text: String, callback: Callable, primary: bool = false) -> Bu
 	var button := Button.new()
 	button.text = text
 	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.custom_minimum_size = Vector2(320, 40)
+	button.custom_minimum_size = Vector2(_overlay_vw(0.18, 280.0, 360.0), _overlay_vh(0.042, 36.0, 48.0))
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_font_size_override("font_size", _overlay_font_px(14, 22, 0.020))
 	button.add_theme_stylebox_override("normal", _make_style(Color(0.075, 0.088, 0.108, 0.96), Color(1.0, 1.0, 1.0, 0.18), 1, 4))
 	button.add_theme_stylebox_override("hover", _make_style(Color(0.11, 0.13, 0.16, 1.0), Color(0.46, 0.84, 1.0, 0.55), 1, 4))
 	button.add_theme_stylebox_override("pressed", _make_style(Color(0.15, 0.17, 0.20, 1.0), Color(0.46, 0.84, 1.0, 0.75), 1, 4))
@@ -1255,6 +1275,10 @@ func _make_button(text: String, callback: Callable, primary: bool = false) -> Bu
 		button.add_theme_stylebox_override("pressed", _make_style(Color(0.72, 0.04, 0.08, 1.0), Color(1.0, 0.78, 0.70, 0.52), 1, 4))
 	button.pressed.connect(callback)
 	return button
+
+
+func _apply_result_button_typography(button: Button) -> void:
+	button.add_theme_font_size_override("font_size", _overlay_font_px(18, 32, 0.029))
 
 
 func _make_style(fill: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:

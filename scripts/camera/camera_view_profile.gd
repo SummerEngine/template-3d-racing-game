@@ -24,19 +24,19 @@ enum CollisionMode {
 
 @export_category("Composition")
 @export var anchor_offset_local: Vector3 = Vector3.ZERO
-@export var camera_offset_local: Vector3 = Vector3(0.0, 3.8, 10.5)
+@export var camera_offset_local: Vector3 = Vector3(0.0, 2.85, 7.4)
 @export var view_yaw_degrees: float = 0.0
-@export_range(35.0, 120.0, 0.1) var fov_degrees: float = 67.0
-@export_range(35.0, 120.0, 0.1) var high_speed_fov_degrees: float = 80.0
-@export_range(0.2, 2.0, 0.01) var fov_speed_power: float = 0.75
+@export_range(35.0, 120.0, 0.1) var fov_degrees: float = 66.0
+@export_range(35.0, 120.0, 0.1) var high_speed_fov_degrees: float = 74.0
+@export_range(0.2, 2.0, 0.01) var fov_speed_power: float = 1.05
 
 @export_category("Damping")
-@export var position_damping: float = 11.0
-@export var rotation_damping: float = 13.0
+@export var position_damping: float = 15.0
+@export var rotation_damping: float = 14.0
 @export var fov_damping: float = 4.0
 @export var roll_damping: float = 8.0
 @export var collision_return_damping: float = 18.0
-@export var max_follow_lag_m: float = 4.0
+@export var max_follow_lag_m: float = 2.2
 
 @export_category("Roll Behavior")
 @export_enum("None", "Steer Bias", "Match Target Up", "Match Track Up") var roll_mode: int = RollMode.STEER_BIAS
@@ -53,11 +53,13 @@ enum CollisionMode {
 
 @export_category("Road Preview Bias")
 @export var road_preview_enabled: bool = true
-@export var preview_distance_low_speed_m: float = 7.5
-@export var preview_distance_high_speed_m: float = 17.0
-@export var preview_height_m: float = 1.4
-@export var corner_preview_lateral_m: float = 2.0
-@export_range(0.0, 1.0, 0.01) var velocity_preview_bias: float = 0.25
+@export var preview_distance_low_speed_m: float = 6.0
+@export var preview_distance_high_speed_m: float = 12.0
+@export var preview_height_m: float = 1.25
+@export var corner_preview_lateral_m: float = 1.7
+@export_range(0.0, 1.0, 0.01) var velocity_preview_bias: float = 0.20
+@export var velocity_preview_damping: float = 7.0
+@export_range(0.0, 1.0, 0.01) var velocity_preview_vertical_weight: float = 0.0
 @export_range(0.0, 1.0, 0.01) var track_preview_weight: float = 0.0
 
 

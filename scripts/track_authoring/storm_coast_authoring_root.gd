@@ -11,6 +11,7 @@ const ELEVATION_MARKER_SCRIPT := preload("res://scripts/track_authoring/elevatio
 const ZONE_MARKER_SCRIPT := preload("res://scripts/track_authoring/zone_marker.gd")
 const START_GRID_MARKER_SCRIPT := preload("res://scripts/track_authoring/start_grid_marker.gd")
 const SET_PIECE_MARKER_SCRIPT := preload("res://scripts/track_authoring/set_piece_marker.gd")
+const TRACK_AUTHORING_SNAPSHOT_SCRIPT := preload("res://scripts/track_authoring/track_authoring_snapshot.gd")
 
 @export var authoring_profile: Resource = null
 @export_node_path("Node3D") var authoring_branch_path: NodePath = NodePath("Authoring")
@@ -23,7 +24,9 @@ const SET_PIECE_MARKER_SCRIPT := preload("res://scripts/track_authoring/set_piec
 @export_multiline var last_tool_status: String = "No authoring tool action has run in this editor session."
 
 @export_tool_button("Preview Regenerate") var preview_regenerate_button: Callable = preview_regenerate
+@export_tool_button("Save Authoring Snapshot") var save_snapshot_button: Callable = save_authoring_snapshot
 @export_tool_button("Bake Editable") var bake_editable_button: Callable = bake_editable
+@export_tool_button("Clear Generated Output") var clear_generated_output_button: Callable = clear_generated_output
 @export_tool_button("Freeze Final") var freeze_final_button: Callable = freeze_final
 
 
@@ -42,15 +45,34 @@ func preview_regenerate() -> Dictionary:
 	return records
 
 
+func save_authoring_snapshot() -> Resource:
+	_ensure_standard_branches()
+	var records: Dictionary = collect_authoring_records()
+	var snapshot: Resource = _build_authoring_snapshot(records, "Authoring snapshot saved.")
+	var save_status: String = _save_authoring_snapshot(snapshot)
+	last_tool_status = "Authoring snapshot captured %d road points. %s" % [collect_road_points().size(), save_status]
+	_write_profile_summary(last_tool_status)
+	return snapshot
+
+
 func bake_editable() -> Dictionary:
 	_ensure_standard_branches()
 	var records: Dictionary = collect_authoring_records()
-	var generated_branch := get_node_or_null(generated_branch_path)
+	var generator_status: String = _regenerate_track_generator(true)
+	var snapshot: Resource = _build_authoring_snapshot(records, generator_status)
+	var save_status: String = _save_authoring_snapshot(snapshot)
+	var generated_branch := get_node_or_null(generated_branch_path) as Node3D
 	if generated_branch != null:
 		generated_branch.set_meta("bake_editable_requested", true)
-		generated_branch.set_meta("bake_editable_status", "Placeholder only; Agent B road generation is not implemented here.")
+		generated_branch.set_meta("bake_editable_status", generator_status)
+		generated_branch.set_meta("source_snapshot_path", _snapshot_path())
+		generated_branch.set_meta("manual_overrides_policy", "Generated nodes may be replaced. Designer overrides live in ManualOverrides or road-relative GeneratedPropState metadata.")
 
-	last_tool_status = "Bake Editable requested. Placeholder API only; Generated and ManualOverrides branches were left intact."
+	last_tool_status = "Bake Editable completed from %d road points. %s %s ManualOverrides were preserved." % [
+		collect_road_points().size(),
+		generator_status,
+		save_status,
+	]
 	_write_profile_summary(last_tool_status)
 	return records
 
@@ -58,14 +80,42 @@ func bake_editable() -> Dictionary:
 func freeze_final() -> Dictionary:
 	_ensure_standard_branches()
 	var records: Dictionary = collect_authoring_records()
+	var generated_root := _track_generator_generated_root()
+	if generated_root != null:
+		generated_root.set_meta("frozen_final", true)
+		generated_root.set_meta("frozen_at", Time.get_datetime_string_from_system(false, true))
 	set_meta("freeze_final_requested", true)
-	set_meta("freeze_final_status", "Placeholder only; no destructive freeze was performed.")
+	set_meta("freeze_final_status", "Generated output marked frozen. Authoring markers and ManualOverrides were preserved.")
 	if authoring_profile != null:
-		authoring_profile.set("frozen_final", false)
+		authoring_profile.set("frozen_final", true)
 
-	last_tool_status = "Freeze Final requested. Placeholder API only; no generated content was locked, renamed, or deleted."
+	last_tool_status = "Freeze Final marked the current generated road as frozen. No generated content was deleted."
 	_write_profile_summary(last_tool_status)
 	return records
+
+
+func clear_generated_output() -> Dictionary:
+	_ensure_standard_branches()
+	var removed_count: int = 0
+	var generated_branch := get_node_or_null(generated_branch_path) as Node3D
+	if generated_branch != null:
+		var preview_root := generated_branch.get_node_or_null(PREVIEW_ROOT_NAME)
+		if preview_root != null:
+			generated_branch.remove_child(preview_root)
+			preview_root.free()
+			removed_count += 1
+
+	var generated_root := _track_generator_generated_root()
+	if generated_root != null:
+		var parent_node := generated_root.get_parent()
+		if parent_node != null:
+			parent_node.remove_child(generated_root)
+		generated_root.free()
+		removed_count += 1
+
+	last_tool_status = "Clear Generated Output removed %d generated branch(es). Authoring and ManualOverrides were preserved." % removed_count
+	_write_profile_summary(last_tool_status)
+	return {"removed_count": removed_count}
 
 
 func collect_authoring_records() -> Dictionary:
@@ -187,6 +237,11 @@ func _records_for_markers(markers: Array) -> Array[Dictionary]:
 
 
 func _sort_road_points(a: Node, b: Node) -> bool:
+	var a_distance: float = float(a.get("road_distance_m"))
+	var b_distance: float = float(b.get("road_distance_m"))
+	if not is_equal_approx(a_distance, b_distance):
+		return a_distance < b_distance
+
 	var a_index: int = int(a.get("sequence_index"))
 	var b_index: int = int(b.get("sequence_index"))
 	if a_index == b_index:
@@ -321,12 +376,99 @@ func _profile_closed_loop() -> bool:
 	return true
 
 
+func _build_authoring_snapshot(records: Dictionary, summary: String) -> Resource:
+	var snapshot: Resource = TRACK_AUTHORING_SNAPSHOT_SCRIPT.new()
+	var scene_path: String = _edited_scene_path()
+	snapshot.call(
+		"configure",
+		authoring_profile,
+		scene_path,
+		records,
+		get_authoring_marker_counts(),
+		_generator_settings_snapshot(),
+		summary
+	)
+	return snapshot
+
+
+func _save_authoring_snapshot(snapshot: Resource) -> String:
+	if snapshot == null:
+		return "Snapshot was not created."
+
+	var path: String = _snapshot_path()
+	if path.is_empty():
+		return "No snapshot path is configured."
+
+	_ensure_resource_directory(path)
+	var error: int = ResourceSaver.save(snapshot, path)
+	if error != OK:
+		return "Snapshot save failed at %s with error %d." % [path, error]
+	return "Snapshot saved to %s." % path
+
+
+func _snapshot_path() -> String:
+	if authoring_profile != null:
+		var configured_path: String = String(authoring_profile.get("preview_resource_path"))
+		if not configured_path.is_empty():
+			return configured_path
+	return "res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres"
+
+
+func _edited_scene_path() -> String:
+	var tree := get_tree()
+	if Engine.is_editor_hint() and tree != null and tree.edited_scene_root != null:
+		return tree.edited_scene_root.scene_file_path
+	return scene_file_path
+
+
+func _ensure_resource_directory(path: String) -> void:
+	var directory: String = path.get_base_dir()
+	if directory.is_empty() or not directory.begins_with("res://"):
+		return
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+
+
+func _generator_settings_snapshot() -> Dictionary:
+	var generator := get_node_or_null(track_generator_path)
+	if generator == null:
+		return {}
+
+	var property_names: PackedStringArray = PackedStringArray([
+		"generated_root_name",
+		"closed_loop",
+		"smooth_centerline",
+		"default_road_width_m",
+		"lane_count",
+		"lane_spacing_m",
+		"sample_spacing_m",
+		"centerline_tangent_strength",
+		"curve_subdivisions",
+		"generate_road",
+		"generate_collision",
+		"generate_lane_markings",
+		"generate_shoulders",
+		"generate_curbs",
+		"generate_surrounding_terrain",
+		"generate_guardrail_hooks",
+		"terrain_width_m",
+		"terrain_outer_drop_m",
+		"terrain_edge_gap_m",
+		"guardrail_edge_offset_m",
+		"guardrail_seam_gap_m",
+	])
+	var settings: Dictionary = {}
+	for property_name: String in property_names:
+		if _object_has_property(generator, property_name):
+			settings[property_name] = generator.get(property_name)
+	return settings
+
+
 func _write_profile_summary(summary: String) -> void:
 	if authoring_profile != null:
 		authoring_profile.set("last_tool_summary", summary)
 
 
-func _regenerate_track_generator() -> String:
+func _regenerate_track_generator(assign_generated_owner: bool = false) -> String:
 	var generator := get_node_or_null(track_generator_path)
 	if generator == null:
 		return "No v2 track generator node was found."
@@ -334,10 +476,38 @@ func _regenerate_track_generator() -> String:
 		return "Track generator node has no regenerate_track() method."
 
 	generator.call("regenerate_track")
+	var generated_root := _track_generator_generated_root()
+	if assign_generated_owner and generated_root != null:
+		_assign_owner_recursive(generated_root)
+		generated_root.set_meta("baked_editable", true)
+		generated_root.set_meta("source_authoring_scene", _edited_scene_path())
+		generated_root.set_meta("source_snapshot_path", _snapshot_path())
+		generated_root.set_meta("baked_at", Time.get_datetime_string_from_system(false, true))
 	var length_m: float = 0.0
 	if generator.has_method("get_track_length_m"):
 		length_m = float(generator.call("get_track_length_m"))
-	return "V2 road mesh regenerated at %.1fm." % length_m
+	var owner_status: String = "Editable scene owners assigned." if assign_generated_owner and generated_root != null else "Preview-only generated nodes."
+	return "V2 road mesh regenerated at %.1fm. %s" % [length_m, owner_status]
+
+
+func _track_generator_generated_root() -> Node3D:
+	var generator := get_node_or_null(track_generator_path)
+	if generator == null:
+		return null
+
+	var root_name: String = "GeneratedStormCoastRoad"
+	if _object_has_property(generator, "generated_root_name"):
+		root_name = String(generator.get("generated_root_name"))
+	return generator.get_node_or_null(NodePath(root_name)) as Node3D
+
+
+func _object_has_property(object: Object, property_name: String) -> bool:
+	if object == null:
+		return false
+	for property: Dictionary in object.get_property_list():
+		if String(property.get("name", "")) == property_name:
+			return true
+	return false
 
 
 func _assign_owner(node: Node) -> void:
@@ -346,3 +516,11 @@ func _assign_owner(node: Node) -> void:
 	if Engine.is_editor_hint() and tree != null and tree.edited_scene_root != null:
 		owner_node = tree.edited_scene_root
 	node.owner = owner_node
+
+
+func _assign_owner_recursive(node: Node) -> void:
+	if node == null:
+		return
+	_assign_owner(node)
+	for child: Node in node.get_children():
+		_assign_owner_recursive(child)

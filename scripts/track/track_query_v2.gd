@@ -24,6 +24,8 @@ var _lane_spacing_m: float = 3.6
 var _smooth_centerline: bool = true
 var _centerline_tangent_strength: float = 0.55
 var _curve_subdivisions: int = 10
+var _closest_query_points: PackedVector3Array = PackedVector3Array()
+var _closest_query_distances: PackedFloat32Array = PackedFloat32Array()
 
 
 func _init(track_profile: Resource = null, authoring_data: Variant = null) -> void:
@@ -182,6 +184,9 @@ func sample_ref_at_distance(distance_m: float) -> TrackSample:
 func closest_distance_for_position(position: Vector3) -> float:
 	if _road_points.size() < 2 or _length_m <= 0.0:
 		return 0.0
+
+	if _closest_query_points.size() >= 2:
+		return _closest_distance_from_query_cache(position)
 
 	var best_distance_sq: float = INF
 	var best_distance_m: float = 0.0
@@ -364,6 +369,7 @@ func _configure_records(records: Array[Dictionary], closed_loop_enabled: bool) -
 	_length_m = _distance_table[_distance_table.size() - 1] if not _distance_table.is_empty() else 0.0
 	if not _road_points.is_empty():
 		_default_width_m = _float_value(_road_points[0], "width_m", _default_width_m)
+	_rebuild_closest_query_cache()
 
 
 func _apply_defaults_from_sources(authoring_data: Variant, track_profile: Resource) -> void:
@@ -746,6 +752,53 @@ func _arc_subdivision_count() -> int:
 
 func _closest_subdivision_count() -> int:
 	return maxi(_curve_subdivisions * 2, 2)
+
+
+func _closest_cache_subdivision_count() -> int:
+	return maxi(_curve_subdivisions, 4)
+
+
+func _rebuild_closest_query_cache() -> void:
+	_closest_query_points = PackedVector3Array()
+	_closest_query_distances = PackedFloat32Array()
+	if _road_points.size() < 2 or _length_m <= 0.0:
+		return
+
+	var segment_count: int = _segment_count()
+	var steps: int = _closest_cache_subdivision_count()
+	for segment_index: int in range(segment_count):
+		var start_distance: float = _distance_table[segment_index]
+		var end_distance: float = _distance_table[segment_index + 1]
+		for step: int in range(steps):
+			if segment_index > 0 and step == 0:
+				continue
+			var t: float = float(step) / float(steps)
+			_closest_query_points.append(_segment_position(segment_index, t))
+			_closest_query_distances.append(lerpf(start_distance, end_distance, t))
+
+		_closest_query_points.append(_segment_position(segment_index, 1.0))
+		_closest_query_distances.append(end_distance)
+
+
+func _closest_distance_from_query_cache(position: Vector3) -> float:
+	var best_distance_sq: float = INF
+	var best_distance_m: float = 0.0
+	for i: int in range(_closest_query_points.size() - 1):
+		var a: Vector3 = _closest_query_points[i]
+		var b: Vector3 = _closest_query_points[i + 1]
+		var segment: Vector3 = b - a
+		var segment_length_sq: float = segment.length_squared()
+		var local_t: float = 0.0
+		if segment_length_sq > 0.0001:
+			local_t = clampf((position - a).dot(segment) / segment_length_sq, 0.0, 1.0)
+
+		var projected: Vector3 = a + segment * local_t
+		var distance_sq: float = position.distance_squared_to(projected)
+		if distance_sq < best_distance_sq:
+			best_distance_sq = distance_sq
+			best_distance_m = lerpf(_closest_query_distances[i], _closest_query_distances[i + 1], local_t)
+
+	return _resolve_distance(best_distance_m)
 
 
 func _resolve_distance(distance_m: float) -> float:

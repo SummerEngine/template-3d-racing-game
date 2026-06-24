@@ -5,6 +5,10 @@ const RACE_LOADING_SCENE_PATH: String = "res://scenes/ui/race_loading.tscn"
 const MENU_AUDIO_CONTROLLER_SCRIPT_PATH: String = "res://scripts/audio/menu_audio_controller.gd"
 const MENU_BACKGROUND_TEXTURE_PATH: String = "res://assets/ui/menu_showroom_background.png"
 const DEFAULT_CAR_CARD_TEXTURE_PATH: String = MENU_BACKGROUND_TEXTURE_PATH
+const HANGAR_FLOOR_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_floor_generated.png"
+const HANGAR_WALL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_generated.png"
+const HANGAR_WALL_TILE_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_tileable.png"
+const HANGAR_CEILING_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_ceiling_generated.png"
 
 const VIEW_HOME: StringName = &"home"
 const VIEW_CAR_SELECT: StringName = &"car_select"
@@ -17,26 +21,30 @@ const STAT_LABELS: Dictionary = {
 	"cornering": "Cornering",
 }
 const STAT_COLORS: Dictionary = {
-	"speed": Color(0.92, 0.08, 0.13, 1.0),
-	"launch": Color(1.0, 0.72, 0.18, 1.0),
-	"braking": Color(0.12, 0.74, 1.0, 1.0),
-	"cornering": Color(0.12, 0.84, 0.42, 1.0),
+	"speed": Color(0.92, 0.92, 0.90, 1.0),
+	"launch": Color(0.74, 0.74, 0.72, 1.0),
+	"braking": Color(0.62, 0.65, 0.68, 1.0),
+	"cornering": Color(0.82, 0.84, 0.80, 1.0),
 }
 const CHOICE_CARD_SIDE_RATIO: float = 0.10
 const CARD_SCROLL_TWEEN_SECONDS: float = 0.24
-const PREVIEW_CAMERA_ELEVATION_DEGREES: float = 45.0
-const PREVIEW_CAMERA_DISTANCE: float = 7.4
-const SELECTION_INFO_RAIL_RATIO: float = 0.166
+const PREVIEW_CAMERA_ELEVATION_DEGREES: float = 24.0
+const PREVIEW_CAMERA_DISTANCE: float = 6.5
+const PREVIEW_CAMERA_TARGET_OFFSET_X: float = 0.55
+const PREVIEW_IDLE_ROTATION_DEGREES_PER_SECOND: float = 8.0
+const SELECTION_INFO_RAIL_RATIO: float = 0.19
 const UI_REFERENCE_SIZE: Vector2 = Vector2(1920.0, 1080.0)
 const UI_MIN_SCALE: float = 0.50
-const UI_MAX_SCALE: float = 1.35
+const UI_MAX_SCALE: float = 2.25
 const COLOR_PANEL_DARK: Color = Color(0.020, 0.024, 0.031, 0.92)
 const COLOR_PANEL_LIGHT: Color = Color(0.055, 0.064, 0.078, 0.86)
-const COLOR_RACING_RED: Color = Color(0.91, 0.0, 0.18, 1.0)
-const COLOR_RACING_RED_HOVER: Color = Color(1.0, 0.10, 0.26, 1.0)
+const COLOR_RACING_RED: Color = Color(0.58, 0.035, 0.055, 1.0)
+const COLOR_RACING_RED_HOVER: Color = Color(0.76, 0.075, 0.095, 1.0)
 const COLOR_RACING_BLUE: Color = Color(0.36, 0.82, 1.0, 1.0)
 const COLOR_TEXT_MAIN: Color = Color(0.94, 0.94, 0.94, 1.0)
 const COLOR_TEXT_MUTED: Color = Color(0.48, 0.48, 0.60, 1.0)
+const GEAR_MODE_AUTOMATIC: String = "automatic"
+const GEAR_MODE_MANUAL: String = "manual"
 
 var _active_view: StringName = VIEW_HOME
 var _settings_visible: bool = false
@@ -46,6 +54,7 @@ var _selected_track_id: StringName = &""
 var _preview_car_id: StringName = &""
 var _preview_track_id: StringName = &""
 var _selected_difficulty_id: String = "medium"
+var _selected_gear_mode: String = GEAR_MODE_AUTOMATIC
 var _menu_audio: Node = null
 var _menu_background_texture: Texture2D = null
 var _car_card_texture: Texture2D = null
@@ -80,6 +89,7 @@ var _preview_car_mount: Node3D = null
 var _preview_camera: Camera3D = null
 var _preview_dragging: bool = false
 var _preview_last_mouse: Vector2 = Vector2.ZERO
+var _preview_turntable_yaw_degrees: float = 0.0
 var _car_cards_scroll: ScrollContainer = null
 var _track_cards_scroll: ScrollContainer = null
 var _car_cards_scroll_tween: Tween = null
@@ -96,10 +106,12 @@ var _car_buttons: Dictionary = {}
 var _skin_buttons: Dictionary = {}
 var _track_buttons: Dictionary = {}
 var _difficulty_buttons: Dictionary = {}
+var _gear_mode_buttons: Dictionary = {}
 var _car_stat_labels: Dictionary = {}
 var _car_stat_bars: Dictionary = {}
 var _car_preview_scene_cache: Dictionary = {}
 var _difficulty_description_label: Label = null
+var _race_now_button: Button = null
 
 
 func _ready() -> void:
@@ -118,8 +130,14 @@ func _notification(what: int) -> void:
 		_go_back()
 
 
+func _process(delta: float) -> void:
+	_update_car_preview_idle_rotation(delta)
+
+
 func _build_interface() -> void:
 	_kill_card_scroll_tweens()
+	if _preview_turntable != null and is_instance_valid(_preview_turntable):
+		_preview_turntable_yaw_degrees = _preview_turntable.rotation_degrees.y
 	for child: Node in get_children():
 		remove_child(child)
 		child.queue_free()
@@ -127,10 +145,26 @@ func _build_interface() -> void:
 	_skin_buttons.clear()
 	_track_buttons.clear()
 	_difficulty_buttons.clear()
+	_gear_mode_buttons.clear()
 	_car_stat_labels.clear()
 	_car_stat_bars.clear()
 	_track_preview_texture_rect = null
 	_difficulty_description_label = null
+	_race_now_button = null
+	_car_cards_scroll = null
+	_track_cards_scroll = null
+	_car_cards_leading_spacer = null
+	_car_cards_trailing_spacer = null
+	_track_cards_leading_spacer = null
+	_track_cards_trailing_spacer = null
+	_car_prev_button = null
+	_car_next_button = null
+	_track_prev_button = null
+	_track_next_button = null
+	_preview_subviewport = null
+	_preview_turntable = null
+	_preview_car_mount = null
+	_preview_camera = null
 	_track_length_label = null
 	_track_lap_label = null
 	_track_difficulty_label = null
@@ -184,7 +218,7 @@ func _add_background() -> void:
 
 	var bottom_strip := ColorRect.new()
 	bottom_strip.name = "BottomRedAccent"
-	bottom_strip.color = Color(0.88, 0.02, 0.08, 0.30)
+	bottom_strip.color = Color(1.0, 1.0, 1.0, 0.10)
 	bottom_strip.anchor_left = 0.0
 	bottom_strip.anchor_top = 1.0
 	bottom_strip.anchor_right = 1.0
@@ -415,16 +449,31 @@ func _build_car_select_view() -> Control:
 	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layout.add_theme_constant_override("separation", 0)
 	root.add_child(layout)
-	layout.add_child(_make_selection_header("SELECT CAR", Callable(self, "_show_home"), _selected_car_index(), _car_options().size()))
+	layout.add_child(_make_selection_header("SELECT CAR", Callable(self, "_show_home")))
 
-	var body := HBoxContainer.new()
+	var body := Control.new()
 	body.name = "CarSelectBody"
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 0)
 	layout.add_child(body)
-	body.add_child(_make_car_hero_area())
-	body.add_child(_build_car_info_rail())
+	var hero := _make_car_hero_area()
+	hero.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hero.offset_left = 0.0
+	hero.offset_top = 0.0
+	hero.offset_right = 0.0
+	hero.offset_bottom = 0.0
+	body.add_child(hero)
+	var rail := _build_car_info_rail()
+	var rail_margin := _space(18, 30)
+	rail.anchor_left = 1.0
+	rail.anchor_top = 0.0
+	rail.anchor_right = 1.0
+	rail.anchor_bottom = 1.0
+	rail.offset_left = -_info_rail_width() - rail_margin
+	rail.offset_top = _space(22, 36)
+	rail.offset_right = -rail_margin
+	rail.offset_bottom = -_space(18, 30)
+	body.add_child(rail)
 
 	layout.add_child(_build_car_carousel())
 	return root
@@ -439,22 +488,37 @@ func _build_track_select_view() -> Control:
 	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layout.add_theme_constant_override("separation", 0)
 	root.add_child(layout)
-	layout.add_child(_make_selection_header("SELECT TRACK", Callable(self, "_show_car_select"), _selected_track_index(), _track_options().size()))
+	layout.add_child(_make_selection_header("SELECT TRACK", Callable(self, "_show_car_select")))
 
-	var body := HBoxContainer.new()
+	var body := Control.new()
 	body.name = "TrackSelectBody"
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 0)
 	layout.add_child(body)
-	body.add_child(_make_track_hero_area())
-	body.add_child(_build_track_info_rail())
+	var hero := _make_track_hero_area()
+	hero.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hero.offset_left = 0.0
+	hero.offset_top = 0.0
+	hero.offset_right = 0.0
+	hero.offset_bottom = 0.0
+	body.add_child(hero)
+	var rail := _build_track_info_rail()
+	var rail_margin := _space(18, 30)
+	rail.anchor_left = 1.0
+	rail.anchor_top = 0.0
+	rail.anchor_right = 1.0
+	rail.anchor_bottom = 1.0
+	rail.offset_left = -_info_rail_width() - rail_margin
+	rail.offset_top = _space(22, 36)
+	rail.offset_right = -rail_margin
+	rail.offset_bottom = -_space(18, 30)
+	body.add_child(rail)
 
 	layout.add_child(_build_track_carousel())
 	return root
 
 
-func _make_selection_header(title_text: String, back_callback: Callable, selected_index: int, total_count: int) -> PanelContainer:
+func _make_selection_header(title_text: String, back_callback: Callable) -> PanelContainer:
 	var header := PanelContainer.new()
 	header.name = "SelectionHeader"
 	header.custom_minimum_size = Vector2(1.0, _vh(0.082, 58.0, 76.0))
@@ -474,8 +538,9 @@ func _make_selection_header(title_text: String, back_callback: Callable, selecte
 	row.add_theme_constant_override("separation", _space(12, 18))
 	margin.add_child(row)
 
+	var side_width := _space(98, 132)
 	var back := _make_top_bar_button("<  BACK")
-	back.custom_minimum_size.x = _space(98, 132)
+	back.custom_minimum_size.x = side_width
 	back.pressed.connect(back_callback)
 	row.add_child(back)
 
@@ -486,7 +551,7 @@ func _make_selection_header(title_text: String, back_callback: Callable, selecte
 	center.add_theme_constant_override("separation", _space(8, 12))
 	row.add_child(center)
 	var red_mark := ColorRect.new()
-	red_mark.color = COLOR_RACING_RED
+	red_mark.color = Color(0.86, 0.86, 0.82, 1.0)
 	red_mark.custom_minimum_size = Vector2(_space(14, 18), _space(14, 18))
 	center.add_child(red_mark)
 	var title := _make_label(title_text, _font_px(13, 18, 0.017), COLOR_TEXT_MAIN, true)
@@ -494,11 +559,10 @@ func _make_selection_header(title_text: String, back_callback: Callable, selecte
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	center.add_child(title)
 
-	var counter := _make_label("%d / %d" % [maxi(selected_index + 1, 1), maxi(total_count, 1)], _font_px(11, 15, 0.014), Color(0.42, 0.42, 0.56, 1.0), false)
-	counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	counter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	counter.custom_minimum_size.x = _space(74, 112)
-	row.add_child(counter)
+	var right_balance := Control.new()
+	right_balance.name = "HeaderRightBalance"
+	right_balance.custom_minimum_size = Vector2(side_width, 1.0)
+	row.add_child(right_balance)
 	return header
 
 
@@ -511,7 +575,7 @@ func _make_car_hero_area() -> Control:
 
 	var glow := ColorRect.new()
 	glow.name = "CarHeroRedGlow"
-	glow.color = Color(0.22, 0.0, 0.035, 0.08)
+	glow.color = Color(1.0, 1.0, 1.0, 0.045)
 	glow.anchor_left = 0.16
 	glow.anchor_top = 0.54
 	glow.anchor_right = 0.86
@@ -529,40 +593,30 @@ func _make_car_hero_area() -> Control:
 	return area
 
 
-func _build_car_info_rail() -> PanelContainer:
-	var panel := _make_info_rail_panel("CarInfoRail")
+func _build_car_info_rail() -> Control:
+	var rail := _make_info_rail_slot("CarInfoRail")
+	var panel := rail.get_node("CarInfoRail") as PanelContainer
 	var content := _make_info_rail_content(panel)
 
 	var car := _displayed_car_option()
 	var class_chip := _make_chip_label("CLASS  %s" % str(car.get("vehicle_class", "GT")).to_upper())
 	content.add_child(class_chip)
 
-	_car_name_label = _make_label("", _font_px(22, 34, 0.032), COLOR_TEXT_MAIN, true)
+	_car_name_label = _make_label("", _font_px(19, 28, 0.026), COLOR_TEXT_MAIN, true)
 	_configure_top_title_label(_car_name_label)
 	content.add_child(_car_name_label)
-	_car_class_label = _make_label("", _font_px(12, 17, 0.016), COLOR_RACING_RED, true)
+	_car_class_label = _make_label("", _font_px(10, 14, 0.013), Color(0.74, 0.74, 0.78, 1.0), true)
 	content.add_child(_car_class_label)
-	_car_description_label = _make_label("", _font_px(13, 17, 0.016), Color(0.48, 0.48, 0.62, 1.0), false)
+	_car_description_label = _make_label("", _font_px(11, 14, 0.013), Color(0.58, 0.58, 0.64, 1.0), false)
 	_car_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_car_description_label.max_lines_visible = 3
+	_car_description_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	content.add_child(_car_description_label)
-
-	content.add_child(_make_section_label("SKIN"))
-	var swatches := GridContainer.new()
-	swatches.name = "SkinSwatches"
-	swatches.columns = 2
-	swatches.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	swatches.add_theme_constant_override("h_separation", _space(7, 11))
-	swatches.add_theme_constant_override("v_separation", _space(7, 11))
-	content.add_child(swatches)
-	for skin_option: Dictionary in _skin_options_for_selected_car():
-		var button := _make_skin_button(skin_option)
-		_skin_buttons[StringName(skin_option.get("id", &""))] = button
-		swatches.add_child(button)
 
 	content.add_child(_make_section_label("PERFORMANCE"))
 	var stats: Dictionary = car.get("stats", {})
 	for stat_name: String in STAT_ORDER:
-		var row := _make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
+		var row := _make_compact_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
 		_car_stat_labels[stat_name] = row.get_child(0)
 		_car_stat_bars[stat_name] = row.get_child(1)
 		content.add_child(row)
@@ -570,10 +624,11 @@ func _build_car_info_rail() -> PanelContainer:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(spacer)
+	content.add_child(_build_gear_mode_toggle())
 	var confirm := _make_button("CONFIRM", true, _font_px(12, 18, 0.017), _vh(0.054, 42.0, 58.0))
 	confirm.pressed.connect(Callable(self, "_show_track_select"))
 	content.add_child(confirm)
-	return panel
+	return rail
 
 
 func _make_track_hero_area() -> Control:
@@ -626,8 +681,9 @@ func _make_track_hero_area() -> Control:
 	return area
 
 
-func _build_track_info_rail() -> PanelContainer:
-	var panel := _make_info_rail_panel("TrackInfoRail")
+func _build_track_info_rail() -> Control:
+	var rail := _make_info_rail_slot("TrackInfoRail")
+	var panel := rail.get_node("TrackInfoRail") as PanelContainer
 	var content := _make_info_rail_content(panel)
 	content.add_child(_make_section_label("CIRCUIT LAYOUT"))
 	var map_panel := PanelContainer.new()
@@ -652,36 +708,68 @@ func _build_track_info_rail() -> PanelContainer:
 	content.add_child(_make_section_label("ROUTE BRIEF"))
 	_track_description_label = _make_label("", _font_px(13, 17, 0.016), Color(0.66, 0.68, 0.76, 1.0), false)
 	_track_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_track_description_label.max_lines_visible = 4
+	_track_description_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	content.add_child(_track_description_label)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(spacer)
+
+	var bottom_stack := VBoxContainer.new()
+	bottom_stack.name = "TrackStartStack"
+	bottom_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_stack.add_theme_constant_override("separation", _space(8, 12))
+	content.add_child(bottom_stack)
+	bottom_stack.add_child(_make_section_label("RIVAL DIFFICULTY"))
 
 	var difficulty_row := HBoxContainer.new()
 	difficulty_row.name = "DifficultyRow"
 	difficulty_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	difficulty_row.add_theme_constant_override("separation", _space(6, 10))
-	content.add_child(difficulty_row)
+	bottom_stack.add_child(difficulty_row)
 	for difficulty: Dictionary in _difficulty_options():
 		var button := _make_difficulty_button(difficulty)
 		_difficulty_buttons[StringName(difficulty.get("id", &""))] = button
 		difficulty_row.add_child(button)
 	_difficulty_description_label = _make_label("", _font_px(12, 16, 0.014), COLOR_TEXT_MUTED, false)
 	_difficulty_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_difficulty_description_label)
+	_difficulty_description_label.custom_minimum_size = Vector2(1.0, _vh(0.050, 36.0, 54.0))
+	_difficulty_description_label.max_lines_visible = 2
+	_difficulty_description_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	bottom_stack.add_child(_difficulty_description_label)
 
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(spacer)
-	var start_button := _make_button("RACE NOW", true, _font_px(12, 18, 0.017), _vh(0.054, 42.0, 58.0))
-	start_button.pressed.connect(Callable(self, "_start_race_loading"))
-	content.add_child(start_button)
-	return panel
+	_race_now_button = _make_button("RACE NOW", true, _font_px(12, 18, 0.017), _vh(0.054, 42.0, 58.0))
+	_race_now_button.pressed.connect(Callable(self, "_start_race_loading"))
+	bottom_stack.add_child(_race_now_button)
+	return rail
+
+
+func _make_info_rail_slot(node_name: String) -> Control:
+	var rail := Control.new()
+	rail.name = "%sSlot" % node_name
+	rail.custom_minimum_size = Vector2(_info_rail_width(), 1.0)
+	rail.size_flags_horizontal = Control.SIZE_SHRINK_END
+	rail.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rail.clip_contents = true
+
+	var panel := _make_info_rail_panel(node_name)
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.offset_left = 0.0
+	panel.offset_top = 0.0
+	panel.offset_right = 0.0
+	panel.offset_bottom = 0.0
+	rail.add_child(panel)
+	return rail
 
 
 func _make_info_rail_panel(node_name: String) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = node_name
-	panel.custom_minimum_size = Vector2(_vw(SELECTION_INFO_RAIL_RATIO, 230.0, 320.0), 1.0)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	panel.custom_minimum_size = Vector2.ZERO
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.clip_contents = true
 	panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.050, 0.058, 0.094, 0.96), Color(1.0, 1.0, 1.0, 0.08), 1, 0))
 	return panel
 
@@ -695,6 +783,8 @@ func _make_info_rail_content(panel: PanelContainer) -> VBoxContainer:
 	panel.add_child(margin)
 	var content := VBoxContainer.new()
 	content.name = "InfoContent"
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", _space(10, 16))
 	margin.add_child(content)
 	return content
@@ -710,8 +800,8 @@ func _make_chip_label(text: String) -> PanelContainer:
 	var chip := PanelContainer.new()
 	chip.name = "Chip"
 	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	chip.add_theme_stylebox_override("panel", _make_panel_style(COLOR_RACING_RED, COLOR_RACING_RED, 0, 0))
-	var label := _make_label(text, _font_px(10, 14, 0.013), Color(0.0, 0.0, 0.0, 1.0), true)
+	chip.add_theme_stylebox_override("panel", _make_panel_style(Color(0.90, 0.90, 0.86, 0.92), Color(1.0, 1.0, 1.0, 0.20), 0, 0))
+	var label := _make_label(text, _font_px(10, 14, 0.013), Color(0.025, 0.026, 0.030, 1.0), true)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	chip.add_child(label)
 	return chip
@@ -731,7 +821,7 @@ func _make_info_value_row(label_text: String, value_label: Label) -> HBoxContain
 
 
 func _build_car_carousel() -> HBoxContainer:
-	var row := _make_carousel_row(VIEW_CAR_SELECT)
+	var row := _make_carousel_row(VIEW_CAR_SELECT, false)
 	var cards := row.get_node("CardViewport/CardsList") as HBoxContainer
 	_car_cards_leading_spacer = _make_card_spacer("LeadingCardSpacer")
 	cards.add_child(_car_cards_leading_spacer)
@@ -743,7 +833,7 @@ func _build_car_carousel() -> HBoxContainer:
 
 
 func _build_track_carousel() -> HBoxContainer:
-	var row := _make_carousel_row(VIEW_TRACK_SELECT)
+	var row := _make_carousel_row(VIEW_TRACK_SELECT, false)
 	var cards := row.get_node("CardViewport/CardsList") as HBoxContainer
 	_track_cards_leading_spacer = _make_card_spacer("LeadingCardSpacer")
 	cards.add_child(_track_cards_leading_spacer)
@@ -754,16 +844,18 @@ func _build_track_carousel() -> HBoxContainer:
 	return row
 
 
-func _make_carousel_row(card_group: StringName) -> HBoxContainer:
+func _make_carousel_row(card_group: StringName, show_arrows: bool) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.name = "CarouselRow"
 	row.custom_minimum_size = Vector2(1.0, _vh(0.155, 98.0, 138.0))
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", _space(8, 12))
 
-	var previous_button := _make_arrow_button("<")
-	previous_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, -1))
-	row.add_child(previous_button)
+	var previous_button: Button = null
+	if show_arrows:
+		previous_button = _make_arrow_button("<")
+		previous_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, -1))
+		row.add_child(previous_button)
 
 	var viewport := ScrollContainer.new()
 	viewport.name = "CardViewport"
@@ -781,9 +873,11 @@ func _make_carousel_row(card_group: StringName) -> HBoxContainer:
 	cards_list.add_theme_constant_override("separation", _card_gap())
 	viewport.add_child(cards_list)
 
-	var next_button := _make_arrow_button(">")
-	next_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, 1))
-	row.add_child(next_button)
+	var next_button: Button = null
+	if show_arrows:
+		next_button = _make_arrow_button(">")
+		next_button.pressed.connect(Callable(self, "_scroll_cards").bind(card_group, 1))
+		row.add_child(next_button)
 
 	if card_group == VIEW_CAR_SELECT:
 		_car_cards_scroll = viewport
@@ -851,11 +945,17 @@ func _make_selection_rows(node_name: String, card_group: StringName) -> VBoxCont
 	selection_gap.size_flags_stretch_ratio = 1.0
 	rows.add_child(selection_gap)
 
+	var cards_margin := MarginContainer.new()
+	cards_margin.name = "CardsRowPadding"
+	cards_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cards_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards_margin.size_flags_stretch_ratio = 2.0
+	cards_margin.add_theme_constant_override("margin_bottom", _space(8, 14))
+
 	var cards := HBoxContainer.new()
 	cards.name = "CardsRow"
 	cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cards.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cards.size_flags_stretch_ratio = 2.0
 	cards.add_theme_constant_override("separation", _space(10, 16))
 
 	var previous_button := _make_arrow_button("<")
@@ -890,7 +990,8 @@ func _make_selection_rows(node_name: String, card_group: StringName) -> VBoxCont
 		_track_cards_scroll = viewport
 		_track_prev_button = previous_button
 		_track_next_button = next_button
-	rows.add_child(cards)
+	cards_margin.add_child(cards)
+	rows.add_child(cards_margin)
 
 	var bottom := CenterContainer.new()
 	bottom.name = "BottomActions"
@@ -971,26 +1072,40 @@ func _build_car_preview_column() -> PanelContainer:
 	_preview_subviewport = SubViewport.new()
 	_preview_subviewport.name = "PreviewViewport"
 	_preview_subviewport.disable_3d = false
-	_preview_subviewport.transparent_bg = true
+	_preview_subviewport.transparent_bg = false
 	_preview_subviewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	preview.add_child(_preview_subviewport)
 
 	var root3d := Node3D.new()
 	root3d.name = "StageRoot"
 	_preview_subviewport.add_child(root3d)
+	_build_preview_world_environment(root3d)
 	var light := DirectionalLight3D.new()
 	light.name = "KeyLight"
-	light.light_energy = 2.8
-	light.rotation_degrees = Vector3(-48.0, -35.0, 0.0)
+	light.light_energy = 1.7
+	light.light_color = Color(1.0, 0.96, 0.88, 1.0)
+	light.shadow_enabled = true
+	light.rotation_degrees = Vector3(-54.0, -32.0, 0.0)
 	root3d.add_child(light)
 	var fill := OmniLight3D.new()
 	fill.name = "FillLight"
-	fill.light_energy = 1.2
-	fill.position = Vector3(2.0, 2.4, 3.5)
+	fill.light_energy = 1.8
+	fill.light_color = Color(0.78, 0.88, 1.0, 1.0)
+	fill.omni_range = 7.5
+	fill.position = Vector3(2.8, 2.4, 3.3)
 	root3d.add_child(fill)
+	var front_reflector := OmniLight3D.new()
+	front_reflector.name = "FrontReflector"
+	front_reflector.light_energy = 1.1
+	front_reflector.light_color = Color(1.0, 0.95, 0.86, 1.0)
+	front_reflector.omni_range = 5.0
+	front_reflector.position = Vector3(-2.8, 1.6, 2.8)
+	root3d.add_child(front_reflector)
 	_build_preview_room(root3d)
+	_build_hangar_ceiling_lights(root3d)
 	_preview_turntable = Node3D.new()
 	_preview_turntable.name = "Turntable"
+	_preview_turntable.rotation_degrees.y = _preview_turntable_yaw_degrees
 	root3d.add_child(_preview_turntable)
 	_build_preview_platform(_preview_turntable)
 	_preview_car_mount = Node3D.new()
@@ -1000,6 +1115,7 @@ func _build_car_preview_column() -> PanelContainer:
 	_preview_camera = Camera3D.new()
 	_preview_camera.name = "PreviewCamera"
 	_preview_camera.fov = 42.0
+	_preview_camera.current = true
 	root3d.add_child(_preview_camera)
 	_position_preview_camera()
 	_rebuild_car_preview()
@@ -1018,42 +1134,83 @@ func _build_car_stats_column() -> VBoxContainer:
 	return column
 
 
+func _build_preview_world_environment(root3d: Node3D) -> void:
+	var world_environment := WorldEnvironment.new()
+	world_environment.name = "PreviewHangarWorldEnvironment"
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.018, 0.022, 0.027, 1.0)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.70, 0.78, 0.84, 1.0)
+	environment.ambient_light_energy = 0.88
+	world_environment.environment = environment
+	root3d.add_child(world_environment)
+
+
 func _build_preview_room(root3d: Node3D) -> void:
-	var floor_node := MeshInstance3D.new()
-	floor_node.name = "PreviewRoomFloor"
-	var floor_mesh := BoxMesh.new()
-	floor_mesh.size = Vector3(8.7, 0.08, 7.9)
-	floor_node.mesh = floor_mesh
-	floor_node.position = Vector3(0.0, -0.08, 0.0)
-	floor_node.material_override = _make_preview_material(Color(0.035, 0.040, 0.048, 1.0), 0.12, 0.46)
-	root3d.add_child(floor_node)
+	var floor_material := _make_preview_material(Color(0.68, 0.70, 0.70, 1.0), 0.16, 0.18, HANGAR_FLOOR_TEXTURE_PATH, Vector3(2.2, 1.0, 2.0))
+	var wall_material := _make_preview_material(Color(0.76, 0.79, 0.79, 1.0), 0.0, 0.50, HANGAR_WALL_TILE_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0))
+	var side_wall_material := _make_preview_material(Color(0.64, 0.68, 0.69, 1.0), 0.0, 0.56, HANGAR_WALL_TILE_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0))
+	var ceiling_material := _make_preview_material(Color(0.36, 0.38, 0.40, 1.0), 0.10, 0.46, HANGAR_CEILING_TEXTURE_PATH, Vector3(1.9, 1.0, 1.6))
+	var beam_material := _make_preview_material(Color(0.055, 0.060, 0.065, 1.0), 0.38, 0.36)
+	var trim_material := _make_preview_material(Color(0.13, 0.15, 0.16, 1.0), 0.26, 0.40)
+	var window_material := _make_preview_material(Color(0.58, 0.88, 1.0, 0.88), 0.0, 0.12, "", Vector3.ONE, Color(0.40, 0.86, 1.0, 1.0), 0.85)
 
-	var back_wall := MeshInstance3D.new()
-	back_wall.name = "PreviewRoomBackWall"
-	var back_mesh := BoxMesh.new()
-	back_mesh.size = Vector3(8.7, 2.8, 0.10)
-	back_wall.mesh = back_mesh
-	back_wall.position = Vector3(0.0, 1.32, -3.65)
-	back_wall.material_override = _make_preview_material(Color(0.055, 0.065, 0.078, 1.0), 0.0, 0.62)
-	root3d.add_child(back_wall)
+	_add_preview_box(root3d, "HangarPolishedFloor", Vector3(11.0, 0.08, 9.0), Vector3(0.0, -0.08, 0.0), floor_material)
+	_add_preview_box(root3d, "HangarBackWall", Vector3(11.0, 3.45, 0.12), Vector3(0.0, 1.62, -4.30), wall_material)
+	_add_preview_box(root3d, "HangarLeftWall", Vector3(0.12, 3.35, 9.0), Vector3(-5.42, 1.55, 0.0), side_wall_material)
+	_add_preview_box(root3d, "HangarRightWall", Vector3(0.12, 3.35, 9.0), Vector3(5.42, 1.55, 0.0), side_wall_material)
+	_add_preview_box(root3d, "HangarCeiling", Vector3(11.0, 0.10, 9.0), Vector3(0.0, 3.34, 0.0), ceiling_material)
 
-	var side_wall_left := MeshInstance3D.new()
-	side_wall_left.name = "PreviewRoomLeftWall"
-	var side_mesh_left := BoxMesh.new()
-	side_mesh_left.size = Vector3(0.10, 2.3, 7.3)
-	side_wall_left.mesh = side_mesh_left
-	side_wall_left.position = Vector3(-3.75, 1.06, 0.0)
-	side_wall_left.material_override = _make_preview_material(Color(0.038, 0.047, 0.058, 1.0), 0.0, 0.68)
-	root3d.add_child(side_wall_left)
+	for index: int in range(7):
+		var x := -4.8 + float(index) * 1.6
+		_add_preview_box(root3d, "HangarBackVerticalBeam_%02d" % index, Vector3(0.055, 3.25, 0.08), Vector3(x, 1.55, -4.20), beam_material)
+	for beam_y: float in [0.52, 1.62, 2.74]:
+		_add_preview_box(root3d, "HangarBackHorizontalBeam_%.1f" % beam_y, Vector3(10.65, 0.045, 0.08), Vector3(0.0, beam_y, -4.18), beam_material)
+	for index: int in range(5):
+		var z := -3.45 + float(index) * 1.72
+		_add_preview_box(root3d, "HangarLeftBayBeam_%02d" % index, Vector3(0.08, 3.05, 0.055), Vector3(-5.32, 1.45, z), trim_material)
+		_add_preview_box(root3d, "HangarRightBayBeam_%02d" % index, Vector3(0.08, 3.05, 0.055), Vector3(5.32, 1.45, z), trim_material)
+		_add_preview_box(root3d, "HangarRoofRib_%02d" % index, Vector3(10.75, 0.08, 0.075), Vector3(0.0, 3.22, z), beam_material)
 
-	var side_wall_right := MeshInstance3D.new()
-	side_wall_right.name = "PreviewRoomRightWall"
-	var side_mesh_right := BoxMesh.new()
-	side_mesh_right.size = Vector3(0.10, 2.3, 7.3)
-	side_wall_right.mesh = side_mesh_right
-	side_wall_right.position = Vector3(3.75, 1.06, 0.0)
-	side_wall_right.material_override = _make_preview_material(Color(0.038, 0.047, 0.058, 1.0), 0.0, 0.68)
-	root3d.add_child(side_wall_right)
+	for index: int in range(5):
+		var window_x := -3.55 + float(index) * 1.78
+		_add_preview_box(root3d, "HangarUpperWindow_%02d" % index, Vector3(1.18, 0.38, 0.035), Vector3(window_x, 2.34, -4.13), window_material)
+
+	_add_preview_box(root3d, "HangarLeftWindowStrip", Vector3(0.035, 0.32, 4.2), Vector3(-5.25, 2.28, -1.0), window_material)
+	_add_preview_box(root3d, "HangarRightWindowStrip", Vector3(0.035, 0.32, 4.2), Vector3(5.25, 2.28, -1.0), window_material)
+	_add_preview_box(root3d, "HangarBackLowerKickPlate", Vector3(10.7, 0.36, 0.055), Vector3(0.0, 0.18, -4.12), trim_material)
+	_add_preview_box(root3d, "HangarLeftLowerKickPlate", Vector3(0.055, 0.34, 8.6), Vector3(-5.25, 0.17, 0.0), trim_material)
+	_add_preview_box(root3d, "HangarRightLowerKickPlate", Vector3(0.055, 0.34, 8.6), Vector3(5.25, 0.17, 0.0), trim_material)
+
+
+func _build_hangar_ceiling_lights(root3d: Node3D) -> void:
+	var panel_material := _make_preview_material(Color(1.0, 0.96, 0.84, 1.0), 0.0, 0.08, "", Vector3.ONE, Color(1.0, 0.93, 0.72, 1.0), 1.8)
+	for row: int in range(3):
+		var z := -2.45 + float(row) * 2.35
+		for column: int in range(3):
+			var x := -2.75 + float(column) * 2.75
+			_add_preview_box(root3d, "HangarLightPanel_%02d_%02d" % [row, column], Vector3(1.25, 0.035, 0.42), Vector3(x, 3.16, z), panel_material)
+			var light := OmniLight3D.new()
+			light.name = "HangarSoftLight_%02d_%02d" % [row, column]
+			light.light_energy = 0.68
+			light.light_color = Color(1.0, 0.96, 0.86, 1.0)
+			light.omni_range = 4.6
+			light.position = Vector3(x, 2.94, z)
+			root3d.add_child(light)
+
+
+func _add_preview_box(parent: Node3D, node_name: String, box_size: Vector3, box_position: Vector3, box_material: Material, box_rotation_degrees: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	node.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = box_size
+	node.mesh = mesh
+	node.position = box_position
+	node.rotation_degrees = box_rotation_degrees
+	node.material_override = box_material
+	parent.add_child(node)
+	return node
 
 
 func _build_preview_platform(parent: Node3D) -> void:
@@ -1082,11 +1239,21 @@ func _build_preview_platform(parent: Node3D) -> void:
 	parent.add_child(highlight)
 
 
-func _make_preview_material(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
+func _make_preview_material(color: Color, metallic: float, roughness: float, texture_path: String = "", uv_scale: Vector3 = Vector3.ONE, emission_color: Color = Color.TRANSPARENT, emission_energy: float = 0.0) -> StandardMaterial3D:
 	var preview_material := StandardMaterial3D.new()
 	preview_material.albedo_color = color
 	preview_material.metallic = metallic
 	preview_material.roughness = roughness
+	preview_material.set("uv1_scale", uv_scale)
+	if not texture_path.is_empty():
+		var texture := _load_texture_safely(texture_path)
+		if texture != null:
+			preview_material.albedo_texture = texture
+			preview_material.set("texture_repeat", 1)
+	if emission_energy > 0.0:
+		preview_material.set("emission_enabled", true)
+		preview_material.set("emission", emission_color)
+		preview_material.set("emission_energy_multiplier", emission_energy)
 	return preview_material
 
 
@@ -1378,12 +1545,50 @@ func _make_difficulty_button(difficulty: Dictionary) -> Button:
 	button.toggle_mode = true
 	button.text = str(difficulty.get("display_name", difficulty_id)).to_upper()
 	button.tooltip_text = str(difficulty.get("description", ""))
+	button.set_meta("difficulty_id", difficulty_id)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.custom_minimum_size = Vector2(1.0, _vh(0.050, 42.0, 62.0))
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.add_theme_font_size_override("font_size", _font_px(12, 17, 0.016))
 	_apply_difficulty_button_style(button, false)
 	button.pressed.connect(Callable(self, "_select_difficulty").bind(difficulty_id))
+	return button
+
+
+func _build_gear_mode_toggle() -> VBoxContainer:
+	var root := VBoxContainer.new()
+	root.name = "GearModeToggle"
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_theme_constant_override("separation", _space(6, 10))
+	root.add_child(_make_section_label("GEAR MODE"))
+
+	var row := HBoxContainer.new()
+	row.name = "GearModeRow"
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", _space(6, 10))
+	root.add_child(row)
+
+	for mode: String in [GEAR_MODE_AUTOMATIC, GEAR_MODE_MANUAL]:
+		var button := _make_gear_mode_button(mode)
+		_gear_mode_buttons[mode] = button
+		row.add_child(button)
+	return root
+
+
+func _make_gear_mode_button(mode: String) -> Button:
+	var button := Button.new()
+	button.name = "GearModeButton"
+	button.toggle_mode = true
+	button.text = "AUTO" if mode == GEAR_MODE_AUTOMATIC else "MANUAL"
+	button.tooltip_text = "Automatic shifting" if mode == GEAR_MODE_AUTOMATIC else "Manual shifting"
+	button.set_meta("gear_mode", mode)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size = Vector2(1.0, _vh(0.045, 36.0, 52.0))
+	button.focus_mode = Control.FOCUS_ALL
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.add_theme_font_size_override("font_size", _font_px(12, 18, 0.016))
+	_apply_gear_mode_button_style(button, mode == _selected_gear_mode)
+	button.pressed.connect(Callable(self, "_select_gear_mode").bind(mode))
 	return button
 
 
@@ -1461,6 +1666,15 @@ func _make_stat_row(label_text: String, value: int, accent: Color) -> VBoxContai
 	return box
 
 
+func _make_compact_stat_row(label_text: String, value: int, accent: Color) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", _space(3, 5))
+	var label := _make_label("%s  %d" % [label_text.to_upper(), value], _font_px(10, 13, 0.012), Color(0.76, 0.77, 0.78, 1.0), false)
+	box.add_child(label)
+	box.add_child(_make_mini_stat_bar(value, accent))
+	return box
+
+
 func _make_mini_stat_bar(value: int, accent: Color) -> ProgressBar:
 	var bar := ProgressBar.new()
 	bar.min_value = 0.0
@@ -1475,29 +1689,71 @@ func _make_mini_stat_bar(value: int, accent: Color) -> ProgressBar:
 
 func _apply_choice_card_style(button: Button) -> void:
 	button.add_theme_stylebox_override("normal", _make_panel_style(Color(0.035, 0.045, 0.055, 0.90), Color(1.0, 1.0, 1.0, 0.18), 1, 10))
-	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.055, 0.075, 0.090, 1.0), Color(0.46, 0.84, 1.0, 0.88), 2, 10))
-	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.12, 0.035, 0.045, 1.0), Color(1.0, 0.16, 0.20, 1.0), 4, 10))
-	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(Color(0.17, 0.045, 0.055, 1.0), Color(1.0, 0.72, 0.72, 1.0), 4, 10))
-	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(0.46, 0.84, 1.0, 1.0), 2, 10))
+	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.070, 0.074, 0.082, 1.0), Color(1.0, 1.0, 1.0, 0.72), 2, 10))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.12, 0.12, 0.13, 1.0), Color(1.0, 1.0, 1.0, 0.95), 4, 10))
+	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(Color(0.16, 0.16, 0.17, 1.0), Color(1.0, 1.0, 1.0, 1.0), 4, 10))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(1.0, 1.0, 1.0, 0.84), 2, 10))
 	button.add_theme_color_override("font_color", Color.TRANSPARENT)
 	button.add_theme_color_override("font_hover_color", Color.TRANSPARENT)
 	button.add_theme_color_override("font_pressed_color", Color.TRANSPARENT)
 
 
 func _apply_difficulty_button_style(button: Button, selected: bool) -> void:
+	var difficulty_id := StringName(button.get_meta("difficulty_id", &""))
+	var accent := _difficulty_color_for_id(difficulty_id)
 	var normal_fill := Color(0.045, 0.052, 0.064, 0.88)
-	var normal_border := Color(1.0, 1.0, 1.0, 0.16)
+	var normal_border := Color(accent.r, accent.g, accent.b, 0.58)
+	var text_color := COLOR_TEXT_MAIN
 	if selected:
-		normal_fill = Color(0.18, 0.025, 0.040, 0.96)
-		normal_border = COLOR_RACING_RED_HOVER
+		normal_fill = accent
+		normal_border = Color(1.0, 1.0, 1.0, 0.84)
+		if difficulty_id == &"medium":
+			text_color = Color(0.04, 0.035, 0.020, 1.0)
 	button.add_theme_stylebox_override("normal", _make_panel_style(normal_fill, normal_border, 1 if not selected else 2, 6))
-	button.add_theme_stylebox_override("hover", _make_panel_style(Color(0.11, 0.040, 0.050, 0.96), COLOR_RACING_RED_HOVER, 2, 6))
-	button.add_theme_stylebox_override("pressed", _make_panel_style(Color(0.22, 0.025, 0.040, 1.0), Color(1.0, 0.68, 0.62, 1.0), 2, 6))
-	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(Color(0.24, 0.030, 0.045, 1.0), Color(1.0, 0.72, 0.66, 1.0), 2, 6))
-	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, COLOR_RACING_BLUE, 2, 6))
-	button.add_theme_color_override("font_color", COLOR_TEXT_MAIN)
+	button.add_theme_stylebox_override("hover", _make_panel_style(accent.darkened(0.44), Color(accent.r, accent.g, accent.b, 0.94), 2, 6))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(accent.darkened(0.18), Color(1.0, 1.0, 1.0, 0.82), 2, 6))
+	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(accent.darkened(0.10), Color(1.0, 1.0, 1.0, 0.96), 2, 6))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(1.0, 1.0, 1.0, 0.88), 2, 6))
+	button.add_theme_color_override("font_color", text_color)
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", text_color)
+
+
+func _apply_gear_mode_button_style(button: Button, selected: bool) -> void:
+	var fill := Color(0.035, 0.040, 0.048, 0.94)
+	var border := Color(1.0, 1.0, 1.0, 0.16)
+	var hover_fill := Color(0.14, 0.14, 0.15, 0.96)
+	var hover_border := Color(1.0, 1.0, 1.0, 0.68)
+	var pressed_fill := Color(0.82, 0.82, 0.78, 1.0)
+	var pressed_border := Color(1.0, 1.0, 1.0, 0.84)
+	var hover_pressed_fill := Color(0.94, 0.94, 0.90, 1.0)
+	var hover_pressed_border := Color(1.0, 1.0, 1.0, 0.94)
+	var font_color := Color(0.74, 0.75, 0.76, 1.0)
+	var hover_font_color := Color.WHITE
+	var pressed_font_color := Color(0.025, 0.026, 0.030, 1.0)
+	var hover_pressed_font_color := Color(0.025, 0.026, 0.030, 1.0)
+	if selected:
+		fill = Color(0.88, 0.88, 0.84, 0.96)
+		border = Color(1.0, 1.0, 1.0, 0.74)
+		hover_fill = Color(0.94, 0.94, 0.90, 1.0)
+		hover_border = Color(1.0, 1.0, 1.0, 0.94)
+		pressed_fill = Color(0.82, 0.82, 0.78, 1.0)
+		pressed_border = Color(1.0, 1.0, 1.0, 0.84)
+		hover_pressed_fill = Color(0.94, 0.94, 0.90, 1.0)
+		hover_pressed_border = Color(1.0, 1.0, 1.0, 0.94)
+		font_color = Color(0.025, 0.026, 0.030, 1.0)
+		hover_font_color = font_color
+		pressed_font_color = font_color
+		hover_pressed_font_color = font_color
+	button.add_theme_stylebox_override("normal", _make_panel_style(fill, border, 1 if not selected else 2, 6))
+	button.add_theme_stylebox_override("hover", _make_panel_style(hover_fill, hover_border, 2 if selected else 1, 6))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(pressed_fill, pressed_border, 2, 6))
+	button.add_theme_stylebox_override("hover_pressed", _make_panel_style(hover_pressed_fill, hover_pressed_border, 2, 6))
+	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, Color(1.0, 1.0, 1.0, 0.82), 2, 6))
+	button.add_theme_color_override("font_color", font_color)
+	button.add_theme_color_override("font_hover_color", hover_font_color)
+	button.add_theme_color_override("font_pressed_color", pressed_font_color)
+	button.add_theme_color_override("font_hover_pressed_color", hover_pressed_font_color)
 
 
 func _apply_button_style(button: Button, primary: bool) -> void:
@@ -1506,22 +1762,28 @@ func _apply_button_style(button: Button, primary: bool) -> void:
 	var pressed_fill := Color(0.15, 0.17, 0.20, 1.0)
 	var border := Color(1.0, 1.0, 1.0, 0.18)
 	var font_color := Color(0.92, 0.94, 0.92, 1.0)
+	var hover_font_color := Color.WHITE
+	var pressed_font_color := Color.WHITE
 	if primary:
-		normal_fill = COLOR_RACING_RED
-		hover_fill = COLOR_RACING_RED_HOVER
-		pressed_fill = Color(0.72, 0.04, 0.08, 1.0)
-		border = Color(1.0, 0.78, 0.70, 0.52)
-		font_color = Color(1.0, 0.98, 0.93, 1.0)
+		normal_fill = Color(0.88, 0.88, 0.84, 0.96)
+		hover_fill = Color(1.0, 1.0, 0.96, 1.0)
+		pressed_fill = Color(0.72, 0.72, 0.68, 1.0)
+		border = Color(1.0, 1.0, 1.0, 0.62)
+		font_color = Color(0.025, 0.026, 0.030, 1.0)
+		hover_font_color = font_color
+		pressed_font_color = font_color
 	button.add_theme_stylebox_override("normal", _make_panel_style(normal_fill, border, 1, 8))
-	button.add_theme_stylebox_override("hover", _make_panel_style(hover_fill, Color(0.46, 0.84, 1.0, 0.55), 1, 8))
-	button.add_theme_stylebox_override("pressed", _make_panel_style(pressed_fill, Color(0.46, 0.84, 1.0, 0.75), 1, 8))
-	var focus_border := Color(0.46, 0.84, 1.0, 0.95)
+	button.add_theme_stylebox_override("hover", _make_panel_style(hover_fill, Color(1.0, 1.0, 1.0, 0.82), 1, 8))
+	button.add_theme_stylebox_override("pressed", _make_panel_style(pressed_fill, Color(1.0, 1.0, 1.0, 0.75), 1, 8))
+	button.add_theme_stylebox_override("disabled", _make_panel_style(Color(0.14, 0.14, 0.15, 0.72), Color(1.0, 1.0, 1.0, 0.12), 1, 8))
+	var focus_border := Color(1.0, 1.0, 1.0, 0.82)
 	if primary:
-		focus_border = Color(1.0, 0.78, 0.70, 0.52)
+		focus_border = Color(1.0, 1.0, 1.0, 0.62)
 	button.add_theme_stylebox_override("focus", _make_panel_style(Color.TRANSPARENT, focus_border, 2, 8))
 	button.add_theme_color_override("font_color", font_color)
-	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_color", hover_font_color)
+	button.add_theme_color_override("font_pressed_color", pressed_font_color)
+	button.add_theme_color_override("font_disabled_color", Color(0.54, 0.54, 0.56, 1.0))
 
 
 func _apply_arrow_button_style(button: Button) -> void:
@@ -1534,6 +1796,17 @@ func _apply_arrow_button_style(button: Button) -> void:
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	button.add_theme_color_override("font_disabled_color", Color(0.72, 0.76, 0.78, 0.62))
+
+
+func _difficulty_color_for_id(difficulty_id: StringName) -> Color:
+	match str(difficulty_id).to_lower():
+		"easy":
+			return Color(0.20, 0.76, 0.38, 1.0)
+		"medium":
+			return Color(0.95, 0.78, 0.18, 1.0)
+		"hard":
+			return Color(0.82, 0.12, 0.14, 1.0)
+	return Color(0.88, 0.88, 0.84, 1.0)
 
 
 func _make_panel_style(fill: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
@@ -1617,6 +1890,26 @@ func _select_difficulty(difficulty_id: StringName) -> void:
 	_sync_difficulty_ui()
 
 
+func _select_gear_mode(mode: String) -> void:
+	_selected_gear_mode = _normalize_gear_mode(mode, _selected_gear_mode)
+	var session := _session()
+	if session != null:
+		if session.has_method("set_gear_mode"):
+			session.call("set_gear_mode", _selected_gear_mode)
+		elif session.has_method("set_transmission_mode"):
+			session.call("set_transmission_mode", _selected_gear_mode)
+		elif session.has_method("set_shift_mode"):
+			session.call("set_shift_mode", _selected_gear_mode)
+		elif session.has_method("set_manual_gear_enabled"):
+			session.call("set_manual_gear_enabled", _selected_gear_mode == GEAR_MODE_MANUAL)
+		elif session.has_method("set_manual_gears_enabled"):
+			session.call("set_manual_gears_enabled", _selected_gear_mode == GEAR_MODE_MANUAL)
+		elif session.has_method("set_manual_shift_enabled"):
+			session.call("set_manual_shift_enabled", _selected_gear_mode == GEAR_MODE_MANUAL)
+	_sync_from_session()
+	_sync_gear_mode_ui()
+
+
 func _preview_car(car_id: StringName) -> void:
 	if car_id == &"" or car_id == _preview_car_id:
 		return
@@ -1684,6 +1977,9 @@ func _kill_card_scroll_tweens() -> void:
 
 
 func _start_race_loading() -> void:
+	if not _selected_track_can_start():
+		_sync_track_start_state()
+		return
 	var session := _session()
 	if session != null and session.has_method("prepare_race_loading"):
 		session.call("prepare_race_loading")
@@ -1735,6 +2031,7 @@ func _sync_from_session() -> void:
 		_selected_track_id = StringName(str(session.call("get_track_id")))
 	if session.has_method("get_difficulty"):
 		_selected_difficulty_id = str(session.call("get_difficulty"))
+	_selected_gear_mode = _gear_mode_from_session(session, _selected_gear_mode)
 
 
 func _sync_all_ui() -> void:
@@ -1743,6 +2040,8 @@ func _sync_all_ui() -> void:
 	_sync_car_labels()
 	_sync_track_labels()
 	_sync_difficulty_ui()
+	_sync_gear_mode_ui()
+	_sync_track_start_state()
 	_rebuild_car_preview()
 
 
@@ -1842,6 +2141,7 @@ func _sync_track_labels() -> void:
 		_track_environment_label.text = str(track.get("environment", &"circuit")).replace("_", " ").to_upper()
 	if _track_difficulty_label != null:
 		_track_difficulty_label.text = _selected_difficulty_id.to_upper()
+	_sync_track_start_state()
 
 
 func _sync_difficulty_ui() -> void:
@@ -1857,6 +2157,31 @@ func _sync_difficulty_ui() -> void:
 		_difficulty_description_label.text = str(difficulty.get("description", ""))
 	if _track_difficulty_label != null:
 		_track_difficulty_label.text = _selected_difficulty_id.to_upper()
+
+
+func _sync_gear_mode_ui() -> void:
+	for key: Variant in _gear_mode_buttons.keys():
+		var button := _gear_mode_buttons[key] as Button
+		if button == null:
+			continue
+		var selected := str(key) == _selected_gear_mode
+		button.button_pressed = selected
+		_apply_gear_mode_button_style(button, selected)
+
+
+func _sync_track_start_state() -> void:
+	if _race_now_button == null:
+		return
+	var can_start := _selected_track_can_start()
+	_race_now_button.disabled = not can_start
+	if can_start:
+		_race_now_button.tooltip_text = "Start race"
+	else:
+		var track := _selected_track_option()
+		var reason := str(track.get("locked_reason", track.get("unavailable_reason", "Track unavailable")))
+		if reason.strip_edges().is_empty():
+			reason = "Track unavailable"
+		_race_now_button.tooltip_text = reason
 
 
 func _rebuild_car_select() -> void:
@@ -1888,8 +2213,10 @@ func _rebuild_car_preview() -> void:
 		var car3d := car as Node3D
 		car3d.scale = Vector3.ONE
 		car3d.rotation_degrees = Vector3.ZERO
-		_fit_preview_model_to_platform(car3d)
-		car3d.rotation_degrees = Vector3(0.0, -35.0, 0.0)
+		var model_rotation := _displayed_car_model_rotation_degrees()
+		var preview_rotation := Vector3(model_rotation.x, model_rotation.y - 35.0, model_rotation.z)
+		_fit_preview_model_to_platform(car3d, preview_rotation)
+		car3d.rotation_degrees = preview_rotation
 	if car.has_method("set_controls_enabled"):
 		car.call("set_controls_enabled", false)
 	if car.has_method("set_car_color_variant"):
@@ -1907,7 +2234,7 @@ func _load_preview_packed_scene(scene_path: String) -> PackedScene:
 	return packed
 
 
-func _fit_preview_model_to_platform(root: Node3D) -> void:
+func _fit_preview_model_to_platform(root: Node3D, preview_rotation_degrees: Vector3 = Vector3.ZERO) -> void:
 	var bounds_info := _calculate_preview_bounds(root)
 	if not bool(bounds_info.get("has_bounds", false)):
 		return
@@ -1915,10 +2242,17 @@ func _fit_preview_model_to_platform(root: Node3D) -> void:
 	var horizontal_size := maxf(bounds.size.x, bounds.size.z)
 	if horizontal_size <= 0.001:
 		return
-	var scale_factor := clampf(4.15 / horizontal_size, 0.08, 9.0)
+	var preview_scale_multiplier := _displayed_car_preview_scale_multiplier()
+	var scale_factor := clampf((4.15 / horizontal_size) * preview_scale_multiplier, 0.08, 9.0)
 	var center := bounds.get_center()
+	var preview_rotation := Vector3(
+			deg_to_rad(preview_rotation_degrees.x),
+			deg_to_rad(preview_rotation_degrees.y),
+			deg_to_rad(preview_rotation_degrees.z)
+	)
+	var rotated_center := Basis.from_euler(preview_rotation) * (center * scale_factor)
 	root.scale *= scale_factor
-	root.position = Vector3(-center.x * scale_factor, -bounds.position.y * scale_factor, -center.z * scale_factor)
+	root.position = Vector3(-rotated_center.x, -bounds.position.y * scale_factor, -rotated_center.z)
 
 
 func _calculate_preview_bounds(root: Node3D) -> Dictionary:
@@ -1984,7 +2318,7 @@ func _position_preview_camera() -> void:
 		return
 	var elevation_radians := deg_to_rad(PREVIEW_CAMERA_ELEVATION_DEGREES)
 	var camera_position := Vector3(0.0, sin(elevation_radians) * PREVIEW_CAMERA_DISTANCE, cos(elevation_radians) * PREVIEW_CAMERA_DISTANCE)
-	_preview_camera.look_at_from_position(camera_position, Vector3(0.0, 0.85, 0.0), Vector3.UP)
+	_preview_camera.look_at_from_position(camera_position, Vector3(PREVIEW_CAMERA_TARGET_OFFSET_X, 0.85, 0.0), Vector3.UP)
 
 
 func _on_preview_gui_input(event: InputEvent) -> void:
@@ -1997,7 +2331,22 @@ func _on_preview_gui_input(event: InputEvent) -> void:
 		var motion := event as InputEventMouseMotion
 		var delta := motion.position - _preview_last_mouse
 		_preview_turntable.rotation_degrees.y += delta.x * 0.35
+		_preview_turntable_yaw_degrees = _preview_turntable.rotation_degrees.y
 		_preview_last_mouse = motion.position
+
+
+func _update_car_preview_idle_rotation(delta: float) -> void:
+	if _active_view != VIEW_CAR_SELECT or _preview_turntable == null or not is_instance_valid(_preview_turntable):
+		return
+	if is_nan(delta) or is_inf(delta) or delta <= 0.0:
+		return
+	if _preview_dragging:
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_preview_dragging = false
+		else:
+			return
+	_preview_turntable.rotation_degrees.y += PREVIEW_IDLE_ROTATION_DEGREES_PER_SECOND * delta
+	_preview_turntable_yaw_degrees = _preview_turntable.rotation_degrees.y
 
 
 func _go_back() -> void:
@@ -2074,6 +2423,133 @@ func _difficulty_options() -> Array:
 	return []
 
 
+func _gear_mode_from_session(session: Node, fallback: String) -> String:
+	if session.has_method("get_gear_mode"):
+		return _normalize_gear_mode(session.call("get_gear_mode"), fallback)
+	if session.has_method("get_transmission_mode"):
+		return _normalize_gear_mode(session.call("get_transmission_mode"), fallback)
+	if session.has_method("get_shift_mode"):
+		return _normalize_gear_mode(session.call("get_shift_mode"), fallback)
+	if session.has_method("is_manual_gear_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("is_manual_gear_enabled")) else GEAR_MODE_AUTOMATIC
+	if session.has_method("is_manual_gears_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("is_manual_gears_enabled")) else GEAR_MODE_AUTOMATIC
+	if session.has_method("is_manual_shift_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("is_manual_shift_enabled")) else GEAR_MODE_AUTOMATIC
+	if session.has_method("get_manual_gear_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("get_manual_gear_enabled")) else GEAR_MODE_AUTOMATIC
+	if session.has_method("get_manual_gears_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("get_manual_gears_enabled")) else GEAR_MODE_AUTOMATIC
+	if session.has_method("get_manual_shift_enabled"):
+		return GEAR_MODE_MANUAL if bool(session.call("get_manual_shift_enabled")) else GEAR_MODE_AUTOMATIC
+	return _normalize_gear_mode(fallback, GEAR_MODE_AUTOMATIC)
+
+
+func _normalize_gear_mode(value: Variant, fallback: String) -> String:
+	if value is bool:
+		return GEAR_MODE_MANUAL if bool(value) else GEAR_MODE_AUTOMATIC
+	var normalized := str(value).strip_edges().to_lower()
+	if normalized in ["manual", "man", "stick", "sequential"]:
+		return GEAR_MODE_MANUAL
+	if normalized in ["automatic", "auto", "assist", "assisted"]:
+		return GEAR_MODE_AUTOMATIC
+	return fallback if fallback in [GEAR_MODE_AUTOMATIC, GEAR_MODE_MANUAL] else GEAR_MODE_AUTOMATIC
+
+
+func _selected_track_can_start() -> bool:
+	return _track_can_start(_selected_track_option())
+
+
+func _track_can_start(track: Dictionary) -> bool:
+	if track.is_empty():
+		return false
+	if _option_flag_true(track, "locked"):
+		return false
+	if _option_flag_true(track, "unavailable"):
+		return false
+	if _option_flag_true(track, "disabled"):
+		return false
+	if _option_flag_false(track, "available"):
+		return false
+	if _option_flag_false(track, "is_available"):
+		return false
+	if _option_flag_false(track, "enabled"):
+		return false
+	if _option_flag_false(track, "is_enabled"):
+		return false
+	for key: String in ["status", "availability", "state"]:
+		if track.has(key):
+			var status := str(track.get(key, "")).strip_edges().to_lower()
+			if status in ["locked", "unavailable", "disabled", "closed", "blocked", "coming_soon"]:
+				return false
+	return true
+
+
+func _option_flag_true(option: Dictionary, key: String) -> bool:
+	if not option.has(key):
+		return false
+	return _variant_flag_true(option.get(key))
+
+
+func _option_flag_false(option: Dictionary, key: String) -> bool:
+	if not option.has(key):
+		return false
+	return _variant_flag_false(option.get(key))
+
+
+func _variant_flag_true(value: Variant) -> bool:
+	if value is bool:
+		return bool(value)
+	if value is int:
+		return int(value) != 0
+	if value is float:
+		return float(value) != 0.0
+	var text := str(value).strip_edges().to_lower()
+	return text in ["true", "1", "yes", "locked", "unavailable", "disabled", "closed", "blocked"]
+
+
+func _variant_flag_false(value: Variant) -> bool:
+	if value is bool:
+		return not bool(value)
+	if value is int:
+		return int(value) == 0
+	if value is float:
+		return float(value) == 0.0
+	var text := str(value).strip_edges().to_lower()
+	return text in ["false", "0", "no", "locked", "unavailable", "disabled", "closed", "blocked"]
+
+
+func _dictionary_float(option: Dictionary, key: String, fallback: float) -> float:
+	if not option.has(key):
+		return fallback
+	var value: Variant = option.get(key)
+	if value is float or value is int:
+		return float(value)
+	var text := str(value).strip_edges()
+	if text.is_valid_float():
+		return text.to_float()
+	return fallback
+
+
+func _dictionary_vector3(option: Dictionary, key: String, fallback: Vector3) -> Vector3:
+	if not option.has(key):
+		return fallback
+	var value: Variant = option.get(key)
+	if value is Vector3:
+		return value
+	if value is Vector2:
+		var vector2_value := value as Vector2
+		return Vector3(vector2_value.x, vector2_value.y, fallback.z)
+	if value is float or value is int:
+		var scalar := float(value)
+		return Vector3(scalar, scalar, scalar)
+	if value is Array:
+		var array_value: Array = value
+		if array_value.size() >= 3:
+			return Vector3(float(array_value[0]), float(array_value[1]), float(array_value[2]))
+	return fallback
+
+
 func _skin_presets() -> Array:
 	var session := _session()
 	if session != null and session.has_method("get_skin_presets"):
@@ -2098,6 +2574,16 @@ func _selected_car_index() -> int:
 
 func _displayed_car_option() -> Dictionary:
 	return _car_option(_preview_car_id) if _preview_car_id != &"" else _selected_car_option()
+
+
+func _displayed_car_preview_scale_multiplier() -> float:
+	var car := _displayed_car_option()
+	return clampf(_dictionary_float(car, "preview_scale_multiplier", 1.0), 0.2, 3.0)
+
+
+func _displayed_car_model_rotation_degrees() -> Vector3:
+	var car := _displayed_car_option()
+	return _dictionary_vector3(car, "model_mount_rotation_degrees", Vector3.ZERO)
 
 
 func _selected_skin_option() -> Dictionary:
@@ -2260,7 +2746,7 @@ func _selection_card_width() -> float:
 	var usable_width := _estimated_card_viewport_width()
 	var ui_scale := _responsive_scale()
 	var minimum_side := maxf(54.0, 72.0 * ui_scale)
-	var maximum_side := maxf(84.0, 170.0 * minf(ui_scale, 1.0))
+	var maximum_side := maxf(84.0, 170.0 * maxf(ui_scale, 1.0))
 	return clampf(usable_width * CHOICE_CARD_SIDE_RATIO, minimum_side, maximum_side)
 
 
@@ -2287,28 +2773,34 @@ func _card_gap() -> int:
 	return _space(14, 28)
 
 
+func _info_rail_width() -> float:
+	return _vw(SELECTION_INFO_RAIL_RATIO, 260.0, 380.0)
+
+
 func _font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
 	var ui_scale := _responsive_scale()
 	var scaled_size := float(maximum) * ui_scale
 	var scaled_minimum := maxf(8.0, float(minimum) * minf(ui_scale, 1.0))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
 	var height_size := get_viewport_rect().size.y * vh_ratio
-	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, float(maximum)))
+	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, scaled_maximum))
 
 
 func _space(minimum: int, maximum: int) -> int:
 	var ui_scale := _responsive_scale()
 	var scaled_minimum := maxf(1.0, float(minimum) * minf(ui_scale, 1.0))
-	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, float(maximum)))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
+	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, scaled_maximum))
 
 
 func _vh(ratio: float, minimum: float, maximum: float) -> float:
 	var ui_scale := _responsive_scale()
-	return clampf(get_viewport_rect().size.y * ratio, minimum * minf(ui_scale, 1.0), maximum)
+	return clampf(get_viewport_rect().size.y * ratio, minimum * minf(ui_scale, 1.0), maximum * maxf(ui_scale, 1.0))
 
 
 func _vw(ratio: float, minimum: float, maximum: float) -> float:
 	var ui_scale := _responsive_scale()
-	return clampf(get_viewport_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum)
+	return clampf(get_viewport_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum * maxf(ui_scale, 1.0))
 
 
 func _responsive_scale() -> float:

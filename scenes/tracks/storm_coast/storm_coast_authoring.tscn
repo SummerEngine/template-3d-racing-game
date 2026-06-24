@@ -11,14 +11,387 @@
 [ext_resource type="Script" uid="uid://dtnot30w17osk" path="res://scripts/track_authoring/set_piece_marker.gd" id="9_set_piece"]
 [ext_resource type="Script" uid="uid://c7yokrf10s74b" path="res://scripts/track/storm_coast_track_generator.gd" id="9_wqe0j"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y3kbx"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.1, 0.75, 1, 0.85)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7sqe1"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_52cbe"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pk48x"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ecjlc"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_72iq1"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vqv4m"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wdfjv"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_obun3"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5fyat"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8s0fu"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gvc8j"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lpwie"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hh2h3"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8aurn"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_30brp"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_el6y2"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0rpc3"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pb81v"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6auhv"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h6xyu"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vdjik"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ku88c"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xx45j"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8aax6"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aq1oq"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dc4hl"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ccast"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jjhyn"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7kkm2"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_depr4"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n44pd"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mej3g"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_867t1"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hvrs3"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yswqy"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fvtbn"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wws81"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1vah4"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p6n4u"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cabkr"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_eaohv"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vpo17"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8if7b"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tybwj"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ml5bl"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lhuah"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_opk45"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7x3yn"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mqpcu"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ng0m1"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f4aob"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ocwm3"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wy1wg"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8gx5m"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v35l2"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghyq0"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_df77m"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_etfif"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wd8g1"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vpinj"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ror6h"]
+size = Vector3(2.4, 2.4, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h3yxs"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.02, 0.95, 0.72, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a6go6"]
+size = Vector3(1.2, 0.18, 32.954903)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j83vw"]
+size = Vector3(1.2, 0.18, 49.074886)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vm8g2"]
+size = Vector3(1.2, 0.18, 45.730972)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7ft3q"]
+size = Vector3(1.2, 0.18, 45.551105)
+
+[sub_resource type="BoxMesh" id="BoxMesh_84xb7"]
+size = Vector3(1.2, 0.18, 44.818047)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l6qqd"]
+size = Vector3(1.2, 0.18, 49.272144)
+
+[sub_resource type="BoxMesh" id="BoxMesh_52dpi"]
+size = Vector3(1.2, 0.18, 48.826088)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xsr7x"]
+size = Vector3(1.2, 0.18, 44.04472)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p6uv7"]
+size = Vector3(1.2, 0.18, 34.162415)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b6n5p"]
+size = Vector3(1.2, 0.18, 22.82295)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jboap"]
+size = Vector3(1.2, 0.18, 26.006569)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5j8w2"]
+size = Vector3(1.2, 0.18, 24.33135)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oi7bh"]
+size = Vector3(1.2, 0.18, 24.461891)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nmdk6"]
+size = Vector3(1.2, 0.18, 20.243128)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3dd6d"]
+size = Vector3(1.2, 0.18, 21.359825)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4p4gd"]
+size = Vector3(1.2, 0.18, 21.22791)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lhkva"]
+size = Vector3(1.2, 0.18, 20.33578)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fhydm"]
+size = Vector3(1.2, 0.18, 18.452978)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5rxas"]
+size = Vector3(1.2, 0.18, 17.9478)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bhsqs"]
+size = Vector3(1.2, 0.18, 21.80191)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n8d6a"]
+size = Vector3(1.2, 0.18, 25.82441)
+
+[sub_resource type="BoxMesh" id="BoxMesh_k76up"]
+size = Vector3(1.2, 0.18, 25.690918)
+
+[sub_resource type="BoxMesh" id="BoxMesh_i0q25"]
+size = Vector3(1.2, 0.18, 26.961973)
+
+[sub_resource type="BoxMesh" id="BoxMesh_csayc"]
+size = Vector3(1.2, 0.18, 22.617998)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d631c"]
+size = Vector3(1.2, 0.18, 18.89148)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5dytq"]
+size = Vector3(1.2, 0.18, 16.12627)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t6nlv"]
+size = Vector3(1.2, 0.18, 17.152935)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1unfr"]
+size = Vector3(1.2, 0.18, 19.873611)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nxod0"]
+size = Vector3(1.2, 0.18, 23.341263)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sxpja"]
+size = Vector3(1.2, 0.18, 27.370188)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fotgj"]
+size = Vector3(1.2, 0.18, 25.005232)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o37sb"]
+size = Vector3(1.2, 0.18, 27.07849)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7vmq8"]
+size = Vector3(1.2, 0.18, 18.076122)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p8cv0"]
+size = Vector3(1.2, 0.18, 19.331163)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1akgh"]
+size = Vector3(1.2, 0.18, 19.335312)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qjo8v"]
+size = Vector3(1.2, 0.18, 29.84012)
+
+[sub_resource type="BoxMesh" id="BoxMesh_de0wy"]
+size = Vector3(1.2, 0.18, 68.59465)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ffqgc"]
+size = Vector3(1.2, 0.18, 91.568)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rmsjo"]
+size = Vector3(1.2, 0.18, 87.04732)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xqe3m"]
+size = Vector3(1.2, 0.18, 82.176796)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c32i6"]
+size = Vector3(1.2, 0.18, 63.462494)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv888"]
+size = Vector3(1.2, 0.18, 45.263256)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yrgt7"]
+size = Vector3(1.2, 0.18, 50.461845)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lspgy"]
+size = Vector3(1.2, 0.18, 47.510735)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d3utn"]
+size = Vector3(1.2, 0.18, 51.492573)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7hbwu"]
+size = Vector3(1.2, 0.18, 42.499367)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gkxmh"]
+size = Vector3(1.2, 0.18, 48.64209)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kmihq"]
+size = Vector3(1.2, 0.18, 33.998867)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d4ha3"]
+size = Vector3(1.2, 0.18, 25.190212)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a7sxx"]
+size = Vector3(1.2, 0.18, 26.945393)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1ip3c"]
+size = Vector3(1.2, 0.18, 24.097952)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jpccf"]
+size = Vector3(1.2, 0.18, 27.745735)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uic3q"]
+size = Vector3(1.2, 0.18, 25.478283)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1gma8"]
+size = Vector3(1.2, 0.18, 26.166086)
+
+[sub_resource type="BoxMesh" id="BoxMesh_35kf2"]
+size = Vector3(1.2, 0.18, 24.12425)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ousvy"]
+size = Vector3(1.2, 0.18, 32.521305)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lr5dk"]
+size = Vector3(1.2, 0.18, 43.43722)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8p27b"]
+size = Vector3(1.2, 0.18, 46.935654)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jcy8i"]
+size = Vector3(1.2, 0.18, 50.034256)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tvhes"]
+size = Vector3(1.2, 0.18, 33.807983)
+
 [node name="StormCoastAuthoringScene" type="Node3D" unique_id=1239647079]
 script = ExtResource("1_root")
 authoring_profile = ExtResource("2_profile")
-last_tool_status = "Preview Regenerate refreshed lightweight authoring handles for 8 road points. V2 road mesh regenerated at 1726.7m. No ManualOverrides were deleted."
+last_tool_status = "Bake Editable completed from 61 road points. V2 road mesh regenerated at 2099.9m. Editable scene owners assigned. Snapshot saved to res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres. ManualOverrides were preserved."
 metadata/last_authoring_record_counts = {
 "banking_markers": 2,
 "elevation_markers": 4,
-"road_points": 16,
+"road_points": 61,
 "set_piece_markers": 1,
 "start_grid_markers": 1,
 "width_markers": 3,
@@ -37,48 +410,219 @@ marker_id = &"rp_000_start"
 display_name = "Start straight"
 notes = "Start/finish area with room for preset grid."
 
+[node name="RP_Guide_000_001_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1525361282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.316, 0.989, 30.551)
+script = ExtResource("3_road_point")
+sequence_index = 1
+road_width_m = 18.125
+banking_degrees = 1.5
+zone_id = &"start_coast"
+preferred_speed_kmh = 155.0
+marker_id = &"rp_guide_000_001_q1"
+display_name = "Guide 000-001 Q1"
+authoring_order = 1
+road_distance_m = 37.5
+notes = "Inserted Q1 RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing."
+
+[node name="RP_Guide_000_001" type="Marker3D" parent="Authoring/RoadPoints" unique_id=381847055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.453, 2.656, 77.516)
+script = ExtResource("3_road_point")
+sequence_index = 2
+road_width_m = 16.25
+banking_degrees = 3.0
+zone_id = &"start_coast"
+preferred_speed_kmh = 160.0
+marker_id = &"rp_guide_000_001"
+display_name = "Guide 000-001"
+authoring_order = 2
+road_distance_m = 75.0
+notes = "Inserted guide RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing."
+
+[node name="RP_Guide_000_001_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1491806044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.543, 3.98, 119.496)
+script = ExtResource("3_road_point")
+sequence_index = 3
+road_width_m = 14.375
+banking_degrees = 4.5
+zone_id = &"start_coast"
+preferred_speed_kmh = 165.0
+marker_id = &"rp_guide_000_001_q3"
+display_name = "Guide 000-001 Q3"
+authoring_order = 3
+road_distance_m = 112.5
+notes = "Inserted Q3 RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing."
+
 [node name="RP_001_CoastalSweep" type="Marker3D" parent="Authoring/RoadPoints" unique_id=721735111]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 6, 165)
 script = ExtResource("3_road_point")
-sequence_index = 1
+sequence_index = 4
 banking_degrees = 6.0
 preferred_speed_kmh = 170.0
 marker_id = &"rp_001_coastal_sweep"
 display_name = "Coastal sweep"
-authoring_order = 1
+authoring_order = 4
 road_distance_m = 150.0
+
+[node name="RP_Guide_001_002_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=474575856]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.82, 8.233, 205.445)
+script = ExtResource("3_road_point")
+sequence_index = 5
+road_width_m = 13.875
+banking_degrees = 3.5
+zone_id = &"cliff_approach"
+preferred_speed_kmh = 173.75
+marker_id = &"rp_guide_001_002_q1"
+display_name = "Guide 001-002 Q1"
+authoring_order = 5
+road_distance_m = 187.5
+notes = "Inserted Q1 RoadPoint between RP_001_CoastalSweep and RP_002_CliffApproach for finer curve editing."
+
+[node name="RP_Guide_001_002" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1814121555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.303, 10.794, 239.906)
+script = ExtResource("3_road_point")
+sequence_index = 6
+road_width_m = 15.25
+banking_degrees = 1.0
+zone_id = &"cliff_approach"
+preferred_speed_kmh = 177.5
+marker_id = &"rp_guide_001_002"
+display_name = "Guide 001-002"
+authoring_order = 6
+road_distance_m = 225.0
+notes = "Inserted guide RoadPoint between RP_001_CoastalSweep and RP_002_CliffApproach for finer curve editing."
+
+[node name="RP_Guide_001_002_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=508131094]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.229, 13.148, 276.773)
+script = ExtResource("3_road_point")
+sequence_index = 7
+road_width_m = 16.625
+banking_degrees = -1.5
+zone_id = &"cliff_approach"
+preferred_speed_kmh = 181.25
+marker_id = &"rp_guide_001_002_q3"
+display_name = "Guide 001-002 Q3"
+authoring_order = 7
+road_distance_m = 262.5
+notes = "Inserted Q3 RoadPoint between RP_001_CoastalSweep and RP_002_CliffApproach for finer curve editing."
 
 [node name="RP_002_CliffApproach" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1655589727]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 16, 310)
 script = ExtResource("3_road_point")
-sequence_index = 2
+sequence_index = 8
 road_width_m = 18.0
 banking_degrees = -4.0
 zone_id = &"cliff_approach"
 preferred_speed_kmh = 185.0
 marker_id = &"rp_002_cliff_approach"
 display_name = "Cliff approach"
-authoring_order = 2
+authoring_order = 8
 road_distance_m = 300.0
+
+[node name="RP_Guide_002_003_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1167294886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 87.787, 18.891, 339.023)
+script = ExtResource("3_road_point")
+sequence_index = 9
+road_width_m = 18.0
+banking_degrees = -3.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 185.0
+marker_id = &"rp_guide_002_003_q1"
+display_name = "Guide 002-003 Q1"
+authoring_order = 9
+road_distance_m = 341.0
+notes = "Inserted Q1 RoadPoint between RP_002_CliffApproach and RP_003_RampCommit for finer curve editing."
+
+[node name="RP_Guide_002_003" type="Marker3D" parent="Authoring/RoadPoints" unique_id=8060301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.509, 21.843, 359.906)
+script = ExtResource("3_road_point")
+sequence_index = 10
+road_width_m = 18.0
+banking_degrees = -2.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 185.0
+marker_id = &"rp_guide_002_003"
+display_name = "Guide 002-003"
+authoring_order = 10
+road_distance_m = 382.0
+notes = "Inserted guide RoadPoint between RP_002_CliffApproach and RP_003_RampCommit for finer curve editing."
+
+[node name="RP_Guide_002_003_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1133739648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 107.741, 24.637, 383.195)
+script = ExtResource("3_road_point")
+sequence_index = 11
+road_width_m = 18.0
+banking_degrees = -1.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 185.0
+marker_id = &"rp_guide_002_003_q3"
+display_name = "Guide 002-003 Q3"
+authoring_order = 11
+road_distance_m = 423.0
+notes = "Inserted Q3 RoadPoint between RP_002_CliffApproach and RP_003_RampCommit for finer curve editing."
 
 [node name="RP_003_RampCommit" type="Marker3D" parent="Authoring/RoadPoints" unique_id=318487471]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 28, 405)
 script = ExtResource("3_road_point")
-sequence_index = 3
+sequence_index = 12
 road_width_m = 18.0
 surface_type = &"ramp"
 zone_id = &"cliffside_jump"
 preferred_speed_kmh = 185.0
 marker_id = &"rp_003_ramp_commit"
 display_name = "Ramp commit"
-authoring_order = 3
+authoring_order = 12
 road_distance_m = 464.0
 notes = "Extra approach control point to avoid a sudden ramp tangent."
 
-[node name="RP_004_JumpTakeoff" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1934605016]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160, 42.578094, 480)
+[node name="RP_Guide_003_004_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1517627032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129.152, 32.076, 426.387)
 script = ExtResource("3_road_point")
-sequence_index = 4
+sequence_index = 13
+road_width_m = 18.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 186.25
+marker_id = &"rp_guide_003_004_q1"
+display_name = "Guide 003-004 Q1"
+authoring_order = 13
+road_distance_m = 485.75
+notes = "Inserted Q1 RoadPoint between RP_003_RampCommit and RP_004_JumpTakeoff for finer curve editing."
+
+[node name="RP_Guide_003_004" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1062675817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.931, 35.859, 443.703)
+script = ExtResource("3_road_point")
+sequence_index = 14
+road_width_m = 18.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 187.5
+marker_id = &"rp_guide_003_004"
+display_name = "Guide 003-004"
+authoring_order = 14
+road_distance_m = 507.5
+notes = "Inserted guide RoadPoint between RP_003_RampCommit and RP_004_JumpTakeoff for finer curve editing."
+
+[node name="RP_Guide_003_004_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1551182270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 148.642, 40.212, 462.223)
+script = ExtResource("3_road_point")
+sequence_index = 15
+road_width_m = 18.0
+surface_type = &"ramp"
+zone_id = &"cliffside_jump"
+preferred_speed_kmh = 188.75
+marker_id = &"rp_guide_003_004_q3"
+display_name = "Guide 003-004 Q3"
+authoring_order = 15
+road_distance_m = 529.25
+notes = "Inserted Q3 RoadPoint between RP_003_RampCommit and RP_004_JumpTakeoff for finer curve editing."
+
+[node name="RP_004_JumpTakeoff" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1934605016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160, 42.578, 480)
+script = ExtResource("3_road_point")
+sequence_index = 16
 road_width_m = 18.0
 surface_type = &"ramp"
 zone_id = &"cliffside_jump"
@@ -86,155 +630,613 @@ preferred_speed_kmh = 190.0
 checkpoint_hint = true
 marker_id = &"rp_004_jump_takeoff"
 display_name = "Cliffside jump takeoff"
-authoring_order = 4
+authoring_order = 16
 road_distance_m = 551.0
 notes = "Engineered race-event ramp socket, not physics destruction."
+
+[node name="RP_Guide_004_005_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=119513890]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 171.622, 43.079, 496.68)
+script = ExtResource("3_road_point")
+sequence_index = 17
+road_width_m = 19.0
+zone_id = &"jump_landing"
+preferred_speed_kmh = 186.25
+marker_id = &"rp_guide_004_005_q1"
+display_name = "Guide 004-005 Q1"
+authoring_order = 17
+road_distance_m = 570.5
+notes = "Inserted Q1 RoadPoint between RP_004_JumpTakeoff and RP_005_LandingApproach for finer curve editing."
+
+[node name="RP_Guide_004_005" type="Marker3D" parent="Authoring/RoadPoints" unique_id=70210602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 183.755, 41.224, 510.459)
+script = ExtResource("3_road_point")
+sequence_index = 18
+road_width_m = 20.0
+zone_id = &"jump_landing"
+preferred_speed_kmh = 182.5
+marker_id = &"rp_guide_004_005"
+display_name = "Guide 004-005"
+authoring_order = 18
+road_distance_m = 590.0
+notes = "Inserted guide RoadPoint between RP_004_JumpTakeoff and RP_005_LandingApproach for finer curve editing."
+
+[node name="RP_Guide_004_005_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1985958652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 194.642, 40.303, 524.698)
+script = ExtResource("3_road_point")
+sequence_index = 19
+road_width_m = 21.0
+zone_id = &"jump_landing"
+preferred_speed_kmh = 178.75
+marker_id = &"rp_guide_004_005_q3"
+display_name = "Guide 004-005 Q3"
+authoring_order = 19
+road_distance_m = 609.5
+notes = "Inserted Q3 RoadPoint between RP_004_JumpTakeoff and RP_005_LandingApproach for finer curve editing."
 
 [node name="RP_005_LandingApproach" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1577372343]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 210, 38, 540)
 script = ExtResource("3_road_point")
-sequence_index = 5
+sequence_index = 20
 road_width_m = 22.0
 zone_id = &"jump_landing"
 preferred_speed_kmh = 175.0
 checkpoint_hint = true
 marker_id = &"rp_005_landing_approach"
 display_name = "Landing approach"
-authoring_order = 5
+authoring_order = 20
 road_distance_m = 629.0
 notes = "Intermediate landing guide point so the post-jump road catches the player gradually."
 
-[node name="RP_006_LandingCatch" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1675697999]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 285, 24, 625)
+[node name="RP_Guide_005_006_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1961349040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 228.401, 35.06, 557.879)
 script = ExtResource("3_road_point")
-sequence_index = 6
+sequence_index = 21
+road_width_m = 22.5
+banking_degrees = -3.4
+zone_id = &"jump_landing"
+preferred_speed_kmh = 171.25
+marker_id = &"rp_guide_005_006_q1"
+display_name = "Guide 005-006 Q1"
+authoring_order = 21
+road_distance_m = 657.5
+notes = "Inserted Q1 RoadPoint between RP_005_LandingApproach and RP_006_LandingCatch for finer curve editing."
+
+[node name="RP_Guide_005_006" type="Marker3D" parent="Authoring/RoadPoints" unique_id=858417009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 248.535, 31.582, 573.453)
+script = ExtResource("3_road_point")
+sequence_index = 22
+road_width_m = 23.0
+banking_degrees = -6.8
+zone_id = &"jump_landing"
+preferred_speed_kmh = 167.5
+marker_id = &"rp_guide_005_006"
+display_name = "Guide 005-006"
+authoring_order = 22
+road_distance_m = 686.0
+notes = "Inserted guide RoadPoint between RP_005_LandingApproach and RP_006_LandingCatch for finer curve editing."
+
+[node name="RP_Guide_005_006_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1994904278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 268.092, 27.995, 591.663)
+script = ExtResource("3_road_point")
+sequence_index = 23
+road_width_m = 23.5
+banking_degrees = -10.2
+zone_id = &"jump_landing"
+preferred_speed_kmh = 163.75
+marker_id = &"rp_guide_005_006_q3"
+display_name = "Guide 005-006 Q3"
+authoring_order = 23
+road_distance_m = 714.5
+notes = "Inserted Q3 RoadPoint between RP_005_LandingApproach and RP_006_LandingCatch for finer curve editing."
+
+[node name="RP_006_LandingCatch" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1675697999]
+transform = Transform3D(0.48810345, 0, 0.8727858, 0, 1, 0, -0.8727858, 0, 0.48810345, 288.223, 25.384, 601.638)
+script = ExtResource("3_road_point")
+sequence_index = 24
 road_width_m = 24.0
-banking_degrees = 2.0
+banking_degrees = -13.6
 zone_id = &"jump_landing"
 preferred_speed_kmh = 160.0
 checkpoint_hint = true
 marker_id = &"rp_006_landing_catch"
 display_name = "Landing catch zone"
-authoring_order = 6
+authoring_order = 24
 road_distance_m = 743.0
 notes = "Wider arcade recovery section after the jump."
+
+[node name="RP_Guide_006_007_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=555070014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 306.733, 23.966, 605.139)
+script = ExtResource("3_road_point")
+sequence_index = 25
+road_width_m = 23.5
+banking_degrees = -9.2
+zone_id = &"jump_landing"
+preferred_speed_kmh = 161.25
+marker_id = &"rp_guide_006_007_q1"
+display_name = "Guide 006-007 Q1"
+authoring_order = 25
+road_distance_m = 763.25
+notes = "Inserted Q1 RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing."
+
+[node name="RP_Guide_006_007" type="Marker3D" parent="Authoring/RoadPoints" unique_id=247022153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 322.41, 24.052, 601.36)
+script = ExtResource("3_road_point")
+sequence_index = 26
+road_width_m = 23.0
+banking_degrees = -4.8
+zone_id = &"jump_landing"
+preferred_speed_kmh = 162.5
+marker_id = &"rp_guide_006_007"
+display_name = "Guide 006-007"
+authoring_order = 26
+road_distance_m = 783.5
+notes = "Inserted guide RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing."
+
+[node name="RP_Guide_006_007_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=521514776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 338.886, 23.498, 596.621)
+script = ExtResource("3_road_point")
+sequence_index = 28
+road_width_m = 22.5
+banking_degrees = -0.4
+zone_id = &"jump_landing"
+preferred_speed_kmh = 163.75
+marker_id = &"rp_guide_006_007_q3"
+display_name = "Guide 006-007 Q3"
+authoring_order = 28
+road_distance_m = 803.75
+notes = "Inserted Q3 RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing."
 
 [node name="RP_007_LandingRunout" type="Marker3D" parent="Authoring/RoadPoints" unique_id=2033289845]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 355, 24, 585)
 script = ExtResource("3_road_point")
-sequence_index = 7
+sequence_index = 29
 road_width_m = 22.0
 banking_degrees = 4.0
 zone_id = &"jump_landing"
 preferred_speed_kmh = 165.0
 marker_id = &"rp_007_landing_runout"
 display_name = "Landing runout"
-authoring_order = 7
+authoring_order = 29
 road_distance_m = 824.0
 notes = "Keeps the landing from snapping directly into the mountain return bend."
 
-[node name="RP_008_MountainEntry" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1057182715]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 410, 30, 500)
+[node name="RP_Guide_007_008_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=833060376]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 371.079, 25.037, 568.112)
 script = ExtResource("3_road_point")
-sequence_index = 8
+sequence_index = 30
+road_width_m = 21.5
+banking_degrees = 4.75
+zone_id = &"mountain_return"
+preferred_speed_kmh = 161.25
+marker_id = &"rp_guide_007_008_q1"
+display_name = "Guide 007-008 Q1"
+authoring_order = 30
+road_distance_m = 849.25
+notes = "Inserted Q1 RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing."
+
+[node name="RP_Guide_007_008" type="Marker3D" parent="Authoring/RoadPoints" unique_id=83705505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 385.108, 26.815, 544.678)
+script = ExtResource("3_road_point")
+sequence_index = 31
+road_width_m = 21.0
+banking_degrees = 5.5
+zone_id = &"mountain_return"
+preferred_speed_kmh = 157.5
+marker_id = &"rp_guide_007_008"
+display_name = "Guide 007-008"
+authoring_order = 31
+road_distance_m = 874.5
+notes = "Inserted guide RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing."
+
+[node name="RP_Guide_007_008_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=866615614]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 398.02167, 29.408, 523.423)
+script = ExtResource("3_road_point")
+sequence_index = 32
+road_width_m = 20.5
+banking_degrees = 6.25
+zone_id = &"mountain_return"
+preferred_speed_kmh = 153.75
+marker_id = &"rp_guide_007_008_q3"
+display_name = "Guide 007-008 Q3"
+authoring_order = 32
+road_distance_m = 899.75
+notes = "Inserted Q3 RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing."
+
+[node name="RP_008_MountainEntry" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1057182715]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 411.58725, 30.17215, 500)
+script = ExtResource("3_road_point")
+sequence_index = 33
 road_width_m = 20.0
 banking_degrees = 7.0
 zone_id = &"mountain_return"
 marker_id = &"rp_008_mountain_entry"
 display_name = "Mountain entry"
-authoring_order = 8
+authoring_order = 33
 road_distance_m = 925.0
 notes = "Additional turn-in control point before the mountain return."
+
+[node name="RP_Guide_008_009_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1783078642]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 421.246, 31.656, 484.793)
+script = ExtResource("3_road_point")
+sequence_index = 34
+road_width_m = 19.5
+banking_degrees = 7.75
+zone_id = &"mountain_return"
+preferred_speed_kmh = 148.75
+marker_id = &"rp_guide_008_009_q1"
+display_name = "Guide 008-009 Q1"
+authoring_order = 34
+road_distance_m = 945.75
+notes = "Inserted Q1 RoadPoint between RP_008_MountainEntry and RP_009_MountainReturn for finer curve editing."
+
+[node name="RP_Guide_008_009" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1084482263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 430.28036, 32.688, 467.734)
+script = ExtResource("3_road_point")
+sequence_index = 35
+road_width_m = 19.0
+banking_degrees = 8.5
+zone_id = &"mountain_return"
+preferred_speed_kmh = 147.5
+marker_id = &"rp_guide_008_009"
+display_name = "Guide 008-009"
+authoring_order = 35
+road_distance_m = 966.5
+notes = "Inserted guide RoadPoint between RP_008_MountainEntry and RP_009_MountainReturn for finer curve editing."
+
+[node name="RP_Guide_008_009_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1749523404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 435.77, 34.406, 449.27414)
+script = ExtResource("3_road_point")
+sequence_index = 36
+road_width_m = 18.5
+banking_degrees = 9.25
+zone_id = &"mountain_return"
+preferred_speed_kmh = 146.25
+marker_id = &"rp_guide_008_009_q3"
+display_name = "Guide 008-009 Q3"
+authoring_order = 36
+road_distance_m = 987.25
+notes = "Inserted Q3 RoadPoint between RP_008_MountainEntry and RP_009_MountainReturn for finer curve editing."
 
 [node name="RP_009_MountainReturn" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1831257561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 430, 34, 420)
 script = ExtResource("3_road_point")
-sequence_index = 9
+sequence_index = 37
 road_width_m = 18.0
 banking_degrees = 10.0
 zone_id = &"mountain_return"
 preferred_speed_kmh = 145.0
 marker_id = &"rp_009_mountain_return"
 display_name = "Mountain return"
-authoring_order = 9
+authoring_order = 37
 road_distance_m = 1008.0
+
+[node name="RP_Guide_009_010_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=163855425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 409.203, 31.658, 354.676)
+script = ExtResource("3_road_point")
+sequence_index = 38
+road_width_m = 16.625
+banking_degrees = 5.5
+surface_type = &"tunnel"
+zone_id = &"storm_tunnel"
+preferred_speed_kmh = 142.5
+marker_id = &"rp_guide_009_010_q1"
+display_name = "Guide 009-010 Q1"
+authoring_order = 38
+road_distance_m = 1090.25
+notes = "Inserted Q1 RoadPoint between RP_009_MountainReturn and RP_010_TunnelDescent for finer curve editing."
+
+[node name="RP_Guide_009_010" type="Marker3D" parent="Authoring/RoadPoints" unique_id=503474619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 376.375, 27.481, 269.297)
+script = ExtResource("3_road_point")
+sequence_index = 39
+road_width_m = 15.25
+banking_degrees = 1.0
+surface_type = &"tunnel"
+zone_id = &"storm_tunnel"
+preferred_speed_kmh = 140.0
+marker_id = &"rp_guide_009_010"
+display_name = "Guide 009-010"
+authoring_order = 39
+road_distance_m = 1172.5
+notes = "Inserted guide RoadPoint between RP_009_MountainReturn and RP_010_TunnelDescent for finer curve editing."
+
+[node name="RP_Guide_009_010_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=130300187]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.922, 23.786, 188.215)
+script = ExtResource("3_road_point")
+sequence_index = 40
+road_width_m = 13.875
+banking_degrees = -3.5
+surface_type = &"tunnel"
+zone_id = &"storm_tunnel"
+preferred_speed_kmh = 137.5
+marker_id = &"rp_guide_009_010_q3"
+display_name = "Guide 009-010 Q3"
+authoring_order = 40
+road_distance_m = 1254.75
+notes = "Inserted Q3 RoadPoint between RP_009_MountainReturn and RP_010_TunnelDescent for finer curve editing."
 
 [node name="RP_010_TunnelDescent" type="Marker3D" parent="Authoring/RoadPoints" unique_id=373057445]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320, 20, 110)
 script = ExtResource("3_road_point")
-sequence_index = 10
+sequence_index = 41
 banking_degrees = -8.0
 surface_type = &"tunnel"
 zone_id = &"storm_tunnel"
 preferred_speed_kmh = 135.0
 marker_id = &"rp_010_tunnel_descent"
 display_name = "Tunnel descent"
-authoring_order = 10
+authoring_order = 41
 road_distance_m = 1337.0
+
+[node name="RP_Guide_010_011_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=887456850]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 309.141, 16.968, 47.547)
+script = ExtResource("3_road_point")
+sequence_index = 42
+road_width_m = 14.375
+banking_degrees = -7.25
+zone_id = &"final_descent"
+preferred_speed_kmh = 140.0
+marker_id = &"rp_guide_010_011_q1"
+display_name = "Guide 010-011 Q1"
+authoring_order = 42
+road_distance_m = 1386.5
+notes = "Inserted Q1 RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing."
+
+[node name="RP_Guide_010_011" type="Marker3D" parent="Authoring/RoadPoints" unique_id=543993061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 308.625, 14.691, 2.344)
+script = ExtResource("3_road_point")
+sequence_index = 43
+road_width_m = 16.25
+banking_degrees = -6.5
+zone_id = &"final_descent"
+preferred_speed_kmh = 145.0
+marker_id = &"rp_guide_010_011"
+display_name = "Guide 010-011"
+authoring_order = 43
+road_distance_m = 1436.0
+notes = "Inserted guide RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing."
+
+[node name="RP_Guide_010_011_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=853901612]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 306.734, 12.104, -48.016)
+script = ExtResource("3_road_point")
+sequence_index = 44
+road_width_m = 18.125
+banking_degrees = -5.75
+zone_id = &"final_descent"
+marker_id = &"rp_guide_010_011_q3"
+display_name = "Guide 010-011 Q3"
+authoring_order = 44
+road_distance_m = 1485.5
+notes = "Inserted Q3 RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing."
 
 [node name="RP_011_FinalBend" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1872135923]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 10, -95)
 script = ExtResource("3_road_point")
-sequence_index = 11
+sequence_index = 45
 road_width_m = 20.0
 banking_degrees = -5.0
 zone_id = &"final_descent"
 preferred_speed_kmh = 155.0
 marker_id = &"rp_011_final_bend"
 display_name = "Final bend"
-authoring_order = 11
+authoring_order = 45
 road_distance_m = 1535.0
+
+[node name="RP_Guide_011_012_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1154728604]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 286.355, 8.252, -144.621)
+script = ExtResource("3_road_point")
+sequence_index = 46
+road_width_m = 20.0
+banking_degrees = -4.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 152.5
+marker_id = &"rp_guide_011_012_q1"
+display_name = "Guide 011-012 Q1"
+authoring_order = 46
+road_distance_m = 1586.25
+notes = "Inserted Q1 RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing."
+
+[node name="RP_Guide_011_012" type="Marker3D" parent="Authoring/RoadPoints" unique_id=361753084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 267.578, 7.242, -182.734)
+script = ExtResource("3_road_point")
+sequence_index = 47
+road_width_m = 20.0
+banking_degrees = -3.0
+zone_id = &"final_descent"
+marker_id = &"rp_guide_011_012"
+display_name = "Guide 011-012"
+authoring_order = 47
+road_distance_m = 1637.5
+notes = "Inserted guide RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing."
+
+[node name="RP_Guide_011_012_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1188283842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 251.379, 5.975, -228.582)
+script = ExtResource("3_road_point")
+sequence_index = 48
+road_width_m = 20.0
+banking_degrees = -2.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 147.5
+marker_id = &"rp_guide_011_012_q3"
+display_name = "Guide 011-012 Q3"
+authoring_order = 48
+road_distance_m = 1688.75
+notes = "Inserted Q3 RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing."
 
 [node name="RP_012_StartReturn" type="Marker3D" parent="Authoring/RoadPoints" unique_id=2026641326]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 230, 5, -255)
 script = ExtResource("3_road_point")
-sequence_index = 12
+sequence_index = 49
 road_width_m = 20.0
 banking_degrees = -1.0
 zone_id = &"final_descent"
 preferred_speed_kmh = 145.0
 marker_id = &"rp_012_start_return"
 display_name = "Start return alignment"
-authoring_order = 12
+authoring_order = 49
 road_distance_m = 1740.0
 notes = "Starts the return arc on the outside of the start area without crossing the player grid."
+
+[node name="RP_Guide_012_013_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=111197554]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 206.906, 4.132, -265.023)
+script = ExtResource("3_road_point")
+sequence_index = 50
+road_width_m = 20.0
+banking_degrees = -0.25
+zone_id = &"final_descent"
+preferred_speed_kmh = 146.25
+marker_id = &"rp_guide_012_013_q1"
+display_name = "Guide 012-013 Q1"
+authoring_order = 50
+road_distance_m = 1786.25
+notes = "Inserted Q1 RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing."
+
+[node name="RP_Guide_012_013" type="Marker3D" parent="Authoring/RoadPoints" unique_id=628376111]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 182.844, 3.63, -252.906)
+script = ExtResource("3_road_point")
+sequence_index = 51
+road_width_m = 20.0
+banking_degrees = 0.5
+zone_id = &"final_descent"
+preferred_speed_kmh = 147.5
+marker_id = &"rp_guide_012_013"
+display_name = "Guide 012-013"
+authoring_order = 51
+road_distance_m = 1832.5
+notes = "Inserted guide RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing."
+
+[node name="RP_Guide_012_013_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1977642316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.125, 3.007, -248.695)
+script = ExtResource("3_road_point")
+sequence_index = 52
+road_width_m = 20.0
+banking_degrees = 1.25
+zone_id = &"final_descent"
+preferred_speed_kmh = 148.75
+marker_id = &"rp_guide_012_013_q3"
+display_name = "Guide 012-013 Q3"
+authoring_order = 52
+road_distance_m = 1878.75
+notes = "Inserted Q3 RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing."
 
 [node name="RP_013_OuterReturn" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1928127651]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135, 2.5, -235)
 script = ExtResource("3_road_point")
-sequence_index = 13
+sequence_index = 53
 road_width_m = 20.0
 banking_degrees = 2.0
 zone_id = &"final_descent"
 marker_id = &"rp_013_outer_return"
 display_name = "Outer return"
-authoring_order = 13
+authoring_order = 53
 road_distance_m = 1925.0
 notes = "Keeps the closing loop clear of the start straight while aligning the final approach."
+
+[node name="RP_Guide_013_014_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1096443776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112.445, 2.021, -223.16)
+script = ExtResource("3_road_point")
+sequence_index = 54
+road_width_m = 20.0
+banking_degrees = 1.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 146.25
+marker_id = &"rp_guide_013_014_q1"
+display_name = "Guide 013-014 Q1"
+authoring_order = 54
+road_distance_m = 1962.5
+notes = "Inserted Q1 RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing."
+
+[node name="RP_Guide_013_014" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1598215523]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 93.625, 1.698, -204.984)
+script = ExtResource("3_road_point")
+sequence_index = 55
+road_width_m = 20.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 142.5
+marker_id = &"rp_guide_013_014"
+display_name = "Guide 013-014"
+authoring_order = 55
+road_distance_m = 2000.0
+notes = "Inserted guide RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing."
+
+[node name="RP_Guide_013_014_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1129999014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73.43, 1.325, -191.793)
+script = ExtResource("3_road_point")
+sequence_index = 56
+road_width_m = 20.0
+banking_degrees = -1.0
+zone_id = &"final_descent"
+preferred_speed_kmh = 138.75
+marker_id = &"rp_guide_013_014_q3"
+display_name = "Guide 013-014 Q3"
+authoring_order = 56
+road_distance_m = 2037.5
+notes = "Inserted Q3 RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing."
 
 [node name="RP_014_StartMerge" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1018827345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 1, -165)
 script = ExtResource("3_road_point")
-sequence_index = 14
+sequence_index = 57
 road_width_m = 20.0
 banking_degrees = -2.0
 zone_id = &"final_descent"
 preferred_speed_kmh = 135.0
 marker_id = &"rp_014_start_merge"
 display_name = "Start merge"
-authoring_order = 14
+authoring_order = 57
 road_distance_m = 2075.0
 notes = "Approaches the start line along the same tangent as the outgoing straight."
 
+[node name="RP_Guide_014_015_Q1" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1868201818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.383, 0.676, -125.297)
+script = ExtResource("3_road_point")
+sequence_index = 58
+road_width_m = 20.0
+banking_degrees = -1.5
+zone_id = &"start_coast"
+preferred_speed_kmh = 138.75
+marker_id = &"rp_guide_014_015_q1"
+display_name = "Guide 014-015 Q1"
+authoring_order = 58
+road_distance_m = 2112.5
+notes = "Inserted Q1 RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing."
+
+[node name="RP_Guide_014_015" type="Marker3D" parent="Authoring/RoadPoints" unique_id=2019026114]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.75, 0.448, -80.094)
+script = ExtResource("3_road_point")
+sequence_index = 59
+road_width_m = 20.0
+banking_degrees = -1.0
+zone_id = &"start_coast"
+preferred_speed_kmh = 142.5
+marker_id = &"rp_guide_014_015"
+display_name = "Guide 014-015"
+authoring_order = 59
+road_distance_m = 2150.0
+notes = "Inserted guide RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing."
+
+[node name="RP_Guide_014_015_Q3" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1834646580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.367, 0.169, -32.484)
+script = ExtResource("3_road_point")
+sequence_index = 60
+road_width_m = 20.0
+banking_degrees = -0.5
+zone_id = &"start_coast"
+preferred_speed_kmh = 146.25
+marker_id = &"rp_guide_014_015_q3"
+display_name = "Guide 014-015 Q3"
+authoring_order = 60
+road_distance_m = 2187.5
+notes = "Inserted Q3 RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing."
+
 [node name="RP_015_LoopClosure" type="Marker3D" parent="Authoring/RoadPoints" unique_id=1472869011]
 script = ExtResource("3_road_point")
-sequence_index = 15
+sequence_index = 61
 road_width_m = 20.0
 zone_id = &"start_coast"
-preferred_speed_kmh = 150.0
 marker_id = &"rp_015_loop_closure"
 display_name = "Explicit loop closure"
-authoring_order = 15
+authoring_order = 61
 road_distance_m = 2225.0
 notes = "Matches RP_000_Start. TrackQueryV2 treats this as an explicit closure point instead of adding a duplicate implicit seam."
 
@@ -388,8 +1390,10 @@ road_distance_m = 240.0
 
 [node name="Generated" type="Node3D" parent="." unique_id=418565497]
 metadata/bake_editable_requested = true
-metadata/bake_editable_status = "Placeholder only; Agent B road generation is not implemented here."
+metadata/bake_editable_status = "V2 road mesh regenerated at 2099.9m. Editable scene owners assigned."
 metadata/last_preview_scaffold = "Generated by preview_regenerate; safe to replace."
+metadata/source_snapshot_path = "res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres"
+metadata/manual_overrides_policy = "Generated nodes may be replaced. Designer overrides live in ManualOverrides or road-relative GeneratedPropState metadata."
 
 [node name="StormCoastTrackGenerator" type="Node3D" parent="Generated" unique_id=1450259213]
 script = ExtResource("9_wqe0j")
@@ -405,6 +1409,611 @@ guardrail_edge_offset_m = 1.8
 guardrail_collision_thickness_m = 1.1
 guardrail_collision_overlap_m = 0.45
 guardrail_seam_gap_m = 48.0
+
+[node name="AuthoringPreview" type="Node3D" parent="Generated" unique_id=1513188377]
+
+[node name="Point_000_rp_000_start" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1171308737]
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_7sqe1")
+
+[node name="Point_001_rp_guide_000_001_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=782899885]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.316, 0.989, 30.551)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_52cbe")
+
+[node name="Point_002_rp_guide_000_001" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=526563733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.453, 2.656, 77.516)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_pk48x")
+
+[node name="Point_003_rp_guide_000_001_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=792043739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.543, 3.98, 119.496)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ecjlc")
+
+[node name="Point_004_rp_001_coastal_sweep" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=163993585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 6, 165)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_72iq1")
+
+[node name="Point_005_rp_guide_001_002_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=363037470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.82, 8.233, 205.445)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_vqv4m")
+
+[node name="Point_006_rp_guide_001_002" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1678821935]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.303, 10.794, 239.906)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_wdfjv")
+
+[node name="Point_007_rp_guide_001_002_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1636917026]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.229, 13.148, 276.773)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_obun3")
+
+[node name="Point_008_rp_002_cliff_approach" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1378847015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 16, 310)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_5fyat")
+
+[node name="Point_009_rp_guide_002_003_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1523612502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 87.787, 18.891, 339.023)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_8s0fu")
+
+[node name="Point_010_rp_guide_002_003" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=11437298]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.509, 21.843, 359.906)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_gvc8j")
+
+[node name="Point_011_rp_guide_002_003_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=2028600972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 107.741, 24.637, 383.195)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_lpwie")
+
+[node name="Point_012_rp_003_ramp_commit" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=322933579]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 28, 405)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_hh2h3")
+
+[node name="Point_013_rp_guide_003_004_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1603054897]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129.152, 32.076, 426.387)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_8aurn")
+
+[node name="Point_014_rp_guide_003_004" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1014340202]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.931, 35.859, 443.703)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_30brp")
+
+[node name="Point_015_rp_guide_003_004_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1398535872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 148.642, 40.212, 462.223)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_el6y2")
+
+[node name="Point_016_rp_004_jump_takeoff" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1878430943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 160, 42.578, 480)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_0rpc3")
+
+[node name="Point_017_rp_guide_004_005_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1783974042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 171.622, 43.079, 496.68)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_pb81v")
+
+[node name="Point_018_rp_guide_004_005" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1154067141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 183.755, 41.224, 510.459)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_6auhv")
+
+[node name="Point_019_rp_guide_004_005_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=2135928325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 194.642, 40.303, 524.698)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_h6xyu")
+
+[node name="Point_020_rp_005_landing_approach" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=30756753]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 210, 38, 540)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_vdjik")
+
+[node name="Point_021_rp_guide_005_006_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1590308735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 228.401, 35.06, 557.879)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ku88c")
+
+[node name="Point_022_rp_guide_005_006" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1641290398]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 248.535, 31.582, 573.453)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_xx45j")
+
+[node name="Point_023_rp_guide_005_006_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1076276794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 268.092, 27.995, 591.663)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_8aax6")
+
+[node name="Point_024_rp_006_landing_catch" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1604198317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 288.223, 25.384, 601.638)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_aq1oq")
+
+[node name="Point_025_rp_guide_006_007_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1764949038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 306.733, 23.966, 605.139)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_dc4hl")
+
+[node name="Point_026_rp_guide_006_007" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1948436446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 322.41, 24.052, 601.36)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ccast")
+
+[node name="Point_028_rp_guide_006_007_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1741580976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 338.886, 23.498, 596.621)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_jjhyn")
+
+[node name="Point_029_rp_007_landing_runout" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1466017741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 355, 24, 585)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_7kkm2")
+
+[node name="Point_030_rp_guide_007_008_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=785187353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 371.079, 25.037, 568.112)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_depr4")
+
+[node name="Point_031_rp_guide_007_008" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=835378095]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 385.108, 26.815, 544.678)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_n44pd")
+
+[node name="Point_032_rp_guide_007_008_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1094384489]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 398.02167, 29.408, 523.423)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_mej3g")
+
+[node name="Point_033_rp_008_mountain_entry" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1056886250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 411.58725, 30.17215, 500)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_867t1")
+
+[node name="Point_034_rp_guide_008_009_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=230897408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 421.246, 31.656, 484.793)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_hvrs3")
+
+[node name="Point_035_rp_guide_008_009" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1139309343]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 430.28036, 32.688, 467.734)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_yswqy")
+
+[node name="Point_036_rp_guide_008_009_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1401218919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 435.77, 34.406, 449.27414)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_fvtbn")
+
+[node name="Point_037_rp_009_mountain_return" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=230470580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 430, 34, 420)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_wws81")
+
+[node name="Point_038_rp_guide_009_010_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=880659229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 409.203, 31.658, 354.676)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_1vah4")
+
+[node name="Point_039_rp_guide_009_010" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=447538640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 376.375, 27.481, 269.297)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_p6n4u")
+
+[node name="Point_040_rp_guide_009_010_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1937617634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.922, 23.786, 188.215)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_cabkr")
+
+[node name="Point_041_rp_010_tunnel_descent" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1880932140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320, 20, 110)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_eaohv")
+
+[node name="Point_042_rp_guide_010_011_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=477116138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 309.141, 16.968, 47.547)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_vpo17")
+
+[node name="Point_043_rp_guide_010_011" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=4568825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 308.625, 14.691, 2.344)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_8if7b")
+
+[node name="Point_044_rp_guide_010_011_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1083515578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 306.734, 12.104, -48.016)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_tybwj")
+
+[node name="Point_045_rp_011_final_bend" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1003149392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 10, -95)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ml5bl")
+
+[node name="Point_046_rp_guide_011_012_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1823286334]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 286.355, 8.252, -144.621)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_lhuah")
+
+[node name="Point_047_rp_guide_011_012" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=741056991]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 267.578, 7.242, -182.734)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_opk45")
+
+[node name="Point_048_rp_guide_011_012_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1845088961]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 251.379, 5.975, -228.582)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_7x3yn")
+
+[node name="Point_049_rp_012_start_return" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1720379396]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 230, 5, -255)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_mqpcu")
+
+[node name="Point_050_rp_guide_012_013_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1598947852]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 206.906, 4.132, -265.023)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ng0m1")
+
+[node name="Point_051_rp_guide_012_013" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1824959740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 182.844, 3.63, -252.906)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_f4aob")
+
+[node name="Point_052_rp_guide_012_013_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=949835806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.125, 3.007, -248.695)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ocwm3")
+
+[node name="Point_053_rp_013_outer_return" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=780611385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135, 2.5, -235)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_wy1wg")
+
+[node name="Point_054_rp_guide_013_014_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=942453949]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112.445, 2.021, -223.16)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_8gx5m")
+
+[node name="Point_055_rp_guide_013_014" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=697708877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 93.625, 1.698, -204.984)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_v35l2")
+
+[node name="Point_056_rp_guide_013_014_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1938507835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73.43, 1.325, -191.793)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ghyq0")
+
+[node name="Point_057_rp_014_start_merge" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=2099900555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 1, -165)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_df77m")
+
+[node name="Point_058_rp_guide_014_015_q1" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=116605867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.383, 0.676, -125.297)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_etfif")
+
+[node name="Point_059_rp_guide_014_015" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1296334621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.75, 0.448, -80.094)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_wd8g1")
+
+[node name="Point_060_rp_guide_014_015_q3" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=2008103764]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.367, 0.169, -32.484)
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_vpinj")
+
+[node name="Point_061_rp_015_loop_closure" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=592378267]
+material_override = SubResource("StandardMaterial3D_y3kbx")
+mesh = SubResource("BoxMesh_ror6h")
+
+[node name="Segment_000" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1739376661]
+transform = Transform3D(0.9274726, 0.011220742, 0.37372285, 0, 0.9995496, -0.03001071, 0.37389126, -0.02783411, -0.9270548, -6.158, 0.4945, 15.2755)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_a6go6")
+
+[node name="Segment_001" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1322043743]
+transform = Transform3D(0.95755935, 0.00979095, 0.2880699, 0, 0.99942297, -0.03396849, 0.28823626, -0.032526843, -0.95700675, -19.384499, 1.8225, 54.0335)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_j83vw")
+
+[node name="Segment_002" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=437644316]
+transform = Transform3D(0.9183625, 0.011457445, 0.39557436, 0, 0.9995808, -0.028951935, 0.39574024, -0.026588371, -0.9179775, -35.498, 3.3179998, 98.506)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_vm8g2")
+
+[node name="Segment_003" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=406008428]
+transform = Transform3D(0.9999496, 0.00044534646, 0.010032704, 0, 0.9990163, -0.0443458, 0.010042584, -0.04434357, -0.99896586, -44.7715, 4.99, 142.248)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_7ft3q")
+
+[node name="Segment_004" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=738669330]
+transform = Transform3D(0.903549, -0.021348687, -0.42795265, 0, 0.9987581, -0.049823675, -0.4284848, -0.045018133, -0.90242684, -35.41, 7.1165, 185.2225)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_84xb7")
+
+[node name="Segment_005" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1108581054]
+transform = Transform3D(0.7003479, -0.037101, -0.71283686, 0, 0.9986483, -0.05197663, -0.7138017, -0.03640172, -0.69940126, -8.258499, 9.5135, 222.6755)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_l6qqd")
+
+[node name="Segment_006" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1912828462]
+transform = Transform3D(0.7559469, -0.03156112, -0.6538718, 0, 0.9988371, -0.048211936, -0.654633, -0.03644566, -0.7550678, 25.265999, 11.971, 258.3395)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_52dpi")
+
+[node name="Segment_007" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1766907472]
+transform = Transform3D(0.7559787, -0.042386666, -0.6532225, 0, 0.9979014, -0.064752385, -0.65459627, -0.04895142, -0.7543922, 55.614502, 14.573999, 293.3865)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_xsr7x")
+
+[node name="Segment_008" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=867727108]
+transform = Transform3D(0.85261816, -0.044219572, -0.52066004, 0, 0.9964129, -0.084625185, -0.52253443, -0.07215297, -0.8495597, 78.8935, 17.4455, 324.5115)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_p6uv7")
+
+[node name="Segment_009" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1826513523]
+transform = Transform3D(0.92275107, -0.04984853, -0.38215917, 0, 0.99159986, -0.12934348, -0.38539657, -0.11935183, -0.91499984, 92.148, 20.367, 349.4645)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_b6n5p")
+
+[node name="Segment_010" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=835244250]
+transform = Transform3D(0.90071774, -0.046670005, -0.43189067, 0, 0.9942122, -0.10743435, -0.4344049, -0.096768014, -0.8955046, 102.125, 23.24, 371.5505)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_jboap")
+
+[node name="Segment_011" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1417917280]
+transform = Transform3D(0.9048534, -0.058842104, -0.4216372, 0, 0.990402, -0.13821678, -0.42572328, -0.12506592, -0.89616865, 112.8705, 26.3185, 394.0975)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_5j8w2")
+
+[node name="Segment_012" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1638568604]
+transform = Transform3D(0.8866943, -0.077040814, -0.45589247, 0, 0.9860201, -0.16662656, -0.46235618, -0.14774682, -0.8742984, 123.576, 30.038, 415.69348)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_oi7bh")
+
+[node name="Segment_013" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=755884375]
+transform = Transform3D(0.87074167, -0.09189568, -0.48307785, 0, 0.98238313, -0.18687828, -0.49174082, -0.1627227, -0.8554019, 134.0415, 33.9675, 435.04498)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_nmdk6")
+
+[node name="Segment_014" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=432450443]
+transform = Transform3D(0.8856339, -0.09463862, -0.4546385, 0, 0.9790138, -0.20379384, -0.46438414, -0.18048672, -0.86704785, 143.7865, 38.0355, 452.963)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_3dd6d")
+
+[node name="Segment_015" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=744578800]
+transform = Transform3D(0.8426862, -0.06000897, -0.5350504, 0, 0.9937693, -0.111456916, -0.53840506, -0.0939232, -0.83743566, 154.321, 41.395, 471.1115)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_4p4gd")
+
+[node name="Segment_016" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=690580718]
+transform = Transform3D(0.82047796, -0.014084069, -0.5715047, 0, 0.99969655, -0.024636354, -0.5716783, -0.020213585, -0.8202289, 165.811, 42.8285, 488.34)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_lhkva")
+
+[node name="Segment_017" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1202090298]
+transform = Transform3D(0.7505117, 0.06643317, -0.6575096, 0, 0.99493444, 0.10052575, -0.66085726, 0.07544575, -0.74670994, 177.6885, 42.151497, 503.56952)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_fhydm")
+
+[node name="Segment_018" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=353258894]
+transform = Transform3D(0.794402, 0.031168552, -0.6065921, 0, 0.9986825, 0.05131535, -0.6073924, 0.040765017, -0.79335535, 189.1985, 40.7635, 517.5785)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_5rxas")
+
+[node name="Segment_019" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1780399614]
+transform = Transform3D(0.7058141, 0.07483013, -0.70443374, 0, 0.9944052, 0.10563302, -0.7083971, 0.07455728, -0.7018652, 202.321, 39.1515, 532.349)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_bhsqs")
+
+[node name="Segment_020" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1099956534]
+transform = Transform3D(0.6968613, 0.08165083, -0.712543, 0, 0.99349844, 0.113845736, -0.71720594, 0.07933468, -0.69233066, 219.2005, 36.53, 548.9395)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_n8d6a")
+
+[node name="Segment_021" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1173925383]
+transform = Transform3D(0.6118381, 0.10708217, -0.7837012, 0, 0.99079394, 0.1353786, -0.790983, 0.08282979, -0.60620546, 238.468, 33.321, 565.666)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_k76up")
+
+[node name="Segment_022" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1185664105]
+transform = Transform3D(0.6814541, 0.09736621, -0.7253552, 0, 0.9911108, 0.13303924, -0.7318609, 0.09066012, -0.67539656, 258.3135, 29.788502, 582.558)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_i0q25")
+
+[node name="Segment_023" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=531434897]
+transform = Transform3D(0.4439876, 0.103437185, -0.8900426, 0, 0.9933146, 0.11543904, -0.8960329, 0.051253505, -0.4410194, 278.1575, 26.6895, 596.6505)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_csayc")
+
+[node name="Segment_024" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1484711084]
+transform = Transform3D(0.18584467, 0.07375273, -0.9798073, 0, 0.997179, 0.075060345, -0.9825792, 0.013949565, -0.1853204, 297.478, 24.675, 603.3885)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_d631c")
+
+[node name="Segment_025" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1619103376]
+transform = Transform3D(-0.23434097, -0.0051844427, -0.97214067, 0, 0.9999858, -0.005332941, -0.9721545, 0.0012497265, 0.23433763, 314.5715, 24.008999, 603.2495)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_5dytq")
+
+[node name="Segment_026" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=738975013]
+transform = Transform3D(-0.27642426, 0.031039273, -0.96053433, 0, 0.99947834, 0.03229773, -0.9610357, -0.008927877, 0.27628005, 330.648, 23.775, 598.9905)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_t6nlv")
+
+[node name="Segment_027" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1593696942]
+transform = Transform3D(-0.5849305, -0.020487696, -0.81082463, 0, 0.99968094, -0.025259666, -0.81108344, 0.014775149, 0.58474386, 346.943, 23.749, 590.8105)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_1unfr")
+
+[node name="Segment_028" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1242049593]
+transform = Transform3D(-0.7242408, -0.030635055, -0.6888664, 0, 0.9990126, -0.04442779, -0.68954724, 0.032176413, 0.72352564, 363.0395, 24.518501, 576.556)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_nxod0")
+
+[node name="Segment_029" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1248630450]
+transform = Transform3D(-0.85800004, -0.033367287, -0.51256466, 0, 0.99788785, -0.06496119, -0.5136496, 0.055736702, 0.8561878, 378.0935, 25.926, 556.395)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_sxpja")
+
+[node name="Segment_030" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1898350521]
+transform = Transform3D(-0.85462976, -0.053844094, -0.51643854, 0, 0.9946088, -0.10369831, -0.5192379, 0.088623665, 0.8500223, 391.56482, 28.1115, 534.0505)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_fotgj")
+
+[node name="Segment_031" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1841788252]
+transform = Transform3D(-0.8653476, -0.014142963, -0.5009726, 0, 0.9996018, -0.028219769, -0.50117224, 0.024419907, 0.865003, 404.80444, 29.790075, 511.7115)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_o37sb")
+
+[node name="Segment_032" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1962321338]
+transform = Transform3D(-0.84412456, -0.04401177, -0.53433764, 0, 0.996625, -0.082088985, -0.5361471, 0.06929333, 0.84127563, 416.41663, 30.914074, 492.39648)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_7vmq8")
+
+[node name="Segment_033" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=820658679]
+transform = Transform3D(-0.8837208, -0.024985084, -0.4673471, 0, 0.998574, -0.05338528, -0.46801448, 0.047177684, 0.8824606, 425.76318, 32.172, 476.2635)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_p8cv0")
+
+[node name="Segment_034" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=283815353]
+transform = Transform3D(-0.95851433, -0.025327027, -0.28391704, 0, 0.99604475, -0.088852905, -0.28504446, 0.085166775, 0.9547232, 433.02518, 33.546997, 458.5041)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_1akgh")
+
+[node name="Segment_035" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1772475630]
+transform = Transform3D(-0.9811237, -0.0026311046, 0.19336347, 0, 0.99990743, 0.013605782, 0.19338135, -0.013348955, 0.9810329, 432.885, 34.203, 434.6371)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_qjo8v")
+
+[node name="Segment_036" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=991695641]
+transform = Transform3D(-0.95287484, -0.010357624, 0.3031869, 0, 0.99941695, 0.034142595, 0.30336374, -0.032533616, 0.9523193, 419.6015, 32.829002, 387.338)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_de0wy")
+
+[node name="Segment_037" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=624994506]
+transform = Transform3D(-0.9333825, -0.016370948, 0.35850957, 0, 0.99895906, 0.045616377, 0.35888314, -0.042577527, 0.9324109, 392.789, 29.5695, 311.9865)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_ffqgc")
+
+[node name="Segment_038" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=712237206]
+transform = Transform3D(-0.93231076, -0.01535174, 0.3613323, 0, 0.99909866, 0.042448197, 0.36165825, -0.03957491, 0.93147045, 360.6485, 25.6335, 228.756)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_rmsjo")
+
+[node name="Segment_039" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1418566485]
+transform = Transform3D(-0.9528011, -0.01398706, 0.30327293, 0, 0.99893814, 0.04607139, 0.30359533, -0.043896873, 0.9517893, 332.461, 21.893, 149.1075)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_xqe3m")
+
+[node name="Segment_040" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1965897535]
+transform = Transform3D(-0.9852181, -0.008184295, 0.17110908, 0, 0.9988581, 0.04777625, 0.17130469, -0.047070023, 0.98409307, 314.5705, 18.484001, 78.7735)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_c32i6")
+
+[node name="Segment_041" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=431603102]
+transform = Transform3D(-0.99993485, -0.0005742013, 0.011399782, 0, 0.9987339, 0.05030572, 0.0114142345, -0.050302442, 0.9986688, 308.883, 15.8295, 24.945501)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_tv888")
+
+[node name="Segment_042" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=288743286]
+transform = Transform3D(-0.9992958, -0.0019236725, 0.037473682, 0, 0.99868506, 0.051266458, 0.037523024, -0.051230352, 0.9979817, 307.6795, 13.3975, -22.836)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_yrgt7")
+
+[node name="Segment_043" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=299250895]
+transform = Transform3D(-0.9898845, -0.0062829303, 0.14173658, 0, 0.999019, 0.044284727, 0.14187577, -0.04383677, 0.98891336, 303.367, 11.052, -71.507996)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_lspgy")
+
+[node name="Segment_044" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=880906040]
+transform = Transform3D(-0.9642093, -0.009000691, 0.26498947, 0, 0.9994237, 0.033946645, 0.2651423, -0.03273167, 0.96365356, 293.1775, 9.125999, -119.8105)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_d3utn")
+
+[node name="Segment_045" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1751975074]
+transform = Transform3D(-0.897043, -0.010502809, 0.44181857, 0, 0.99971765, 0.023765052, 0.44194338, -0.021318275, 0.8967896, 276.9665, 7.7469997, -163.67749)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_7hbwu")
+
+[node name="Segment_046" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=508739582]
+transform = Transform3D(-0.9428783, -0.008677367, 0.33302444, 0, 0.99966073, 0.026047407, 0.33313748, -0.024559533, 0.9425584, 259.47852, 6.6085, -205.65799)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_gkxmh")
+
+[node name="Segment_047" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=680814360]
+transform = Transform3D(-0.77734566, -0.018040214, 0.62881505, 0, 0.9995887, 0.028677424, 0.6290738, -0.02229227, 0.77702594, 240.6895, 5.4875, -241.791)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_kmihq")
+
+[node name="Segment_048" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1225570614]
+transform = Transform3D(-0.39812952, -0.031609174, 0.9167845, 0, 0.9994062, 0.03445783, 0.91732925, -0.01371868, 0.39789313, 218.453, 4.566, -260.0115)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_d4ha3")
+
+[node name="Segment_049" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1767785794]
+transform = Transform3D(0.4497655, -0.01663956, 0.8929917, 0, 0.99982643, 0.018630268, 0.8931467, 0.008379251, -0.44968745, 194.875, 3.881, -258.9645)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_a7sxx")
+
+[node name="Segment_050" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1619673326]
+transform = Transform3D(0.1748035, -0.025454778, 0.98427427, 0, 0.9996658, 0.025852825, 0.98460335, 0.004519164, -0.17474508, 170.9845, 3.3185, -250.8005)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_1ip3c")
+
+[node name="Segment_051" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=222085171]
+transform = Transform3D(0.49367204, -0.015891148, 0.8695029, 0, 0.9998331, 0.018273074, 0.86964816, 0.009020907, -0.4935896, 147.0625, 2.7535, -241.8475)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_jpccf")
+
+[node name="Segment_052" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1397771261]
+transform = Transform3D(0.46479148, -0.01664619, 0.88526374, 0, 0.9998233, 0.01880033, 0.8854202, 0.008738232, -0.46470934, 123.7225, 2.2605, -229.08)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_uic3q")
+
+[node name="Segment_053" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=100335066]
+transform = Transform3D(0.69469297, -0.008879279, 0.71925163, 0, 0.9999238, 0.0123442225, 0.71930647, 0.008575444, -0.69464, 103.035, 1.8594999, -214.07199)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_1gma8")
+
+[node name="Segment_054" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1124548967]
+transform = Transform3D(0.54685926, -0.012944845, 0.83712447, 0, 0.9998805, 0.015461615, 0.83722454, 0.008455328, -0.54679394, 83.5275, 1.5115, -198.38849)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_35kf2")
+
+[node name="Segment_055" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1919880406]
+transform = Transform3D(0.82390106, -0.0056636254, 0.5667054, 0, 0.9999501, 0.009993451, 0.56673366, 0.008233615, -0.82385993, 64.215, 1.1625, -178.3965)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_ousvy")
+
+[node name="Segment_056" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=1547461935]
+transform = Transform3D(0.9140573, -0.0030252761, 0.40557387, 0, 0.99997216, 0.007459041, 0.40558517, 0.0068179904, -0.91403186, 46.191498, 0.838, -145.1485)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_lr5dk")
+
+[node name="Segment_057" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=2085718948]
+transform = Transform3D(0.96309584, -0.0013074972, 0.26915574, 0, 0.9999882, 0.0048577148, 0.26915893, 0.0046784445, -0.96308446, 31.0665, 0.56200004, -102.695496)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_8p27b")
+
+[node name="Segment_058" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=266765991]
+transform = Transform3D(0.9515629, -0.0017144196, 0.30744934, 0, 0.9999845, 0.0055761803, 0.30745414, 0.005306086, -0.9515481, 17.0585, 0.3085, -56.289)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_jcy8i")
+
+[node name="Segment_059" type="MeshInstance3D" parent="Generated/AuthoringPreview" unique_id=667476960]
+transform = Transform3D(0.9608503, -0.0013850139, 0.27706474, 0, 0.99998754, 0.00499882, 0.2770682, 0.0048031174, -0.96083826, 4.6835, 0.0845, -16.242)
+material_override = SubResource("StandardMaterial3D_h3yxs")
+mesh = SubResource("BoxMesh_tvhes")
 
 [node name="ManualOverrides" type="Node3D" parent="." unique_id=1325956416]
 

@@ -53,6 +53,7 @@ var _last_effective_view_id: StringName = &""
 var _current_roll: float = 0.0
 var _last_anchor_position: Vector3 = Vector3.ZERO
 var _estimated_velocity: Vector3 = Vector3.ZERO
+var _smoothed_velocity_preview_direction: Vector3 = Vector3.ZERO
 var _controller_toggle_was_pressed: bool = false
 
 
@@ -79,6 +80,7 @@ func set_target(target: Node3D) -> void:
 	_target_marker = null
 	if _target != null:
 		_last_anchor_position = _anchor_position()
+		_smoothed_velocity_preview_direction = Vector3.ZERO
 
 
 func set_primary_view_id(view_id: StringName) -> void:
@@ -132,20 +134,22 @@ func _create_chase_profile() -> Resource:
 	profile.set("view_id", &"chase")
 	profile.set("display_name", "Chase")
 	profile.set("view_role", VIEW_ROLE_PRIMARY)
-	profile.set("camera_offset_local", Vector3(0.0, 3.8, 10.5))
+	profile.set("camera_offset_local", Vector3(0.0, 2.85, 7.4))
 	profile.set("view_yaw_degrees", 0.0)
-	profile.set("fov_degrees", 67.0)
-	profile.set("high_speed_fov_degrees", 82.0)
-	profile.set("position_damping", 11.0)
-	profile.set("rotation_damping", 13.0)
+	profile.set("fov_degrees", 66.0)
+	profile.set("high_speed_fov_degrees", 74.0)
+	profile.set("fov_speed_power", 1.05)
+	profile.set("position_damping", 15.0)
+	profile.set("rotation_damping", 14.0)
+	profile.set("max_follow_lag_m", 2.2)
 	profile.set("roll_mode", ROLL_MODE_STEER_BIAS)
 	profile.set("roll_degrees", 3.5)
 	profile.set("drift_roll_bonus_degrees", 2.0)
-	profile.set("preview_distance_low_speed_m", 7.5)
-	profile.set("preview_distance_high_speed_m", 17.0)
-	profile.set("preview_height_m", 1.4)
-	profile.set("corner_preview_lateral_m", 2.0)
-	profile.set("velocity_preview_bias", 0.25)
+	profile.set("preview_distance_low_speed_m", 6.0)
+	profile.set("preview_distance_high_speed_m", 12.0)
+	profile.set("preview_height_m", 1.25)
+	profile.set("corner_preview_lateral_m", 1.7)
+	profile.set("velocity_preview_bias", 0.20)
 	return profile
 
 
@@ -262,6 +266,7 @@ func _update_camera(delta: float) -> void:
 
 	var anchor: Vector3 = _anchor_position()
 	_update_estimated_velocity(anchor, delta)
+	_update_velocity_preview_direction(profile, delta)
 
 	var frame_basis: Basis = _camera_frame_basis(anchor, profile)
 	var desired_position: Vector3 = _desired_camera_position(anchor, frame_basis, profile)
@@ -572,15 +577,45 @@ func _update_estimated_velocity(anchor: Vector3, delta: float) -> void:
 
 
 func _velocity_preview_direction(preview_forward: Vector3) -> Vector3:
-	var velocity_direction: Vector3 = _estimated_velocity
-	if _target is CharacterBody3D:
-		velocity_direction = (_target as CharacterBody3D).velocity
+	var velocity_direction: Vector3 = _smoothed_velocity_preview_direction
 	if velocity_direction.length_squared() <= 0.0001:
 		return Vector3.ZERO
-	velocity_direction = velocity_direction.normalized()
 	if velocity_direction.dot(preview_forward) < -0.2:
 		return Vector3.ZERO
 	return velocity_direction
+
+
+func _update_velocity_preview_direction(profile: Resource, delta: float) -> void:
+	var velocity_direction: Vector3 = _estimated_velocity
+	if _target is CharacterBody3D:
+		velocity_direction = (_target as CharacterBody3D).velocity
+
+	if not velocity_direction.is_finite():
+		velocity_direction = Vector3.ZERO
+
+	var vertical_weight: float = clampf(
+			_profile_float(profile, &"velocity_preview_vertical_weight", 0.0),
+			0.0,
+			1.0
+	)
+	velocity_direction.y *= vertical_weight
+
+	if velocity_direction.length_squared() <= 0.0001:
+		var release_weight: float = _exp_weight(_profile_float(profile, &"velocity_preview_damping", 7.0), delta)
+		_smoothed_velocity_preview_direction = _smoothed_velocity_preview_direction.lerp(Vector3.ZERO, release_weight)
+		return
+
+	var target_direction: Vector3 = velocity_direction.normalized()
+	if _smoothed_velocity_preview_direction.length_squared() <= 0.0001 or delta <= 0.0:
+		_smoothed_velocity_preview_direction = target_direction
+		return
+
+	var damping: float = maxf(_profile_float(profile, &"velocity_preview_damping", 7.0), 0.001)
+	var blended: Vector3 = _smoothed_velocity_preview_direction.lerp(target_direction, _exp_weight(damping, delta))
+	if blended.length_squared() <= 0.0001:
+		_smoothed_velocity_preview_direction = Vector3.ZERO
+	else:
+		_smoothed_velocity_preview_direction = blended.normalized()
 
 
 func _speed_ratio() -> float:

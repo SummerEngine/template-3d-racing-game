@@ -29,6 +29,7 @@ enum RacePhase {
 @export var race_config: RaceConfig
 @export var track_query_path: NodePath
 @export var poll_registered_nodes: bool = true
+@export_range(1.0, 60.0, 1.0) var progress_poll_hz: float = 20.0
 @export var auto_start_countdown: bool = false
 
 var _phase: int = RacePhase.SETUP
@@ -40,6 +41,7 @@ var _current_position_order: Array[StringName] = []
 var _race_results: Array[RaceResult] = []
 var _countdown_remaining_seconds: float = 0.0
 var _race_time_msec: int = 0
+var _progress_poll_accumulator_s: float = 0.0
 
 
 func _ready() -> void:
@@ -56,7 +58,11 @@ func _process(delta: float) -> void:
 	elif _phase == RacePhase.RACING:
 		_race_time_msec += int(round(delta * 1000.0))
 		if poll_registered_nodes:
-			update_registered_node_progress()
+			_progress_poll_accumulator_s += delta
+			var progress_poll_interval_s: float = 1.0 / maxf(progress_poll_hz, 1.0)
+			if _progress_poll_accumulator_s >= progress_poll_interval_s:
+				_progress_poll_accumulator_s = fmod(_progress_poll_accumulator_s, progress_poll_interval_s)
+				update_registered_node_progress()
 
 
 func configure(new_config: RaceConfig) -> void:
@@ -142,6 +148,7 @@ func reset_race() -> void:
 	_ensure_config()
 	_countdown_remaining_seconds = race_config.get_countdown_seconds()
 	_race_time_msec = 0
+	_progress_poll_accumulator_s = 0.0
 	_race_results.clear()
 	_reset_all_progress()
 	_set_phase(RacePhase.SETUP)

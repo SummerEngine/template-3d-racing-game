@@ -20,6 +20,8 @@ const TERRAIN_MARGIN_M: float = 360.0
 @export var track_profile: Resource = null
 @export_range(96, 1024, 1) var samples: int = 192
 @export var track_y: float = 0.03
+@export_node_path("Path3D") var source_path_node_path: NodePath = NodePath("")
+@export_node_path("Marker3D") var manual_spawn_marker_path: NodePath = NodePath("")
 @export var generate_on_ready: bool = true
 @export var generate_road: bool = true
 @export var generate_markings: bool = true
@@ -135,6 +137,10 @@ func closest_distance_for_position(world_position: Vector3) -> float:
 
 
 func get_spawn_transform(grid_index: int) -> Transform3D:
+	var manual_spawn: Marker3D = _manual_spawn_marker()
+	if manual_spawn != null:
+		return _manual_spawn_transform(manual_spawn, grid_index)
+
 	if _track_query == null:
 		return Transform3D.IDENTITY
 	var local_transform: Transform3D = _track_query.call("get_spawn_transform", grid_index)
@@ -165,11 +171,69 @@ func _build_track_query() -> void:
 	var target_length_m: float = _resource_float(_profile, "target_length_m", 1800.0)
 	_road_width_m = _resource_float(_profile, "road_width_m", 14.0)
 
-	var points: PackedVector3Array = TrackPathScript.build_arcade_loop_points(target_length_m, samples, track_y)
+	var points: PackedVector3Array = _source_path_points()
+	if points.size() < 2:
+		points = TrackPathScript.build_arcade_loop_points(target_length_m, samples, track_y)
 	_track_path = TrackPathScript.from_points(points, true)
 	_track_query = TrackQueryScript.new(_profile, _track_path)
 	_centerline = _track_path.get("centerline")
 	_track_length_m = float(_track_path.call("get_length_m"))
+
+
+func _source_path_points() -> PackedVector3Array:
+	var result := PackedVector3Array()
+	if String(source_path_node_path).is_empty():
+		return result
+
+	var path_node := get_node_or_null(source_path_node_path) as Path3D
+	if path_node == null:
+		push_warning("TrackGenerator source_path_node_path does not resolve to a Path3D: %s" % [source_path_node_path])
+		return result
+	if path_node.curve == null:
+		push_warning("TrackGenerator source Path3D has no Curve3D: %s" % [path_node.get_path()])
+		return result
+
+	var source_points: PackedVector3Array = path_node.curve.get_baked_points()
+	if source_points.size() < 2:
+		for i: int in range(path_node.curve.point_count):
+			source_points.append(path_node.curve.get_point_position(i))
+
+	if source_points.size() < 2:
+		return result
+
+	var source_to_generator: Transform3D = _generator_transform().affine_inverse() * path_node.global_transform
+	for point: Vector3 in source_points:
+		result.append(source_to_generator * point)
+
+	if result.size() > 1 and result[0].distance_to(result[result.size() - 1]) <= 0.05:
+		result.remove_at(result.size() - 1)
+
+	return result
+
+
+func _manual_spawn_marker() -> Marker3D:
+	if String(manual_spawn_marker_path).is_empty():
+		return null
+	return get_node_or_null(manual_spawn_marker_path) as Marker3D
+
+
+func _manual_spawn_transform(spawn_marker: Marker3D, grid_index: int) -> Transform3D:
+	var spawn_transform: Transform3D = spawn_marker.global_transform
+	var lane_count: int = maxi(int(_profile.get("spawn_lane_count")), 1) if _profile != null else 1
+	var lane_index: int = maxi(grid_index, 0) % lane_count
+	var row_index: int = floori(float(maxi(grid_index, 0)) / float(lane_count))
+	var lane_offset_m: float = _profile_lane_offset_m(lane_index)
+	var row_spacing_m: float = _resource_float(_profile, "spawn_row_spacing_m", 7.5)
+	spawn_transform.origin += spawn_transform.basis.x * lane_offset_m
+	spawn_transform.origin += spawn_transform.basis.z * float(row_index) * row_spacing_m
+	return spawn_transform
+
+
+func _profile_lane_offset_m(lane_index: int) -> float:
+	var lane_count: int = maxi(int(_profile.get("spawn_lane_count")), 1) if _profile != null else 1
+	var lane_spacing_m: float = _resource_float(_profile, "spawn_lane_spacing_m", 3.6)
+	var centered_index: float = float(clampi(lane_index, 0, lane_count - 1)) - float(lane_count - 1) * 0.5
+	return centered_index * lane_spacing_m
 
 
 func _clear_generated_track() -> void:
@@ -1020,6 +1084,9 @@ func _bounds_xz(points: PackedVector3Array) -> Rect2:
 
 
 func _base_terrain_color() -> Color:
+	if _profile == null or not _profile.has_method("get_ordered_environment_sections"):
+		return Color(0.08, 0.32, 0.12, 1.0)
+
 	var sections: Array = _profile.call("get_ordered_environment_sections")
 	if sections.is_empty():
 		return Color(0.08, 0.32, 0.12, 1.0)

@@ -4,17 +4,21 @@ extends Node
 @export var vehicle_root_path: NodePath = ^".."
 @export var engine_stream: AudioStream = preload("res://assets/audio/sfx/engine_loop_arcade.mp3")
 @export var engine_idle_stream: AudioStream = preload("res://assets/audio/sfx/engine_hybrid_idle_loop.mp3")
-@export var engine_load_stream: AudioStream = preload("res://assets/audio/sfx/engine_hybrid_accel_loop.mp3")
-@export var engine_high_rpm_stream: AudioStream = preload("res://assets/audio/sfx/engine_hybrid_high_rpm_loop.mp3")
+@export var engine_load_stream: AudioStream = preload("res://assets/audio/sfx/vehicles/premium_engine_acceleration_loop.wav")
+@export var engine_high_rpm_stream: AudioStream = preload("res://assets/audio/sfx/vehicles/premium_engine_acceleration_loop.wav")
+@export var brake_stream: AudioStream = preload("res://assets/audio/sfx/vehicles/premium_braking_deceleration_loop.wav")
 @export var shift_pop_stream: AudioStream = preload("res://assets/audio/sfx/engine_shift_pop.mp3")
-@export var drift_stream: AudioStream = preload("res://assets/audio/sfx/drift_tire_screech.mp3")
+@export var drift_stream: AudioStream = preload("res://assets/audio/sfx/vehicles/premium_drift_tire_scrub_loop.wav")
 @export var bump_stream: AudioStream = preload("res://assets/audio/sfx/car_bump_toy.mp3")
 @export var scrape_stream: AudioStream = preload("res://assets/audio/sfx/wall_scrape_sparks.mp3")
 @export var audio_bus: StringName = &"SFX"
-@export var engine_idle_volume_db: float = -13.0
-@export var engine_load_volume_db: float = -10.0
-@export var engine_high_rpm_volume_db: float = -8.0
-@export var drift_max_volume_db: float = -5.0
+@export_category("Mix")
+@export var player_focus_mix: bool = true
+@export var engine_idle_volume_db: float = -17.0
+@export var engine_load_volume_db: float = -16.0
+@export var engine_high_rpm_volume_db: float = -18.5
+@export var brake_max_volume_db: float = -14.0
+@export var drift_max_volume_db: float = -11.0
 @export_range(3, 8, 1) var virtual_gear_count: int = 6
 @export_category("3D Attenuation")
 @export_range(24.0, 260.0, 1.0) var engine_max_distance_m: float = 180.0
@@ -23,13 +27,14 @@ extends Node
 @export_range(2.0, 48.0, 1.0) var effect_unit_size_m: float = 16.0
 
 var _vehicle: Node3D = null
-var _engine_idle_player: AudioStreamPlayer3D = null
-var _engine_load_player: AudioStreamPlayer3D = null
-var _engine_high_rpm_player: AudioStreamPlayer3D = null
-var _shift_pop_player: AudioStreamPlayer3D = null
-var _drift_player: AudioStreamPlayer3D = null
-var _bump_player: AudioStreamPlayer3D = null
-var _scrape_player: AudioStreamPlayer3D = null
+var _engine_idle_player = null
+var _engine_load_player = null
+var _engine_high_rpm_player = null
+var _brake_player = null
+var _shift_pop_player = null
+var _drift_player = null
+var _bump_player = null
+var _scrape_player = null
 var _last_virtual_gear: int = 0
 
 
@@ -41,14 +46,16 @@ func _ready() -> void:
 		push_warning("VehicleAudioController: no vehicle root found")
 		return
 
-	_engine_idle_player = _make_player_3d("EngineIdleLoop", engine_idle_stream if engine_idle_stream != null else engine_stream, true)
-	_engine_load_player = _make_player_3d("EngineLoadLoop", engine_load_stream if engine_load_stream != null else engine_stream, true)
-	_engine_high_rpm_player = _make_player_3d("EngineHighRpmLoop", engine_high_rpm_stream if engine_high_rpm_stream != null else engine_stream, true)
-	_shift_pop_player = _make_player_3d("ShiftPopOneShot", shift_pop_stream, false)
-	_drift_player = _make_player_3d("DriftLoop", drift_stream, true)
-	_bump_player = _make_player_3d("BumpOneShot", bump_stream, false)
-	_scrape_player = _make_player_3d("ScrapeOneShot", scrape_stream, false)
+	_rebuild_players()
 	_connect_vehicle_signals()
+
+
+func set_player_focus_mix_enabled(enabled: bool) -> void:
+	if player_focus_mix == enabled:
+		return
+	player_focus_mix = enabled
+	if is_inside_tree() and _vehicle != null:
+		_rebuild_players()
 
 
 func _process(_delta: float) -> void:
@@ -56,9 +63,11 @@ func _process(_delta: float) -> void:
 		return
 	var speed_ratio: float = _vehicle_speed_ratio()
 	var throttle_ratio: float = _vehicle_throttle_ratio()
+	var brake_ratio: float = _vehicle_brake_ratio()
 	var drift_intensity: float = _vehicle_drift_intensity()
 	_update_engine_layers(speed_ratio, throttle_ratio)
 	_update_shift_pop(speed_ratio, throttle_ratio)
+	_update_brake_layer(brake_ratio, speed_ratio)
 
 	if _drift_player != null:
 		if drift_intensity > 0.05:
@@ -75,6 +84,37 @@ func _connect_vehicle_signals() -> void:
 		_vehicle.connect("wall_scraped", _on_wall_scraped)
 	if _vehicle.has_signal("vehicle_bumped"):
 		_vehicle.connect("vehicle_bumped", _on_vehicle_bumped)
+
+
+func _rebuild_players() -> void:
+	_clear_players()
+	_engine_idle_player = _make_engine_player("EngineIdleLoop", engine_idle_stream if engine_idle_stream != null else engine_stream, true)
+	_engine_load_player = _make_engine_player("EngineLoadLoop", engine_load_stream if engine_load_stream != null else engine_stream, true)
+	_engine_high_rpm_player = _make_engine_player("EngineHighRpmLoop", engine_high_rpm_stream if engine_high_rpm_stream != null else engine_stream, true)
+	_brake_player = _make_player_3d("BrakeLoop", brake_stream, true)
+	_shift_pop_player = _make_player_3d("ShiftPopOneShot", shift_pop_stream, false)
+	_drift_player = _make_player_3d("DriftLoop", drift_stream, true)
+	_bump_player = _make_player_3d("BumpOneShot", bump_stream, false)
+	_scrape_player = _make_player_3d("ScrapeOneShot", scrape_stream, false)
+
+
+func _clear_players() -> void:
+	for player in [_engine_idle_player, _engine_load_player, _engine_high_rpm_player, _brake_player, _shift_pop_player, _drift_player, _bump_player, _scrape_player]:
+		if player == null:
+			continue
+		if player.has_method("stop"):
+			player.call("stop")
+		if player.get_parent() == self:
+			remove_child(player)
+		player.queue_free()
+	_engine_idle_player = null
+	_engine_load_player = null
+	_engine_high_rpm_player = null
+	_brake_player = null
+	_shift_pop_player = null
+	_drift_player = null
+	_bump_player = null
+	_scrape_player = null
 
 
 func _on_wall_scraped(intensity: float, _contact_position: Vector3, _contact_normal: Vector3) -> void:
@@ -104,6 +144,21 @@ func _update_engine_layers(speed_ratio: float, throttle_ratio: float) -> void:
 		_engine_high_rpm_player.pitch_scale = lerpf(0.92, 1.38, speed_ratio)
 
 
+func _update_brake_layer(brake_ratio: float, speed_ratio: float) -> void:
+	if _brake_player == null:
+		return
+	brake_ratio = _finite_ratio(brake_ratio)
+	speed_ratio = _finite_ratio(speed_ratio)
+	var brake_presence: float = clampf(brake_ratio * smoothstep(0.04, 0.22, speed_ratio), 0.0, 1.0)
+	if brake_presence > 0.03:
+		if not _brake_player.playing:
+			_brake_player.play()
+		_brake_player.volume_db = lerpf(-38.0, brake_max_volume_db, brake_presence)
+		_brake_player.pitch_scale = lerpf(0.94, 1.08, speed_ratio)
+	elif _brake_player.playing:
+		_brake_player.stop()
+
+
 func _update_shift_pop(speed_ratio: float, throttle_ratio: float) -> void:
 	speed_ratio = _finite_ratio(speed_ratio)
 	throttle_ratio = _finite_ratio(throttle_ratio)
@@ -112,6 +167,22 @@ func _update_shift_pop(speed_ratio: float, throttle_ratio: float) -> void:
 	if current_gear > _last_virtual_gear and throttle_ratio > 0.18 and speed_ratio > 0.12:
 		_play_one_shot(_shift_pop_player, -8.0)
 	_last_virtual_gear = current_gear
+
+
+func _make_engine_player(player_name: String, stream: AudioStream, autoplay: bool):
+	if not player_focus_mix:
+		return _make_player_3d(player_name, stream, autoplay)
+
+	var player := AudioStreamPlayer.new()
+	player.name = player_name
+	player.stream = stream
+	player.bus = String(audio_bus)
+	player.volume_db = -80.0
+	add_child(player)
+	_set_stream_loop(player.stream, autoplay)
+	if autoplay and player.stream != null:
+		player.play()
+	return player
 
 
 func _make_player_3d(player_name: String, stream: AudioStream, autoplay: bool) -> AudioStreamPlayer3D:
@@ -130,7 +201,7 @@ func _make_player_3d(player_name: String, stream: AudioStream, autoplay: bool) -
 	return player
 
 
-func _play_one_shot(player: AudioStreamPlayer3D, volume_db: float) -> void:
+func _play_one_shot(player, volume_db: float) -> void:
 	if player == null or player.stream == null:
 		return
 	volume_db = _finite_db(volume_db, -18.0)
@@ -150,6 +221,17 @@ func _vehicle_throttle_ratio() -> float:
 	if _vehicle == null:
 		return 0.0
 	var value: Variant = _vehicle.get("throttle_amount")
+	if value is float or value is int:
+		return _finite_ratio(float(value))
+	return 0.0
+
+
+func _vehicle_brake_ratio() -> float:
+	if _vehicle != null and _vehicle.has_method("get_brake_amount"):
+		return _finite_ratio(float(_vehicle.call("get_brake_amount")))
+	if _vehicle == null:
+		return 0.0
+	var value: Variant = _vehicle.get("brake_amount")
 	if value is float or value is int:
 		return _finite_ratio(float(value))
 	return 0.0
@@ -181,4 +263,7 @@ func _set_stream_loop(stream: AudioStream, should_loop: bool) -> void:
 	for property: Dictionary in stream.get_property_list():
 		if String(property.get("name", "")) == "loop":
 			stream.set("loop", should_loop)
+			return
+		if String(property.get("name", "")) == "loop_mode":
+			stream.set("loop_mode", AudioStreamWAV.LOOP_FORWARD if should_loop else AudioStreamWAV.LOOP_DISABLED)
 			return

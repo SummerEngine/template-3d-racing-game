@@ -1,0 +1,179 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Metal Sun Wheel Racing Logo</title>
+  <desc>Original metallic sun badge with a simplified alloy wheel medallion in the center.</desc>
+  <defs>
+    <linearGradient id="rayLight" x1="384" y1="88" x2="516" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.26" stop-color="#F0F0EC"/>
+      <stop offset="0.58" stop-color="#BFC3C4"/>
+      <stop offset="1" stop-color="#6D7376"/>
+    </linearGradient>
+    <linearGradient id="rayShadow" x1="636" y1="104" x2="500" y2="326" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B9092"/>
+      <stop offset="0.42" stop-color="#4C5255"/>
+      <stop offset="1" stop-color="#171B1D"/>
+    </linearGradient>
+    <linearGradient id="bevelDark" x1="322" y1="256" x2="724" y2="804" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#858B8D"/>
+      <stop offset="0.3" stop-color="#33383A"/>
+      <stop offset="0.6" stop-color="#0B0D0E"/>
+      <stop offset="1" stop-color="#73797B"/>
+    </linearGradient>
+    <radialGradient id="mainDisk" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(425 358) rotate(49.2) scale(384)">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.2" stop-color="#F2F2EF"/>
+      <stop offset="0.48" stop-color="#C7CBCB"/>
+      <stop offset="0.74" stop-color="#E7E7E3"/>
+      <stop offset="1" stop-color="#747A7D"/>
+    </radialGradient>
+    <radialGradient id="innerWheelMetal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(410 350) rotate(51.3) scale(270)">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.26" stop-color="#E7E9E8"/>
+      <stop offset="0.54" stop-color="#9EA5A8"/>
+      <stop offset="0.78" stop-color="#F5F5F2"/>
+      <stop offset="1" stop-color="#61686B"/>
+    </radialGradient>
+    <linearGradient id="spokeMetal" x1="458" y1="338" x2="568" y2="670" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.18" stop-color="#EAEBE8"/>
+      <stop offset="0.5" stop-color="#A0A7AA"/>
+      <stop offset="0.72" stop-color="#F8F8F5"/>
+      <stop offset="1" stop-color="#737A7D"/>
+    </linearGradient>
+    <radialGradient id="darkCavity" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(494 464) rotate(45) scale(238)">
+      <stop offset="0" stop-color="#50575A"/>
+      <stop offset="0.34" stop-color="#151A1D"/>
+      <stop offset="1" stop-color="#030404"/>
+    </radialGradient>
+    <filter id="dropShadow" x="76" y="60" width="872" height="896" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="26" stdDeviation="24" flood-color="#000000" flood-opacity="0.46"/>
+    </filter>
+    <filter id="metalNoise" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" seed="19" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="
+        0 0 0 0 0.62
+        0 0 0 0 0.62
+        0 0 0 0 0.62
+        0 0 0 0.14 0" result="grain"/>
+      <feComposite in="grain" in2="SourceAlpha" operator="in" result="grainMasked"/>
+      <feBlend in="SourceGraphic" in2="grainMasked" mode="multiply"/>
+    </filter>
+    <path id="rayLeft" d="M512 54L512 292L386 217L512 54Z"/>
+    <path id="rayRight" d="M512 54L638 217L512 292L512 54Z"/>
+    <path id="rimPocket" d="M464 347C492 332 532 332 560 347L542 425C523 417 501 417 482 425L464 347Z"/>
+    <path id="rimSpoke" d="M488 492L454 352C491 324 533 324 570 352L536 492C522 486 502 486 488 492Z"/>
+  </defs>
+
+  <g filter="url(#dropShadow)">
+    <g id="faceted-metal-rays" stroke="#F9FAF8" stroke-width="4" stroke-linejoin="round" filter="url(#metalNoise)">
+      <g>
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(30 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(60 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(90 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(120 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(150 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(180 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(210 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(240 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(270 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(300 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+      <g transform="rotate(330 512 512)">
+        <use href="#rayLeft" fill="url(#rayLight)"/>
+        <use href="#rayRight" fill="url(#rayShadow)"/>
+      </g>
+    </g>
+
+    <circle cx="512" cy="512" r="305" fill="url(#bevelDark)" filter="url(#metalNoise)"/>
+    <circle cx="512" cy="512" r="284" fill="#202527"/>
+    <circle cx="512" cy="512" r="266" fill="url(#mainDisk)" filter="url(#metalNoise)"/>
+    <path d="M290 424C329 328 413 268 512 268C642 268 748 374 748 504" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" opacity="0.22"/>
+    <path d="M747 568C724 684 626 756 512 756C403 756 310 688 280 590" stroke="#101315" stroke-width="24" stroke-linecap="round" opacity="0.18"/>
+
+    <g id="wheel-medallion">
+      <circle cx="512" cy="512" r="210" fill="#171C1F"/>
+      <circle cx="512" cy="512" r="193" fill="url(#innerWheelMetal)" stroke="#F7F8F5" stroke-width="7" filter="url(#metalNoise)"/>
+      <circle cx="512" cy="512" r="170" fill="url(#darkCavity)"/>
+
+      <g fill="#111619" opacity="0.96">
+        <use href="#rimPocket" transform="rotate(22.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(67.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(112.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(157.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(202.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(247.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(292.5 512 512)"/>
+        <use href="#rimPocket" transform="rotate(337.5 512 512)"/>
+      </g>
+
+      <g fill="url(#spokeMetal)" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round" filter="url(#metalNoise)">
+        <use href="#rimSpoke"/>
+        <use href="#rimSpoke" transform="rotate(45 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(90 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(135 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(180 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(225 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(270 512 512)"/>
+        <use href="#rimSpoke" transform="rotate(315 512 512)"/>
+      </g>
+
+      <g fill="#0A0D0F" opacity="0.78">
+        <use href="#rimPocket" transform="rotate(22.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(67.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(112.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(157.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(202.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(247.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(292.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+        <use href="#rimPocket" transform="rotate(337.5 512 512) scale(0.72 0.72) translate(199 199)"/>
+      </g>
+
+      <circle cx="512" cy="512" r="91" fill="url(#mainDisk)" stroke="#F7F8F5" stroke-width="7" filter="url(#metalNoise)"/>
+      <circle cx="512" cy="512" r="51" fill="#07090B" stroke="#E7E9E7" stroke-width="11"/>
+      <circle cx="512" cy="512" r="24" fill="#0D1114"/>
+
+      <g fill="#080B0D" stroke="#E3E5E3" stroke-width="7">
+        <circle cx="512" cy="433" r="18"/>
+        <circle cx="587" cy="488" r="18"/>
+        <circle cx="559" cy="578" r="18"/>
+        <circle cx="465" cy="578" r="18"/>
+        <circle cx="437" cy="488" r="18"/>
+      </g>
+    </g>
+
+    <circle cx="512" cy="512" r="305" fill="none" stroke="#0B0D0E" stroke-width="12" opacity="0.36"/>
+    <circle cx="512" cy="512" r="266" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.46"/>
+  </g>
+</svg>

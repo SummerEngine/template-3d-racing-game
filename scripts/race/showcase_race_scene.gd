@@ -8,6 +8,7 @@ const RaceConfigScript := preload("res://scripts/race/race_config.gd")
 @export var player_car_path: NodePath = ^"World/Vehicles/PlayerCar"
 @export var npc_cars_root_path: NodePath = ^"World/Vehicles/NpcCars"
 @export var auto_start_countdown: bool = true
+@export var remove_npc_cars_on_ready: bool = false
 
 var _track_query: RefCounted = null
 var _track_generator: Node = null
@@ -22,6 +23,8 @@ func _ready() -> void:
 
 func _setup_showcase_race() -> void:
 	_resolve_nodes()
+	if remove_npc_cars_on_ready:
+		_remove_npc_cars()
 	_apply_session_configuration()
 	_regenerate_track()
 	_place_vehicles()
@@ -69,6 +72,7 @@ func _configure_npc_drivers() -> void:
 	var npc_index: int = 0
 	var difficulty_hooks: Dictionary = _get_difficulty_hooks()
 	for npc_car: Node3D in _collect_npc_cars():
+		_configure_vehicle_audio(npc_car, false)
 		var driver: Node = npc_car.get_node_or_null("NpcDriver")
 		if driver == null:
 			npc_index += 1
@@ -121,6 +125,14 @@ func _collect_npc_cars() -> Array[Node3D]:
 		if car != null:
 			result.append(car)
 	return result
+
+
+func _remove_npc_cars() -> void:
+	if _npc_cars_root == null:
+		return
+	for child: Node in _npc_cars_root.get_children():
+		_npc_cars_root.remove_child(child)
+		child.free()
 
 
 func _reset_vehicle_motion(vehicle: Node3D) -> void:
@@ -190,6 +202,7 @@ func _apply_session_configuration() -> void:
 		return
 
 	if _player_car != null:
+		_configure_vehicle_audio(_player_car, true)
 		if session.has_method("apply_selected_car_to_vehicle"):
 			session.call("apply_selected_car_to_vehicle", _player_car)
 		elif session.has_method("get_car_color"):
@@ -214,6 +227,18 @@ func _apply_session_configuration() -> void:
 		session.call("apply_brightness_to_scene", self)
 	if session.has_method("apply_audio_settings"):
 		session.call("apply_audio_settings")
+
+
+func _configure_vehicle_audio(vehicle: Node3D, player_focus_mix: bool) -> void:
+	if vehicle == null:
+		return
+	var audio_node: Node = vehicle.get_node_or_null("VehicleAudio")
+	if audio_node == null:
+		return
+	if audio_node.has_method("set_player_focus_mix_enabled"):
+		audio_node.call("set_player_focus_mix_enabled", player_focus_mix)
+	else:
+		_set_if_property(audio_node, &"player_focus_mix", player_focus_mix)
 
 
 func _get_difficulty_hooks() -> Dictionary:

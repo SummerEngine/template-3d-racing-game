@@ -5,377 +5,175 @@ signal settings_changed
 
 const RaceConfigScript := preload("res://scripts/race/race_config.gd")
 
-const DEFAULT_CAR_ID: StringName = &"apex_gt"
-const DEFAULT_SKIN_ID: StringName = &"electric_blue"
+const DEFAULT_CAR_ID: StringName = &"vanta_r49"
+const DEFAULT_SKIN_ID: StringName = &"vanta_r49_midnight"
+const STORM_COAST_TRACK_SCENE_PATH: String = "res://scenes/race/storm_coast_preview_race.tscn"
+const SHOWCASE_TRACK_SCENE_PATH: String = "res://scenes/tracks/manual_track_authoring.tscn"
 const DEFAULT_TRACK_ID: StringName = &"storm_coast"
-const DEFAULT_TRACK_SCENE_PATH: String = "res://scenes/race/storm_coast_preview_race.tscn"
+const DEFAULT_TRACK_SCENE_PATH: String = STORM_COAST_TRACK_SCENE_PATH
 const DEFAULT_PLAYER_SCENE_PATH: String = "res://scenes/player_car.tscn"
 const DEFAULT_CAR_MODEL_PATH: String = "res://assets/cars/player_hypercar.glb"
+const DEFAULT_TRANSMISSION_MODE: String = "automatic"
 const SETTINGS_PATH: String = "user://racing_template_settings.cfg"
+const MIN_WINDOW_SIZE: Vector2i = Vector2i(1080, 720)
 
 const COLOR_VARIANTS: Array[String] = ["blue", "red", "green", "yellow"]
 const DIFFICULTIES: Array[String] = ["easy", "medium", "hard"]
+const TRANSMISSION_MODES: Array[String] = ["automatic", "manual"]
 
 const SKIN_PRESETS: Array[Dictionary] = [
 	{
-		"id": &"electric_blue",
-		"display_name": "Electric Blue",
+		"id": &"vanta_r49_midnight",
+		"display_name": "Midnight Blue",
 		"color_variant": "blue",
-		"swatch": Color(0.08, 0.24, 0.9, 1.0),
+		"swatch": Color(0.05, 0.12, 0.28, 1.0),
 	},
 	{
-		"id": &"pulse_red",
-		"display_name": "Pulse Red",
+		"id": &"vanta_r49_crimson",
+		"display_name": "Crimson Graphite",
 		"color_variant": "red",
-		"swatch": Color(0.94, 0.12, 0.08, 1.0),
+		"swatch": Color(0.64, 0.03, 0.06, 1.0),
 	},
 	{
-		"id": &"volt_lime",
-		"display_name": "Volt Lime",
+		"id": &"astra_r50_aurora",
+		"display_name": "Aurora Green",
 		"color_variant": "green",
-		"swatch": Color(0.08, 0.74, 0.32, 1.0),
+		"swatch": Color(0.02, 0.66, 0.40, 1.0),
 	},
 	{
-		"id": &"solar_yellow",
-		"display_name": "Solar Yellow",
+		"id": &"astra_r50_solar",
+		"display_name": "Solar White",
 		"color_variant": "yellow",
-		"swatch": Color(1.0, 0.82, 0.08, 1.0),
+		"swatch": Color(1.0, 0.82, 0.18, 1.0),
 	},
 ]
 
 const CAR_OPTIONS: Array[Dictionary] = [
 	{
 		"id": DEFAULT_CAR_ID,
-		"display_name": "Apex GT Prototype",
-		"short_name": "Apex GT",
-		"vehicle_class": "Prototype Hybrid",
-		"description": "Balanced fictional prototype for the first premium racing slice.",
+		"display_name": "Vanta R49",
+		"short_name": "Vanta R49",
+		"vehicle_class": "Prototype GT",
+		"description": "Low, planted concept coupe with stable braking and a confident high-speed line.",
 		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
+		"preview_scene_path": "res://assets/vehicles/vanta_r49/vanta_r49.glb",
+			"model_path": "res://assets/vehicles/vanta_r49/vanta_r49.glb",
+			"preview_texture_path": "res://assets/ui/car_cards/vanta_r49_card.png",
+			"preferred_scene_path": "res://assets/vehicles/vanta_r49/vanta_r49.tscn",
+		"preferred_preview_scene_path": "res://assets/vehicles/vanta_r49/vanta_r49.glb",
+		"preferred_model_path": "res://assets/vehicles/vanta_r49/vanta_r49.glb",
+		"fallback_scene_path": DEFAULT_PLAYER_SCENE_PATH,
+		"fallback_preview_scene_path": DEFAULT_CAR_MODEL_PATH,
+		"fallback_model_path": DEFAULT_CAR_MODEL_PATH,
+		"model_mount_position": Vector3(0.0, 0.03, -0.40),
+		"model_mount_rotation_degrees": Vector3(0.0, 180.0, 0.0),
+		"model_mount_scale": Vector3(0.94, 0.94, 0.94),
+		"preview_scale_multiplier": 1.0,
+		"source": "Sketchfab",
+		"source_url": "https://sketchfab.com/3d-models/free-ai-based-conceptcar-049-public-domain-cc0-72547082a35946878d3f59101ab583fa",
+		"source_asset_number": "049",
+		"source_license": "Public Domain CC0",
 		"default_skin_id": DEFAULT_SKIN_ID,
-		"skin_ids": [&"electric_blue", &"pulse_red", &"volt_lime", &"solar_yellow"],
-		"stats": {
-			"speed": 78,
-			"launch": 74,
-			"braking": 76,
-			"cornering": 72,
-		},
-		"driving_overrides": {
-			"max_speed": 92.0,
-			"acceleration": 42.0,
-			"brake_force": 70.0,
-			"normal_lateral_grip": 58.0,
-			"high_speed_turn_rate": 0.95,
-			"rear_drive_power_oversteer": 4.0,
-		},
-	},
-	{
-		"id": &"ion_r",
-		"display_name": "Ion R",
-		"short_name": "Ion R",
-		"vehicle_class": "Sprint Special",
-		"description": "Fast launch and lighter corner exits for punchier arcade racing.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"pulse_red",
-		"skin_ids": [&"pulse_red", &"electric_blue", &"solar_yellow", &"volt_lime"],
+		"skin_ids": [&"vanta_r49_midnight", &"vanta_r49_crimson"],
 		"stats": {
 			"speed": 82,
-			"launch": 88,
-			"braking": 70,
-			"cornering": 68,
-		},
-		"driving_overrides": {
-			"max_speed": 96.0,
-			"acceleration": 50.0,
-			"brake_force": 64.0,
-			"normal_lateral_grip": 53.0,
-			"high_speed_turn_rate": 0.88,
-			"rear_drive_power_oversteer": 5.2,
-		},
-	},
-	{
-		"id": &"velocity_x",
-		"display_name": "Velocity X",
-		"short_name": "Velocity X",
-		"vehicle_class": "Endurance Special",
-		"description": "Higher top-end stability with more deliberate acceleration.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"solar_yellow",
-		"skin_ids": [&"solar_yellow", &"electric_blue", &"pulse_red", &"volt_lime"],
-		"stats": {
-			"speed": 88,
-			"launch": 68,
+			"launch": 76,
 			"braking": 84,
 			"cornering": 80,
 		},
 		"driving_overrides": {
-			"max_speed": 102.0,
-			"acceleration": 37.0,
+			"max_speed": 96.0,
+			"acceleration": 42.0,
 			"brake_force": 78.0,
 			"normal_lateral_grip": 62.0,
-			"high_speed_turn_rate": 1.02,
-			"rear_drive_power_oversteer": 3.2,
+			"high_speed_turn_rate": 1.0,
+			"rear_drive_power_oversteer": 3.6,
 		},
 	},
 	{
-		"id": &"mirage_s",
-		"display_name": "Mirage S",
-		"short_name": "Mirage S",
-		"vehicle_class": "Aero Coupe",
-		"description": "Stable high-speed test entry with gentle cornering for menu-card scroll checks.",
+		"id": &"astra_r50",
+		"display_name": "Astra R50",
+		"short_name": "Astra R50",
+		"vehicle_class": "Aero Sprint",
+		"description": "Sharper concept racer with stronger launch, lighter exits, and a livelier corner attitude.",
 		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"volt_lime",
-		"skin_ids": [&"volt_lime", &"electric_blue", &"pulse_red", &"solar_yellow"],
+		"preview_scene_path": "res://assets/vehicles/astra_r50/astra_r50.glb",
+			"model_path": "res://assets/vehicles/astra_r50/astra_r50.glb",
+			"preview_texture_path": "res://assets/ui/car_cards/astra_r50_card.png",
+			"preferred_scene_path": "res://assets/vehicles/astra_r50/astra_r50.tscn",
+		"preferred_preview_scene_path": "res://assets/vehicles/astra_r50/astra_r50.glb",
+		"preferred_model_path": "res://assets/vehicles/astra_r50/astra_r50.glb",
+		"fallback_scene_path": DEFAULT_PLAYER_SCENE_PATH,
+		"fallback_preview_scene_path": DEFAULT_CAR_MODEL_PATH,
+		"fallback_model_path": DEFAULT_CAR_MODEL_PATH,
+		"model_mount_position": Vector3(0.0, 0.03, 0.05),
+		"model_mount_rotation_degrees": Vector3(0.0, 180.0, 0.0),
+		"model_mount_scale": Vector3(0.93, 0.93, 0.93),
+		"preview_scale_multiplier": 1.9,
+		"source": "Sketchfab",
+		"source_url": "https://sketchfab.com/3d-models/free-ai-based-conceptcar-050-public-domain-cc0-3f7a98a53efe48068adddf0c0f3ddbae",
+		"source_asset_number": "050",
+		"source_license": "Public Domain CC0",
+		"default_skin_id": &"astra_r50_aurora",
+		"skin_ids": [&"astra_r50_aurora", &"astra_r50_solar"],
 		"stats": {
-			"speed": 74,
-			"launch": 72,
-			"braking": 86,
-			"cornering": 84,
-		},
-		"driving_overrides": {
-			"max_speed": 88.0,
-			"acceleration": 40.0,
-			"brake_force": 82.0,
-			"normal_lateral_grip": 64.0,
-			"high_speed_turn_rate": 1.08,
-			"rear_drive_power_oversteer": 2.8,
-		},
-	},
-	{
-		"id": &"rift_rs",
-		"display_name": "Rift RS",
-		"short_name": "Rift RS",
-		"vehicle_class": "Street Prototype",
-		"description": "Aggressive acceleration and looser exits for testing fast-looking stat bars.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"pulse_red",
-		"skin_ids": [&"pulse_red", &"solar_yellow", &"electric_blue", &"volt_lime"],
-		"stats": {
-			"speed": 80,
-			"launch": 92,
-			"braking": 66,
-			"cornering": 70,
-		},
-		"driving_overrides": {
-			"max_speed": 94.0,
-			"acceleration": 54.0,
-			"brake_force": 60.0,
-			"normal_lateral_grip": 52.0,
-			"high_speed_turn_rate": 0.90,
-			"rear_drive_power_oversteer": 6.0,
-		},
-	},
-	{
-		"id": &"nova_v",
-		"display_name": "Nova V",
-		"short_name": "Nova V",
-		"vehicle_class": "Grand Tourer",
-		"description": "Heavier balanced test car for checking long names and middle-range stats.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"electric_blue",
-		"skin_ids": [&"electric_blue", &"solar_yellow", &"pulse_red", &"volt_lime"],
-		"stats": {
-			"speed": 84,
-			"launch": 64,
-			"braking": 78,
+			"speed": 86,
+			"launch": 88,
+			"braking": 72,
 			"cornering": 76,
 		},
 		"driving_overrides": {
-			"max_speed": 98.0,
-			"acceleration": 35.0,
-			"brake_force": 72.0,
-			"normal_lateral_grip": 59.0,
-			"high_speed_turn_rate": 0.98,
-			"rear_drive_power_oversteer": 3.7,
-		},
-	},
-	{
-		"id": &"pulse_xr",
-		"display_name": "Pulse XR",
-		"short_name": "Pulse XR",
-		"vehicle_class": "Track Special",
-		"description": "Sharp cornering and braking profile for testing card selection feedback.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"solar_yellow",
-		"skin_ids": [&"solar_yellow", &"volt_lime", &"electric_blue", &"pulse_red"],
-		"stats": {
-			"speed": 76,
-			"launch": 76,
-			"braking": 90,
-			"cornering": 88,
-		},
-		"driving_overrides": {
-			"max_speed": 90.0,
-			"acceleration": 43.0,
-			"brake_force": 86.0,
-			"normal_lateral_grip": 67.0,
-			"high_speed_turn_rate": 1.12,
-			"rear_drive_power_oversteer": 2.5,
-		},
-	},
-	{
-		"id": &"zenith_lm",
-		"display_name": "Zenith LM",
-		"short_name": "Zenith LM",
-		"vehicle_class": "Endurance Prototype",
-		"description": "Fast and composed long-distance placeholder for scroll stress testing.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"electric_blue",
-		"skin_ids": [&"electric_blue", &"pulse_red", &"solar_yellow", &"volt_lime"],
-		"stats": {
-			"speed": 92,
-			"launch": 70,
-			"braking": 82,
-			"cornering": 82,
-		},
-		"driving_overrides": {
-			"max_speed": 108.0,
-			"acceleration": 38.0,
-			"brake_force": 76.0,
-			"normal_lateral_grip": 63.0,
-			"high_speed_turn_rate": 1.04,
-			"rear_drive_power_oversteer": 3.0,
-		},
-	},
-	{
-		"id": &"ember_gt",
-		"display_name": "Ember GT",
-		"short_name": "Ember GT",
-		"vehicle_class": "Power Coupe",
-		"description": "High-power placeholder with weaker braking for a more varied stat silhouette.",
-		"scene_path": DEFAULT_PLAYER_SCENE_PATH,
-		"preview_scene_path": DEFAULT_CAR_MODEL_PATH,
-		"model_path": DEFAULT_CAR_MODEL_PATH,
-		"default_skin_id": &"pulse_red",
-		"skin_ids": [&"pulse_red", &"volt_lime", &"electric_blue", &"solar_yellow"],
-		"stats": {
-			"speed": 86,
-			"launch": 84,
-			"braking": 62,
-			"cornering": 74,
-		},
-		"driving_overrides": {
 			"max_speed": 100.0,
-			"acceleration": 48.0,
-			"brake_force": 58.0,
-			"normal_lateral_grip": 57.0,
-			"high_speed_turn_rate": 0.94,
-			"rear_drive_power_oversteer": 5.6,
+			"acceleration": 54.0,
+			"brake_force": 66.0,
+			"normal_lateral_grip": 52.0,
+			"high_speed_turn_rate": 0.90,
+			"rear_drive_power_oversteer": 5.4,
 		},
 	},
 ]
 
 const TRACK_OPTIONS: Array[Dictionary] = [
 	{
-		"id": DEFAULT_TRACK_ID,
+		"id": &"storm_coast",
 		"display_name": "Storm Coast",
 		"short_name": "Storm Coast",
 		"description": "Premium coastal mountain route with wet-road lighting, ocean haze, elevation, and fast readable corners.",
-		"scene_path": DEFAULT_TRACK_SCENE_PATH,
+		"scene_path": STORM_COAST_TRACK_SCENE_PATH,
 		"music_key": &"storm_coast_premium_arcade_drive",
 		"environment": &"coastal_mountain",
 		"lap_count": 1,
 		"target_length_m": 2200.0,
 		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_speedway.jpg",
+		"is_available": true,
+		"locked": false,
 	},
 	{
 		"id": &"showcase_circuit",
 		"display_name": "Showcase Circuit",
 		"short_name": "Showcase",
-		"description": "Closed-loop proving ground for handling, NPC tuning, and menu-to-race flow.",
-		"scene_path": "res://scenes/race/showcase_circuit_race.tscn",
+		"description": "Manual test circuit that instances the authoring scene directly for driving, NPC, and camera validation.",
+		"scene_path": SHOWCASE_TRACK_SCENE_PATH,
 		"music_key": &"showcase_race_loop",
 		"environment": &"test_circuit",
-		"lap_count": 3,
-		"target_length_m": 1800.0,
+		"lap_count": 1,
+		"target_length_m": 4000.0,
 		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_oval.jpg",
+		"is_available": true,
+		"locked": false,
+	},
+]
+
+const TRANSMISSION_OPTIONS: Array[Dictionary] = [
+	{
+		"id": DEFAULT_TRANSMISSION_MODE,
+		"display_name": "Automatic",
+		"description": "Session default. Uses the full speed range without requiring gear input.",
 	},
 	{
-		"id": &"glass_city",
-		"display_name": "Glass City Run",
-		"short_name": "Glass City",
-		"description": "Placeholder urban night route card for testing long track descriptions and horizontal scrolling.",
-		"scene_path": DEFAULT_TRACK_SCENE_PATH,
-		"music_key": &"storm_coast_premium_arcade_drive",
-		"environment": &"city_night",
-		"lap_count": 2,
-		"target_length_m": 2400.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_urban.jpg",
-	},
-	{
-		"id": &"solar_pass",
-		"display_name": "Solar Pass",
-		"short_name": "Solar Pass",
-		"description": "Warm desert pass placeholder with fast sweepers and broad open scenery.",
-		"scene_path": DEFAULT_TRACK_SCENE_PATH,
-		"music_key": &"storm_coast_premium_arcade_drive",
-		"environment": &"desert_pass",
-		"lap_count": 3,
-		"target_length_m": 2100.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_serpentine.jpg",
-	},
-	{
-		"id": &"neon_harbor",
-		"display_name": "Neon Harbor",
-		"short_name": "Neon Harbor",
-		"description": "Wet dockside placeholder card for testing compact names and blue-heavy previews.",
-		"scene_path": "res://scenes/race/showcase_circuit_race.tscn",
-		"music_key": &"showcase_race_loop",
-		"environment": &"industrial_harbor",
-		"lap_count": 4,
-		"target_length_m": 1650.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_speedway.jpg",
-	},
-	{
-		"id": &"alpine_link",
-		"display_name": "Alpine Link",
-		"short_name": "Alpine Link",
-		"description": "Mountain connector placeholder with elevation changes and tight visual rhythm.",
-		"scene_path": DEFAULT_TRACK_SCENE_PATH,
-		"music_key": &"storm_coast_premium_arcade_drive",
-		"environment": &"alpine_road",
-		"lap_count": 2,
-		"target_length_m": 2750.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_alps_pass.jpg",
-	},
-	{
-		"id": &"metro_loop",
-		"display_name": "Metro Loop",
-		"short_name": "Metro Loop",
-		"description": "Short technical city-loop placeholder for testing card scrolling with many options.",
-		"scene_path": "res://scenes/race/showcase_circuit_race.tscn",
-		"music_key": &"showcase_race_loop",
-		"environment": &"metro_loop",
-		"lap_count": 5,
-		"target_length_m": 1300.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_urban.jpg",
-	},
-	{
-		"id": &"aurora_ring",
-		"display_name": "Aurora Ring",
-		"short_name": "Aurora Ring",
-		"description": "High-contrast twilight ring placeholder for testing the final offscreen cards.",
-		"scene_path": DEFAULT_TRACK_SCENE_PATH,
-		"music_key": &"storm_coast_premium_arcade_drive",
-		"environment": &"twilight_ring",
-		"lap_count": 3,
-		"target_length_m": 1950.0,
-		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_oval.jpg",
+		"id": "manual",
+		"display_name": "Manual",
+		"description": "Keeps the existing shift-up and shift-down controls active.",
 	},
 ]
 
@@ -406,6 +204,7 @@ const DIFFICULTY_OPTIONS: Array[Dictionary] = [
 @export var selected_track_id: StringName = DEFAULT_TRACK_ID
 @export var selected_track_scene_path: String = DEFAULT_TRACK_SCENE_PATH
 @export var selected_difficulty: String = "medium"
+@export var selected_transmission_mode: String = DEFAULT_TRANSMISSION_MODE
 @export_range(0.0, 1.0, 0.01) var master_volume: float = 1.0
 @export_range(0.0, 1.0, 0.01) var music_volume: float = 0.82
 @export_range(0.0, 1.0, 0.01) var sfx_volume: float = 0.86
@@ -416,10 +215,22 @@ var _preloaded_resources: Dictionary = {}
 
 
 func _ready() -> void:
+	_apply_minimum_window_size()
 	_ensure_audio_buses()
 	_load_settings()
 	_normalize_state()
 	apply_audio_settings()
+
+
+func _apply_minimum_window_size() -> void:
+	DisplayServer.window_set_min_size(MIN_WINDOW_SIZE)
+	var current_size := DisplayServer.window_get_size()
+	var clamped_size := Vector2i(
+			maxi(current_size.x, MIN_WINDOW_SIZE.x),
+			maxi(current_size.y, MIN_WINDOW_SIZE.y)
+	)
+	if clamped_size != current_size:
+		DisplayServer.window_set_size(clamped_size)
 
 
 func set_car(car_id: Variant) -> void:
@@ -461,7 +272,7 @@ func set_car_color(value: String) -> void:
 	if selected_car_color == normalized:
 		return
 	selected_car_color = normalized
-	selected_skin_id = _skin_id_for_color(normalized, selected_skin_id)
+	selected_skin_id = _skin_id_for_color(normalized, selected_skin_id, get_selected_car_option())
 	_save_settings()
 	selections_changed.emit()
 
@@ -510,8 +321,25 @@ func get_difficulty() -> String:
 	return selected_difficulty
 
 
+func set_transmission_mode(value: Variant) -> void:
+	var normalized: String = _normalize_transmission_mode(value)
+	if selected_transmission_mode == normalized:
+		return
+	selected_transmission_mode = normalized
+	_save_settings()
+	settings_changed.emit()
+
+
+func get_transmission_mode() -> String:
+	return selected_transmission_mode
+
+
+func is_automatic_transmission() -> bool:
+	return selected_transmission_mode == DEFAULT_TRANSMISSION_MODE
+
+
 func get_car_options() -> Array[Dictionary]:
-	return _options_copy(CAR_OPTIONS)
+	return _car_options_copy(CAR_OPTIONS)
 
 
 func get_skin_presets() -> Array[Dictionary]:
@@ -526,8 +354,13 @@ func get_difficulty_options() -> Array[Dictionary]:
 	return _options_copy(DIFFICULTY_OPTIONS)
 
 
+func get_transmission_options() -> Array[Dictionary]:
+	return _options_copy(TRANSMISSION_OPTIONS)
+
+
 func get_car_option(car_id: Variant) -> Dictionary:
-	return _option_by_id(CAR_OPTIONS, _variant_to_string_name(car_id, selected_car_id), DEFAULT_CAR_ID)
+	var option: Dictionary = _option_by_id(CAR_OPTIONS, _variant_to_string_name(car_id, selected_car_id), DEFAULT_CAR_ID)
+	return _resolve_car_option_paths(option) if not option.is_empty() else {}
 
 
 func get_selected_car_option() -> Dictionary:
@@ -657,6 +490,8 @@ func apply_selected_car_to_vehicle(vehicle: Node) -> void:
 	var overrides: Dictionary = get_selected_car_option().get("driving_overrides", {})
 	for property_name: String in overrides.keys():
 		_set_if_property(vehicle, StringName(property_name), overrides[property_name])
+	_apply_transmission_mode_to_vehicle(vehicle)
+	_apply_selected_visual_model_to_vehicle(vehicle)
 
 
 func get_selection_snapshot() -> Dictionary:
@@ -672,11 +507,16 @@ func get_selection_snapshot() -> Dictionary:
 		"car_scene_path": get_car_scene_path(),
 		"car_preview_scene_path": get_car_preview_scene_path(),
 		"car_model_path": get_car_model_path(),
+		"car_source": str(car_option.get("source", "")),
+		"car_source_url": str(car_option.get("source_url", "")),
+		"car_source_asset_number": str(car_option.get("source_asset_number", "")),
+		"car_source_license": str(car_option.get("source_license", "")),
 		"track_id": selected_track_id,
 		"track_display_name": str(track_option.get("display_name", "")),
 		"track_scene_path": get_track_scene_path(),
 		"track_music_key": track_option.get("music_key", &""),
 		"difficulty": selected_difficulty,
+		"transmission_mode": selected_transmission_mode,
 	}
 
 
@@ -687,6 +527,7 @@ func get_settings_snapshot() -> Dictionary:
 		"sfx_volume": sfx_volume,
 		"brightness": brightness,
 		"brightness_percent": get_brightness_percent(),
+		"transmission_mode": selected_transmission_mode,
 	}
 
 
@@ -717,8 +558,9 @@ func get_race_loading_manifest() -> Array[String]:
 		"res://assets/audio/sfx/countdown_start_stinger.mp3",
 		"res://assets/audio/sfx/race_finish_stinger.mp3",
 		"res://assets/audio/sfx/engine_hybrid_idle_loop.mp3",
-		"res://assets/audio/sfx/engine_hybrid_accel_loop.mp3",
-		"res://assets/audio/sfx/engine_hybrid_high_rpm_loop.mp3",
+		"res://assets/audio/sfx/vehicles/premium_engine_acceleration_loop.wav",
+		"res://assets/audio/sfx/vehicles/premium_braking_deceleration_loop.wav",
+		"res://assets/audio/sfx/vehicles/premium_drift_tire_scrub_loop.wav",
 	]
 	return _dedupe_paths(paths)
 
@@ -762,10 +604,11 @@ func _normalize_state() -> void:
 	selected_skin_id = _normalize_skin_id(selected_skin_id, selected_car_option)
 	selected_car_color = _color_for_skin(selected_skin_id)
 	selected_difficulty = _normalize_difficulty(selected_difficulty)
+	selected_transmission_mode = _normalize_transmission_mode(selected_transmission_mode)
 	selected_track_id = _normalize_track_id(selected_track_id)
 	var selected_track_option: Dictionary = get_selected_track_option()
-	if selected_track_scene_path.is_empty() or not _has_option_id(TRACK_OPTIONS, selected_track_id):
-		selected_track_scene_path = str(selected_track_option.get("scene_path", DEFAULT_TRACK_SCENE_PATH))
+	var normalized_track_scene_path: String = str(selected_track_option.get("scene_path", DEFAULT_TRACK_SCENE_PATH))
+	selected_track_scene_path = normalized_track_scene_path if not normalized_track_scene_path.is_empty() else DEFAULT_TRACK_SCENE_PATH
 	master_volume = clampf(master_volume, 0.0, 1.0)
 	music_volume = clampf(music_volume, 0.0, 1.0)
 	sfx_volume = clampf(sfx_volume, 0.0, 1.0)
@@ -812,6 +655,13 @@ func _normalize_difficulty(value: String) -> String:
 	return "medium"
 
 
+func _normalize_transmission_mode(value: Variant) -> String:
+	var normalized: String = str(value).to_lower()
+	if TRANSMISSION_MODES.has(normalized):
+		return normalized
+	return DEFAULT_TRANSMISSION_MODE
+
+
 func _variant_to_string_name(value: Variant, fallback: StringName) -> StringName:
 	if value is StringName:
 		var string_name_value: StringName = value
@@ -825,6 +675,45 @@ func _options_copy(options: Array[Dictionary]) -> Array[Dictionary]:
 	for option: Dictionary in options:
 		copied_options.append(option.duplicate(true))
 	return copied_options
+
+
+func _car_options_copy(options: Array[Dictionary]) -> Array[Dictionary]:
+	var copied_options: Array[Dictionary] = []
+	for option: Dictionary in options:
+		copied_options.append(_resolve_car_option_paths(option))
+	return copied_options
+
+
+func _resolve_car_option_paths(option: Dictionary) -> Dictionary:
+	var resolved: Dictionary = option.duplicate(true)
+	resolved["scene_path"] = _resolve_resource_path(
+			str(resolved.get("preferred_scene_path", "")),
+			str(resolved.get("fallback_scene_path", resolved.get("scene_path", DEFAULT_PLAYER_SCENE_PATH)))
+	)
+	resolved["preview_scene_path"] = _resolve_resource_path(
+			str(resolved.get("preferred_preview_scene_path", "")),
+			str(resolved.get("fallback_preview_scene_path", resolved.get("preview_scene_path", resolved["scene_path"])))
+	)
+	resolved["model_path"] = _resolve_resource_path(
+			str(resolved.get("preferred_model_path", "")),
+			str(resolved.get("fallback_model_path", resolved.get("model_path", resolved["preview_scene_path"])))
+	)
+	return resolved
+
+
+func _resolve_resource_path(preferred_path: String, fallback_path: String) -> String:
+	if _resource_path_ready(preferred_path):
+		return preferred_path
+	return fallback_path
+
+
+func _resource_path_ready(path: String) -> bool:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return false
+	var extension: String = path.get_extension().to_lower()
+	if extension in ["glb", "gltf", "obj", "fbx"]:
+		return FileAccess.file_exists("%s.import" % path)
+	return true
 
 
 func _option_by_id(options: Array[Dictionary], option_id: StringName, fallback_id: StringName) -> Dictionary:
@@ -855,12 +744,86 @@ func _color_for_skin(skin_id: StringName) -> String:
 	return _normalize_color(str(skin.get("color_variant", "blue")))
 
 
-func _skin_id_for_color(color_variant: String, fallback_id: StringName) -> StringName:
+func _skin_id_for_color(color_variant: String, fallback_id: StringName, car_option: Dictionary = {}) -> StringName:
 	var normalized: String = _normalize_color(color_variant)
+	var allowed_skins: Array = car_option.get("skin_ids", [])
 	for option: Dictionary in SKIN_PRESETS:
+		var skin_id: StringName = StringName(option.get("id", fallback_id))
+		if not allowed_skins.is_empty() and not allowed_skins.has(skin_id):
+			continue
 		if str(option.get("color_variant", "")).to_lower() == normalized:
-			return StringName(option.get("id", fallback_id))
+			return skin_id
 	return fallback_id
+
+
+func _apply_transmission_mode_to_vehicle(vehicle: Node) -> void:
+	var automatic_enabled: bool = selected_transmission_mode == DEFAULT_TRANSMISSION_MODE
+	if vehicle.has_method("set_automatic_transmission_enabled"):
+		vehicle.call("set_automatic_transmission_enabled", automatic_enabled)
+	elif vehicle.has_method("set_manual_transmission_enabled"):
+		vehicle.call("set_manual_transmission_enabled", not automatic_enabled)
+	else:
+		_set_if_property(vehicle, &"automatic_transmission", automatic_enabled)
+
+
+func _apply_selected_visual_model_to_vehicle(vehicle: Node) -> void:
+	var vehicle_node := vehicle as Node
+	if vehicle_node == null:
+		return
+	var mount := vehicle_node.get_node_or_null("VisualRoot/ModelMount") as Node3D
+	if mount == null:
+		return
+	var model_path: String = get_car_model_path()
+	if model_path.is_empty() or model_path == DEFAULT_CAR_MODEL_PATH:
+		return
+	if not _resource_path_ready(model_path):
+		return
+	if str(mount.get_meta(&"session_model_path", "")) == model_path:
+		mount.transform = _selected_model_mount_transform()
+		return
+
+	var packed := load(model_path) as PackedScene
+	if packed == null:
+		return
+	for child: Node in mount.get_children():
+		mount.remove_child(child)
+		child.queue_free()
+	mount.transform = _selected_model_mount_transform()
+	var instance := packed.instantiate()
+	instance.name = "SelectedCarModel"
+	mount.add_child(instance)
+	mount.set_meta(&"session_model_path", model_path)
+
+
+func _selected_model_mount_transform() -> Transform3D:
+	var car: Dictionary = get_selected_car_option()
+	var position: Vector3 = _variant_to_vector3(car.get("model_mount_position", Vector3.ZERO), Vector3.ZERO)
+	var rotation_degrees: Vector3 = _variant_to_vector3(car.get("model_mount_rotation_degrees", Vector3.ZERO), Vector3.ZERO)
+	var scale: Vector3 = _variant_to_vector3(car.get("model_mount_scale", Vector3.ONE), Vector3.ONE)
+	var rotation_radians := Vector3(
+			deg_to_rad(rotation_degrees.x),
+			deg_to_rad(rotation_degrees.y),
+			deg_to_rad(rotation_degrees.z)
+	)
+	var basis := Basis.from_euler(rotation_radians)
+	basis = basis.scaled(scale)
+	return Transform3D(basis, position)
+
+
+func _variant_to_vector3(value: Variant, fallback: Vector3) -> Vector3:
+	if value is Vector3:
+		return value
+	if value is Vector2:
+		var vector2_value := value as Vector2
+		return Vector3(vector2_value.x, vector2_value.y, fallback.z)
+	if value is float or value is int:
+		var scalar := float(value)
+		return Vector3(scalar, scalar, scalar)
+	if value is Array:
+		var array_value: Array = value
+		if array_value.size() >= 3:
+			return Vector3(float(array_value[0]), float(array_value[1]), float(array_value[2]))
+	return fallback
 
 
 func _dedupe_paths(paths: Array[String]) -> Array[String]:
@@ -905,7 +868,11 @@ func _load_settings() -> void:
 	selected_skin_id = _variant_to_string_name(config.get_value("selection", "skin_id", selected_skin_id), selected_skin_id)
 	selected_track_id = _variant_to_string_name(config.get_value("selection", "track_id", selected_track_id), selected_track_id)
 	selected_track_scene_path = str(config.get_value("selection", "track_scene_path", selected_track_scene_path))
+	if selected_track_id == &"showcase_circuit" and selected_track_scene_path == SHOWCASE_TRACK_SCENE_PATH:
+		selected_track_id = DEFAULT_TRACK_ID
+		selected_track_scene_path = DEFAULT_TRACK_SCENE_PATH
 	selected_difficulty = str(config.get_value("selection", "difficulty", selected_difficulty))
+	selected_transmission_mode = _normalize_transmission_mode(config.get_value("driving", "transmission_mode", selected_transmission_mode))
 	master_volume = float(config.get_value("audio", "master_volume", master_volume))
 	music_volume = float(config.get_value("audio", "music_volume", music_volume))
 	sfx_volume = float(config.get_value("audio", "sfx_volume", sfx_volume))
@@ -919,6 +886,7 @@ func _save_settings() -> void:
 	config.set_value("selection", "track_id", String(selected_track_id))
 	config.set_value("selection", "track_scene_path", get_track_scene_path())
 	config.set_value("selection", "difficulty", selected_difficulty)
+	config.set_value("driving", "transmission_mode", selected_transmission_mode)
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "music_volume", music_volume)
 	config.set_value("audio", "sfx_volume", sfx_volume)
@@ -940,3 +908,12 @@ func _set_if_property(target: Object, property_name: StringName, value: Variant)
 		if String(property.get("name", "")) == String(property_name):
 			target.set(property_name, value)
 			return
+
+
+func _object_float_property(target: Object, property_name: StringName, fallback: float) -> float:
+	if target == null:
+		return fallback
+	for property: Dictionary in target.get_property_list():
+		if String(property.get("name", "")) == String(property_name):
+			return float(target.get(property_name))
+	return fallback

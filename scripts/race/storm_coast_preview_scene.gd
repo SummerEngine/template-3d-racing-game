@@ -23,6 +23,7 @@ const RaceConfigScript := preload("res://scripts/race/race_config.gd")
 @export_range(0.0, 12.0, 0.25) var offroad_respawn_margin_m: float = 3.5
 @export_range(0.0, 3.0, 0.05) var offroad_respawn_delay_s: float = 0.65
 @export_range(1.0, 40.0, 0.5) var fall_respawn_depth_m: float = 8.0
+@export_range(1.0, 60.0, 1.0) var track_safety_poll_hz: float = 15.0
 @export_range(-0.5, 1.5, 0.05) var respawn_vertical_offset_m: float = -0.08
 @export var print_respawn_events: bool = false
 
@@ -34,6 +35,7 @@ var _camera_rig: Node = null
 var _race_manager: Node = null
 var _last_valid_track_distance_m: float = 0.0
 var _offroad_time_s: float = 0.0
+var _track_safety_poll_accumulator_s: float = 0.0
 
 
 func _ready() -> void:
@@ -67,6 +69,9 @@ func _resolve_nodes() -> void:
 
 func _regenerate_track() -> void:
 	if regenerate_track_on_ready and _track_generator != null and _track_generator.has_method("regenerate_track"):
+		if _track_generator.has_method("has_generated_track") and bool(_track_generator.call("has_generated_track")):
+			_resolve_track_query()
+			return
 		_track_generator.call("regenerate_track")
 	_resolve_track_query()
 
@@ -99,6 +104,7 @@ func _configure_npc_drivers() -> void:
 	var difficulty_hooks: Dictionary = _get_difficulty_hooks()
 	var npc_index: int = 0
 	for npc_car: Node3D in _collect_npc_cars():
+		_configure_vehicle_audio(npc_car, false)
 		var driver: Node = npc_car.get_node_or_null("NpcDriver")
 		if driver == null:
 			npc_index += 1
@@ -234,6 +240,7 @@ func _apply_session_configuration() -> void:
 		return
 
 	if _player_car != null:
+		_configure_vehicle_audio(_player_car, true)
 		if session.has_method("apply_selected_car_to_vehicle"):
 			session.call("apply_selected_car_to_vehicle", _player_car)
 		elif session.has_method("get_car_color"):
@@ -258,6 +265,18 @@ func _apply_session_configuration() -> void:
 		session.call("apply_brightness_to_scene", self)
 	if session.has_method("apply_audio_settings"):
 		session.call("apply_audio_settings")
+
+
+func _configure_vehicle_audio(vehicle: Node3D, player_focus_mix: bool) -> void:
+	if vehicle == null:
+		return
+	var audio_node: Node = vehicle.get_node_or_null("VehicleAudio")
+	if audio_node == null:
+		return
+	if audio_node.has_method("set_player_focus_mix_enabled"):
+		audio_node.call("set_player_focus_mix_enabled", player_focus_mix)
+	else:
+		_set_if_property(audio_node, &"player_focus_mix", player_focus_mix)
 
 
 func _get_difficulty_hooks() -> Dictionary:
@@ -310,6 +329,13 @@ func _update_track_safety(delta: float) -> void:
 	if not _track_generator.has_method("get_road_width_m"):
 		return
 
+	_track_safety_poll_accumulator_s += delta
+	var poll_interval_s: float = 1.0 / maxf(track_safety_poll_hz, 1.0)
+	if _track_safety_poll_accumulator_s < poll_interval_s:
+		return
+	var sampled_delta_s: float = _track_safety_poll_accumulator_s
+	_track_safety_poll_accumulator_s = fmod(_track_safety_poll_accumulator_s, poll_interval_s)
+
 	var distance_m: float = float(_track_generator.call("closest_distance_for_position", _player_car.global_position))
 	var surface_transform: Transform3D = _track_generator.call("surface_transform", distance_m)
 	var road_width_m: float = float(_track_generator.call("get_road_width_m", distance_m))
@@ -327,9 +353,9 @@ func _update_track_safety(delta: float) -> void:
 	var far_outside_road: bool = lateral_offset_m > road_half_width_m + offroad_respawn_margin_m
 	var fell_below_track: bool = vertical_offset_m < -fall_respawn_depth_m
 	if far_outside_road:
-		_offroad_time_s += delta
+		_offroad_time_s += sampled_delta_s
 	else:
-		_offroad_time_s = maxf(0.0, _offroad_time_s - delta)
+		_offroad_time_s = maxf(0.0, _offroad_time_s - sampled_delta_s)
 
 	if fell_below_track or _offroad_time_s >= offroad_respawn_delay_s:
 		_respawn_player_on_track(fell_below_track)

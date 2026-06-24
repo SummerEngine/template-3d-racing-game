@@ -70,8 +70,19 @@ metadata/last_authoring_record_counts = {
 "zone_markers": 4
 }
 
+[node name="StormCoastTrackGenerator" parent="World/TrackAuthoring/Generated" index="0"]
+generate_on_ready = false
+sample_spacing_m = 8.0
+generate_surrounding_terrain = false
+collision_spacing_m = 8.0
+
+[node name="AuthoringPreview" parent="World/TrackAuthoring/Generated" index="1"]
+visible = false
+
 [node name="CoastalBackdrop" type="Node3D" parent="World" unique_id=679288389]
+visible = false
 script = ExtResource("8_backdrop")
+generate_on_ready = false
 horizon_distance_m = 920.0
 backdrop_width_m = 2100.0
 ocean_height_m = -22.0
@@ -82,8 +93,10 @@ city_color = Color(0.72, 0.76, 0.74, 1)
 cloud_color = Color(1, 0.78, 0.58, 0.22)
 
 [node name="PremiumCoastalDressing" type="Node3D" parent="World" unique_id=2083054617]
+visible = false
 script = ExtResource("9_premium")
 style = "coastal_mountain"
+generate_on_ready = false
 sponsor_texture_paths = PackedStringArray("res://assets/track/sponsors/sponsor_volt_racing.png", "res://assets/track/sponsors/sponsor_apex_energy.png", "res://assets/track/sponsors/sponsor_gripforge.png", "res://assets/track/sponsors/sponsor_neon_vector.png")
 reflector_post_count = 16
 cliff_cluster_count = 22
@@ -123,7 +136,7 @@ use_default_player_driver = false
 
 [node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1859163831]
 script = ExtResource("10_npc_driver")
-personality_id = &"bully"
+personality_id = &"technician"
 
 [node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=1823916510 instance=ExtResource("3_player_car")]
 transform = Transform3D(-0.9181216, 0, 0.39629883, 0, 1, 0, -0.39629883, 0, -0.9181216, 0.0026307106, -1.1920929e-07, -0.001437664)
@@ -133,7 +146,7 @@ use_default_player_driver = false
 
 [node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=1447713846]
 script = ExtResource("10_npc_driver")
-personality_id = &"showoff"
+personality_id = &"technician"
 lane_index = 1
 
 [node name="CameraRig" type="Node3D" parent="World" unique_id=428696892]

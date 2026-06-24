@@ -20,16 +20,20 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export var rolling_drag: float = 18.0
 
 @export_category("Transmission")
+@export var automatic_transmission: bool = true
 @export_range(1, 8, 1) var gear_count: int = 6
 @export_range(1, 8, 1) var starting_gear: int = 1
 @export var gear_speed_limits_kmh: PackedFloat32Array = PackedFloat32Array([60.0, 110.0, 155.0, 195.0, 230.0, 260.0])
 @export_range(0.0, 0.5, 0.01) var gear_shift_cooldown_seconds: float = 0.12
 @export_range(0.0, 1.0, 0.01) var downshift_speed_blend: float = 0.08
+@export_range(0.5, 1.0, 0.01) var automatic_upshift_ratio: float = 0.94
+@export_range(0.1, 0.95, 0.01) var automatic_downshift_ratio: float = 0.72
 
 @export_category("Handling")
 @export var low_speed_turn_rate: float = 1.8
 @export var high_speed_turn_rate: float = 0.95
 @export var min_steer_speed: float = 2.0
+@export_range(0.0, 3.0, 0.05) var low_speed_stop_epsilon: float = 0.35
 @export var reverse_turn_multiplier: float = 0.72
 @export_range(0.5, 2.5, 0.05) var steering_response_exponent: float = 1.0
 @export var normal_lateral_grip: float = 58.0
@@ -46,6 +50,8 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export var drift_side_slip: float = 11.0
 @export var drift_turn_multiplier: float = 1.45
 @export var drift_steering_gain: float = 0.75
+@export var drift_drag: float = 10.0
+@export_range(0.25, 1.0, 0.01) var drift_speed_cap_ratio: float = 1.0
 
 @export_category("Collision Feel")
 @export_range(0.0, 1.0, 0.01) var wall_glance_speed_retention: float = 0.74
@@ -58,7 +64,12 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export_category("Visual Feel")
 @export var body_roll_degrees: float = 7.5
 @export var drift_roll_degrees: float = 10.0
-@export var pitch_degrees: float = 3.5
+@export var pitch_degrees: float = 0.8
+@export_range(0.0, 1.0, 0.01) var pitch_fade_start_speed_ratio: float = 0.35
+@export_range(0.0, 1.0, 0.01) var pitch_fade_end_speed_ratio: float = 0.85
+@export_range(0.0, 1.0, 0.01) var high_speed_pitch_multiplier: float = 0.15
+@export_range(1.0, 20.0, 0.1) var visual_roll_damping: float = 6.0
+@export_range(1.0, 20.0, 0.1) var visual_pitch_damping: float = 4.5
 @export var wheel_spin_multiplier: float = 2.8
 @export var front_wheel_steer_degrees: float = 28.0
 @export_enum("blue", "red", "green", "yellow") var car_color_variant: String = "blue"
@@ -178,6 +189,7 @@ func _physics_process(delta: float) -> void:
 	_shift_cooldown = maxf(0.0, _shift_cooldown - delta)
 	_read_command(delta)
 	_update_planar_velocity(delta)
+	_update_automatic_transmission()
 	_update_visuals(delta)
 	move_and_slide()
 	_apply_collision_recovery(previous_planar_velocity)
@@ -204,6 +216,23 @@ func get_forward_speed() -> float:
 
 func get_current_gear() -> int:
 	return clampi(_current_gear, 1, maxi(gear_count, 1))
+
+
+func set_automatic_transmission_enabled(enabled: bool) -> void:
+	automatic_transmission = enabled
+	_shift_cooldown = 0.0
+
+
+func is_automatic_transmission_enabled() -> bool:
+	return automatic_transmission
+
+
+func set_manual_transmission_enabled(enabled: bool) -> void:
+	set_automatic_transmission_enabled(not enabled)
+
+
+func is_manual_transmission_enabled() -> bool:
+	return not automatic_transmission
 
 
 func get_gear_count() -> int:
@@ -361,12 +390,12 @@ func _update_planar_velocity(delta: float) -> void:
 	_side_speed = _finite_or(_side_speed, 0.0)
 
 	var safe_max_speed: float = maxf(_finite_or(max_speed, 1.0), 1.0)
-	var current_gear_speed_limit: float = maxf(_gear_speed_limit(get_current_gear()), 1.0)
+	var current_gear_speed_limit: float = minf(maxf(_gear_speed_limit(get_current_gear()), 1.0), safe_max_speed)
 	var speed_ratio: float = clampf(absf(_forward_speed) / safe_max_speed, 0.0, 1.0)
 	var forward_speed_ratio: float = clampf(_forward_speed / safe_max_speed, 0.0, 1.0)
-	var can_steer: bool = absf(_forward_speed) >= min_steer_speed
+	var steer_speed_weight: float = _low_speed_steer_weight(_forward_speed)
 	var shaped_steering: float = _shape_axis(steering_input, steering_response_exponent)
-	effective_steer_amount = shaped_steering if can_steer else 0.0
+	effective_steer_amount = shaped_steering * steer_speed_weight
 	steer_amount = effective_steer_amount
 
 	is_drifting = _drift_input_active and _forward_speed >= drift_min_speed
@@ -385,7 +414,7 @@ func _update_planar_velocity(delta: float) -> void:
 		turn_rate *= 1.0 + throttle_amount * rear_drive_turn_assist * forward_speed_ratio
 
 	var driving_direction: float = signf(_forward_speed)
-	if not can_steer:
+	if steer_speed_weight <= 0.0:
 		driving_direction = 0.0
 	var reverse_steer_scale: float = reverse_turn_multiplier if driving_direction < 0.0 else 1.0
 	rotate_y(-effective_steer_amount * turn_rate * driving_direction * reverse_steer_scale * delta)
@@ -411,6 +440,11 @@ func _update_planar_velocity(delta: float) -> void:
 	elif throttle_amount > 0.0:
 		target_side_speed = -effective_steer_amount * rear_drive_power_oversteer * throttle_amount * speed_ratio
 	_side_speed = move_toward(_side_speed, target_side_speed, grip * delta)
+	_settle_low_speed_residuals()
+	if is_drifting:
+		_apply_planar_speed_bleed(maxf(_finite_or(drift_drag, 0.0), 0.0) * maxf(0.35, drift_intensity) * delta)
+	# Cap after side slip so lateral drift cannot create extra planar energy.
+	_apply_planar_speed_cap(_planar_speed_cap(current_gear_speed_limit))
 
 	if is_on_floor():
 		vertical_speed = -ground_stick_force
@@ -423,11 +457,37 @@ func _update_planar_velocity(delta: float) -> void:
 		velocity = Vector3.ZERO
 
 
+func _update_automatic_transmission() -> void:
+	_current_gear = get_current_gear()
+	if not automatic_transmission or _shift_cooldown > 0.0:
+		return
+
+	var current_gear: int = get_current_gear()
+	var safe_gear_count: int = get_gear_count()
+	var forward_speed: float = maxf(_finite_or(_forward_speed, 0.0), 0.0)
+	if current_gear < safe_gear_count:
+		var upshift_at: float = _gear_speed_limit(current_gear) * clampf(automatic_upshift_ratio, 0.5, 1.0)
+		if forward_speed >= upshift_at:
+			_shift_to_gear(current_gear + 1)
+			return
+
+	if current_gear > 1:
+		var previous_gear_limit: float = _gear_speed_limit(current_gear - 1)
+		var downshift_at: float = previous_gear_limit * clampf(automatic_downshift_ratio, 0.1, 0.95)
+		if forward_speed <= downshift_at:
+			_shift_to_gear(current_gear - 1)
+
+
 func _apply_gear_delta(gear_delta: int) -> void:
 	if gear_delta == 0 or _shift_cooldown > 0.0:
 		return
 	var direction: int = 1 if gear_delta > 0 else -1
-	var next_gear: int = clampi(_current_gear + direction, 1, maxi(gear_count, 1))
+	var next_gear: int = clampi(get_current_gear() + direction, 1, get_gear_count())
+	_shift_to_gear(next_gear)
+
+
+func _shift_to_gear(next_gear: int) -> void:
+	next_gear = clampi(next_gear, 1, get_gear_count())
 	if next_gear == _current_gear:
 		return
 
@@ -463,13 +523,74 @@ func _gear_speed_limit(gear: int) -> float:
 	return maxf(max_speed, 1.0) * (float(clamped_gear) / float(safe_gear_count))
 
 
+func _planar_speed_cap(current_gear_speed_limit: float) -> float:
+	var safe_cap: float = maxf(minf(current_gear_speed_limit, maxf(_finite_or(max_speed, 1.0), 1.0)), 1.0)
+	if _forward_speed < 0.0:
+		safe_cap = maxf(_finite_or(reverse_speed, 1.0), 1.0)
+	if is_drifting:
+		safe_cap *= clampf(_finite_or(drift_speed_cap_ratio, 1.0), 0.25, 1.0)
+	return safe_cap
+
+
+func _apply_planar_speed_bleed(amount: float) -> void:
+	amount = maxf(_finite_or(amount, 0.0), 0.0)
+	if amount <= 0.0:
+		return
+
+	var planar_speed: float = Vector2(_forward_speed, _side_speed).length()
+	if not _is_finite_float(planar_speed) or planar_speed <= 0.0001:
+		_forward_speed = 0.0
+		_side_speed = 0.0
+		return
+
+	var next_speed: float = maxf(planar_speed - amount, 0.0)
+	var speed_scale: float = next_speed / planar_speed
+	_forward_speed *= speed_scale
+	_side_speed *= speed_scale
+
+
+func _apply_planar_speed_cap(speed_cap: float) -> void:
+	speed_cap = maxf(_finite_or(speed_cap, 1.0), 1.0)
+	var planar_speed: float = Vector2(_forward_speed, _side_speed).length()
+	if not _is_finite_float(planar_speed):
+		_forward_speed = 0.0
+		_side_speed = 0.0
+		return
+	if planar_speed <= speed_cap or planar_speed <= 0.0001:
+		return
+
+	var speed_scale: float = speed_cap / planar_speed
+	_forward_speed *= speed_scale
+	_side_speed *= speed_scale
+
+
+func _low_speed_steer_weight(forward_speed: float) -> float:
+	var stop_speed: float = maxf(_finite_or(low_speed_stop_epsilon, 0.0), 0.0)
+	var full_steer_speed: float = maxf(_finite_or(min_steer_speed, 0.0), stop_speed + 0.001)
+	var t: float = clampf((absf(_finite_or(forward_speed, 0.0)) - stop_speed) / (full_steer_speed - stop_speed), 0.0, 1.0)
+	return t * t * (3.0 - 2.0 * t)
+
+
+func _settle_low_speed_residuals() -> void:
+	var stop_speed: float = maxf(_finite_or(low_speed_stop_epsilon, 0.0), 0.0)
+	var has_drive_input: bool = throttle_amount > 0.001 or brake_amount > 0.001
+	if not has_drive_input and absf(_forward_speed) <= stop_speed:
+		_forward_speed = 0.0
+	if not is_drifting and absf(_side_speed) <= stop_speed:
+		_side_speed = 0.0
+
+
 func _update_visuals(delta: float) -> void:
 	if visual_root != null:
 		var roll_strength: float = lerpf(body_roll_degrees, drift_roll_degrees, drift_intensity)
 		var target_roll: float = deg_to_rad(-effective_steer_amount * roll_strength)
-		var target_pitch: float = deg_to_rad(-throttle_amount * pitch_degrees + brake_amount * pitch_degrees)
-		visual_root.rotation.z = lerp_angle(visual_root.rotation.z, target_roll, 1.0 - exp(-10.0 * delta))
-		visual_root.rotation.x = lerp_angle(visual_root.rotation.x, target_pitch, 1.0 - exp(-8.0 * delta))
+		var pitch_speed_ratio: float = clampf(absf(_forward_speed) / maxf(_finite_or(max_speed, 1.0), 1.0), 0.0, 1.0)
+		var pitch_fade_range: float = maxf(pitch_fade_end_speed_ratio - pitch_fade_start_speed_ratio, 0.001)
+		var pitch_fade_alpha: float = clampf((pitch_speed_ratio - pitch_fade_start_speed_ratio) / pitch_fade_range, 0.0, 1.0)
+		var pitch_multiplier: float = lerpf(1.0, clampf(high_speed_pitch_multiplier, 0.0, 1.0), pitch_fade_alpha)
+		var target_pitch: float = deg_to_rad((throttle_amount - brake_amount) * pitch_degrees * pitch_multiplier)
+		visual_root.rotation.z = lerp_angle(visual_root.rotation.z, target_roll, 1.0 - exp(-visual_roll_damping * delta))
+		visual_root.rotation.x = lerp_angle(visual_root.rotation.x, target_pitch, 1.0 - exp(-visual_pitch_damping * delta))
 
 	var target_front_wheel_yaw: float = deg_to_rad(effective_steer_amount * front_wheel_steer_degrees)
 	var wheel_steer_weight: float = 1.0 - exp(-14.0 * delta)

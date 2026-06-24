@@ -80,6 +80,10 @@ func regenerate_track() -> void:
 	_generated_root = builder.call("build", self, _track_query, _builder_options()) as Node3D
 
 
+func has_generated_track() -> bool:
+	return _track_query != null and get_node_or_null(generated_root_name) != null
+
+
 func get_track_query() -> TrackQueryV2:
 	return _track_query
 
@@ -148,6 +152,56 @@ func road_edge_transform(
 	)
 
 
+func get_road_edge_transform(
+	distance_m: float,
+	road_side: int,
+	edge_offset_m: float = 0.0,
+	vertical_offset_m: float = 0.0,
+	yaw_offset_degrees: float = 0.0
+) -> Transform3D:
+	return road_edge_transform(
+		distance_m,
+		float(-1 if road_side < 0 else 1),
+		edge_offset_m,
+		vertical_offset_m,
+		yaw_offset_degrees
+	)
+
+
+func road_edge_position(distance_m: float, side: float, edge_offset_m: float = 0.0) -> Vector3:
+	return road_edge_transform(distance_m, side, edge_offset_m).origin
+
+
+func get_closest_road_edge(
+	world_position: Vector3,
+	preferred_distance_m: float = 0.0,
+	preferred_side: int = 1
+) -> Dictionary:
+	if _track_query == null:
+		return {}
+
+	var distance_m: float = closest_distance_for_position(world_position)
+	if get_track_length_m() <= 0.0:
+		distance_m = preferred_distance_m
+
+	var left_transform: Transform3D = road_edge_transform(distance_m, -1.0)
+	var right_transform: Transform3D = road_edge_transform(distance_m, 1.0)
+	var left_distance_sq: float = world_position.distance_squared_to(left_transform.origin)
+	var right_distance_sq: float = world_position.distance_squared_to(right_transform.origin)
+	var road_side: int = -1 if left_distance_sq < right_distance_sq else 1
+	if is_equal_approx(left_distance_sq, right_distance_sq):
+		road_side = -1 if preferred_side < 0 else 1
+
+	var edge_transform: Transform3D = left_transform if road_side < 0 else right_transform
+	return {
+		"anchor_distance_m": distance_m,
+		"distance_m": distance_m,
+		"road_side": road_side,
+		"edge_transform": edge_transform,
+		"transform": edge_transform,
+	}
+
+
 func road_edge_anchor_transform(
 	anchor_distance_m: float,
 	road_side: float,
@@ -209,6 +263,7 @@ func _collect_authoring_data() -> Dictionary:
 		start_grid_slots,
 		start_grid_profile
 	)
+	road_points.sort_custom(_sort_road_point_records)
 
 	if road_points.is_empty() and use_preview_when_no_authoring:
 		return _preview_authoring_data()
@@ -301,7 +356,27 @@ func _road_point_record(node: Node3D) -> Dictionary:
 		"banking_degrees": _node_float(node, ["banking_degrees", "banking", "bank_degrees"], 0.0),
 		"surface_id": _node_string_name(node, ["surface_id", "surface_type", "surface"], TrackQueryV2.DEFAULT_SURFACE_ID),
 		"zone_id": _node_string_name(node, ["zone_id", "zone"], TrackQueryV2.DEFAULT_ZONE_ID),
+		"road_distance_m": _node_float(node, ["road_distance_m", "distance_m", "distance"], INF),
+		"sequence_index": int(_node_float(node, ["sequence_index", "authoring_order"], 0.0)),
+		"marker_id": _node_string_name(node, ["marker_id"], StringName(node.name)),
 	}
+
+
+func _sort_road_point_records(a: Dictionary, b: Dictionary) -> bool:
+	var a_distance: float = float(a.get("road_distance_m", INF))
+	var b_distance: float = float(b.get("road_distance_m", INF))
+	var a_has_distance: bool = is_finite(a_distance)
+	var b_has_distance: bool = is_finite(b_distance)
+	if a_has_distance and b_has_distance and not is_equal_approx(a_distance, b_distance):
+		return a_distance < b_distance
+	if a_has_distance != b_has_distance:
+		return a_has_distance
+
+	var a_sequence: int = int(a.get("sequence_index", 0))
+	var b_sequence: int = int(b.get("sequence_index", 0))
+	if a_sequence != b_sequence:
+		return a_sequence < b_sequence
+	return String(a.get("marker_id", "")) < String(b.get("marker_id", ""))
 
 
 func _marker_record(node: Node3D, value_key: String, value: Variant) -> Dictionary:

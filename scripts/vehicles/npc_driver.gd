@@ -19,6 +19,7 @@ const VehicleCommandScript := preload("res://scripts/vehicles/vehicle_command.gd
 @export_range(0.0, 90.0, 1.0) var drift_angle_threshold: float = 42.0
 @export_range(0.1, 1.5, 0.01) var corner_speed_multiplier: float = 0.58
 @export_range(0.0, 40.0, 0.5) var drift_min_speed_mps: float = 14.0
+@export_range(1.0, 60.0, 1.0) var command_update_hz: float = 20.0
 
 @export_category("Difficulty Hooks")
 @export_range(0.1, 1.5, 0.01) var catchup_multiplier: float = 1.0
@@ -28,17 +29,20 @@ const VehicleCommandScript := preload("res://scripts/vehicles/vehicle_command.gd
 var _command: RefCounted = VehicleCommandScript.new()
 var _vehicle: Node3D = null
 var _track_query: Object = null
+var _last_command_update_msec: int = -1000000
+var _has_sampled_command: bool = false
 
 
 func get_command() -> RefCounted:
-	return _sample_command()
+	_refresh_command_if_needed()
+	return _command
 
 
 func write_command(target_command: RefCounted) -> void:
 	if target_command == null:
 		return
 
-	_sample_command()
+	_refresh_command_if_needed()
 
 	if target_command.get_script() == VehicleCommandScript:
 		var typed_command: RefCounted = target_command
@@ -53,6 +57,17 @@ func set_vehicle(vehicle: Node3D) -> void:
 
 func set_track_query(track_query: Object) -> void:
 	_track_query = track_query if _has_track_navigation_api(track_query) else null
+	_has_sampled_command = false
+
+
+func _refresh_command_if_needed(force: bool = false) -> void:
+	var now_msec: int = Time.get_ticks_msec()
+	var update_interval_msec: int = maxi(int(round(1000.0 / maxf(command_update_hz, 1.0))), 1)
+	if not force and _has_sampled_command and now_msec - _last_command_update_msec < update_interval_msec:
+		return
+	_last_command_update_msec = now_msec
+	_has_sampled_command = true
+	_sample_command()
 
 
 func _sample_command() -> RefCounted:

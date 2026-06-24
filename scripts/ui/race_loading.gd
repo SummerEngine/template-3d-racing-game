@@ -8,6 +8,9 @@ const TIPS: Array[String] = [
 	"Feather throttle on corner exit to keep the rear planted.",
 	"Use the rear view before defending a racing line.",
 ]
+const UI_REFERENCE_SIZE: Vector2 = Vector2(1920.0, 1080.0)
+const UI_MIN_SCALE: float = 0.50
+const UI_MAX_SCALE: float = 2.25
 
 var _label: Label = null
 var _percent_label: Label = null
@@ -74,8 +77,8 @@ func _build_ui() -> void:
 	add_child(center)
 
 	var stack := VBoxContainer.new()
-	stack.custom_minimum_size = Vector2(460.0, 0.0)
-	stack.add_theme_constant_override("separation", 18)
+	stack.custom_minimum_size = Vector2(_loading_vw(0.30, 360.0, 720.0), 0.0)
+	stack.add_theme_constant_override("separation", _loading_space(14, 24))
 	center.add_child(stack)
 
 	stack.add_child(_make_loading_summary("VEHICLE", _selected_car_name(), "CIRCUIT", _selected_track_name()))
@@ -84,41 +87,41 @@ func _build_ui() -> void:
 	_label = Label.new()
 	_label.text = "PREPARING RACE"
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_label.add_theme_font_size_override("font_size", 10)
+	_label.add_theme_font_size_override("font_size", _loading_font_px(9, 13, 0.012))
 	_label.add_theme_color_override("font_color", Color(0.34, 0.34, 0.48, 1.0))
 
 	_progress = ProgressBar.new()
 	_progress.min_value = 0.0
 	_progress.max_value = 100.0
 	_progress.show_percentage = false
-	_progress.custom_minimum_size = Vector2(1.0, 4.0)
+	_progress.custom_minimum_size = Vector2(1.0, _loading_space(4, 8))
 	_progress.add_theme_stylebox_override("background", _make_style(Color(1.0, 1.0, 1.0, 0.07), Color.TRANSPARENT, 0, 2))
 	_progress.add_theme_stylebox_override("fill", _make_style(Color(0.90, 0.0, 0.18, 1.0), Color(0.90, 0.0, 0.18, 1.0), 0, 2))
 	stack.add_child(_progress)
 
 	var status_row := HBoxContainer.new()
-	status_row.add_theme_constant_override("separation", 12)
+	status_row.add_theme_constant_override("separation", _loading_space(8, 14))
 	stack.add_child(status_row)
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	status_row.add_child(_label)
 	_percent_label = Label.new()
 	_percent_label.text = "0%"
 	_percent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_percent_label.add_theme_font_size_override("font_size", 10)
+	_percent_label.add_theme_font_size_override("font_size", _loading_font_px(9, 13, 0.012))
 	_percent_label.add_theme_color_override("font_color", Color(0.90, 0.0, 0.18, 1.0))
 	status_row.add_child(_percent_label)
 
 	var tip_caption := Label.new()
 	tip_caption.text = "DRIVER TIP"
 	tip_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tip_caption.add_theme_font_size_override("font_size", 9)
+	tip_caption.add_theme_font_size_override("font_size", _loading_font_px(8, 12, 0.011))
 	tip_caption.add_theme_color_override("font_color", Color(0.24, 0.24, 0.34, 1.0))
 	stack.add_child(tip_caption)
 	var tip := Label.new()
 	tip.text = TIPS[1]
 	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tip.add_theme_font_size_override("font_size", 14)
+	tip.add_theme_font_size_override("font_size", _loading_font_px(13, 22, 0.020))
 	tip.add_theme_color_override("font_color", Color(0.48, 0.48, 0.62, 1.0))
 	stack.add_child(tip)
 	FigmaUIFontScript.apply_tree(self)
@@ -159,11 +162,11 @@ func _enter_race() -> void:
 func _make_loading_summary(left_label: String, left_value: String, right_label: String, right_value: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", _loading_space(10, 18))
 	row.add_child(_make_summary_stack(left_label, left_value, HORIZONTAL_ALIGNMENT_RIGHT))
 	var divider := ColorRect.new()
 	divider.color = Color(1.0, 1.0, 1.0, 0.10)
-	divider.custom_minimum_size = Vector2(1.0, 32.0)
+	divider.custom_minimum_size = Vector2(maxf(1.0, _loading_scale()), _loading_space(30, 48))
 	row.add_child(divider)
 	row.add_child(_make_summary_stack(right_label, right_value, HORIZONTAL_ALIGNMENT_LEFT))
 	return row
@@ -174,13 +177,13 @@ func _make_summary_stack(label_text: String, value_text: String, alignment: Hori
 	var label := Label.new()
 	label.text = label_text
 	label.horizontal_alignment = alignment
-	label.add_theme_font_size_override("font_size", 9)
+	label.add_theme_font_size_override("font_size", _loading_font_px(8, 12, 0.011))
 	label.add_theme_color_override("font_color", Color(0.30, 0.30, 0.42, 1.0))
 	stack.add_child(label)
 	var value := Label.new()
 	value.text = value_text
 	value.horizontal_alignment = alignment
-	value.add_theme_font_size_override("font_size", 12)
+	value.add_theme_font_size_override("font_size", _loading_font_px(11, 17, 0.016))
 	value.add_theme_color_override("font_color", Color(0.48, 0.48, 0.62, 1.0))
 	stack.add_child(value)
 	return stack
@@ -189,18 +192,18 @@ func _make_summary_stack(label_text: String, value_text: String, alignment: Hori
 func _make_centered_rule_label(text: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", _loading_space(10, 18))
 	for side: int in range(3):
 		if side == 1:
 			var label := Label.new()
 			label.text = text
-			label.add_theme_font_size_override("font_size", 10)
+			label.add_theme_font_size_override("font_size", _loading_font_px(9, 13, 0.012))
 			label.add_theme_color_override("font_color", Color(0.34, 0.34, 0.48, 1.0))
 			row.add_child(label)
 		else:
 			var line := ColorRect.new()
 			line.color = Color(1.0, 1.0, 1.0, 0.14)
-			line.custom_minimum_size = Vector2(26.0, 1.0)
+			line.custom_minimum_size = Vector2(_loading_space(26, 52), maxf(1.0, _loading_scale()))
 			row.add_child(line)
 	return row
 
@@ -212,6 +215,38 @@ func _make_style(fill: Color, border: Color, border_width: int, radius: int) -> 
 	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(radius)
 	return style
+
+
+func _loading_font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
+	var ui_scale := _loading_scale()
+	var scaled_size := float(maximum) * ui_scale
+	var scaled_minimum := maxf(8.0, float(minimum) * minf(ui_scale, 1.0))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
+	var height_size := get_viewport_rect().size.y * vh_ratio
+	return roundi(clampf(minf(scaled_size, height_size), scaled_minimum, scaled_maximum))
+
+
+func _loading_space(minimum: int, maximum: int) -> int:
+	var ui_scale := _loading_scale()
+	var scaled_minimum := maxf(1.0, float(minimum) * minf(ui_scale, 1.0))
+	var scaled_maximum := float(maximum) * maxf(ui_scale, 1.0)
+	return roundi(clampf(float(maximum) * ui_scale, scaled_minimum, scaled_maximum))
+
+
+func _loading_vw(ratio: float, minimum: float, maximum: float) -> float:
+	var ui_scale := _loading_scale()
+	return clampf(get_viewport_rect().size.x * ratio, minimum * minf(ui_scale, 1.0), maximum * maxf(ui_scale, 1.0))
+
+
+func _loading_scale() -> float:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return 1.0
+	return clampf(
+		minf(viewport_size.x / UI_REFERENCE_SIZE.x, viewport_size.y / UI_REFERENCE_SIZE.y),
+		UI_MIN_SCALE,
+		UI_MAX_SCALE
+	)
 
 
 func _selected_car_name() -> String:

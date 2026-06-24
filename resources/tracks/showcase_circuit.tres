@@ -75,11 +75,13 @@ resource_name = "ShowcaseCircuit"
 script = ExtResource("1_profile")
 track_id = &"showcase_circuit"
 display_name = "Showcase Circuit"
-road_width_m = 22.0
+target_length_m = 4000.0
+road_width_m = 8.0
 guardrail_settings = SubResource("Guardrails_showcase")
 environment_sections = Array[Resource]([SubResource("Section_highway_open"), SubResource("Section_industrial")])
 transitions = Array[Resource]([SubResource("Transition_highway_to_industrial"), SubResource("Transition_industrial_to_highway")])
 music_key = &"showcase_race_loop"
+lap_count = 1
 spawn_lane_spacing_m = 4.6
 difficulty_defaults = {
 "easy": {
@@ -92,4 +94,4 @@ difficulty_defaults = {
 "assist": 0.7
 }
 }
-notes = "About 1.8km, 14m-wide closed loop. Environment flow: Highway/Crops 0-45%, transition 45-57%, Industrial 57-88%, transition 88-100%."
+notes = "Manual 4km, 8m-wide test loop sourced from res://scenes/tracks/manual_track_authoring.tscn. Environment metadata remains for UI/audio weighting while the visible track is manually authored."

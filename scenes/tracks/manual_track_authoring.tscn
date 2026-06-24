@@ -1,0 +1,236 @@
+[gd_scene format=3 uid="uid://d2nm4owyajfhx"]
+
+[ext_resource type="Script" uid="uid://bwu1o385ttsbc" path="res://scripts/race/showcase_race_scene.gd" id="1_race_scene"]
+[ext_resource type="Script" uid="uid://c360hanijsxb0" path="res://scripts/track/track_generator.gd" id="2_track_generator"]
+[ext_resource type="Resource" uid="uid://efwsjf6wjdh8" path="res://resources/tracks/showcase_circuit.tres" id="3_track_profile"]
+[ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="4_player_car"]
+[ext_resource type="Script" uid="uid://b7ftvxk4rgrbn" path="res://scripts/vehicles/npc_driver.gd" id="5_npc_driver"]
+[ext_resource type="Script" uid="uid://d4ec4dtsyad7u" path="res://scripts/camera/camera_rig.gd" id="6_camera_rig"]
+[ext_resource type="Script" uid="uid://camrubrc8108k" path="res://scripts/race/race_manager.gd" id="7_race_manager"]
+[ext_resource type="Script" uid="uid://bdy2leo4bnxur" path="res://scripts/audio/race_audio_controller.gd" id="8_race_audio"]
+[ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="9_race_hud"]
+[ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="10_flow_overlay"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/chase_camera_view.tres" id="11_chase_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/cockpit_placeholder_camera_view.tres" id="12_cockpit_camera"]
+[ext_resource type="Resource" path="res://resources/profiles/camera/look_back_camera_view.tres" id="13_look_back_camera"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0wd2y"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_h1alj"]
+sky_material = SubResource("ProceduralSkyMaterial_0wd2y")
+
+[sub_resource type="Environment" id="Environment_nt88g"]
+background_mode = 2
+sky = SubResource("Sky_h1alj")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Curve3D" id="Curve3D_0wd2y"]
+closed = true
+bake_interval = 8.0
+_data = {
+"points": PackedVector3Array(16.3575, 0, 3.4237, -16.3575, 0, -3.4237, 0, 0.2, -150, 2.2824, 0, 9.5102, -2.2824, 0, -9.5102, -34.59781, 0.2, -184.10341, -14.8359, 0, 6.2767, 14.8359, 0, -6.2767, -30.120056, -0.9168091, -254.79279, -16.1673, 0, 8.5592, 16.1673, 0, -8.5592, 5.994812, 0.2, -262.72943, -9.8906, 0, 17.1183, 9.8906, 0, -17.1183, 21.775238, 0.2, -295.58868, -13.3142, 0, 19.0203, 13.3142, 0, -19.0203, 125.5343, 0.2, -309.7709, -3.0433, 0, 19.0203, 3.0433, 0, -19.0203, 163.1946, 0.2, -372.5381, 27.1991, 0, 11.7926, -27.1991, 0, -11.7926, 143.7938, 0.2, -423.893, 26.6285, 0, 18.4497, -26.6285, 0, -18.4497, 0, 0.2, -443.2937, -3.0433, 0, 22.0636, 3.0433, 0, -22.0636, -28.221863, 0.2, -534.5914, -15.2163, 0, -0.3804, 15.2163, 0, 0.3804, 18.2595, 0.2, -575.6754, -16.5477, 0, -14.8359, 16.5477, 0, 14.8359, 75.32062, 0.2, -564.69855, -15.5967, 0, -7.6081, 15.5967, 0, 7.6081, 117.5457, 0.2, -486.6601, -11.222, 0, 12.9338, 11.222, 0, -12.9338, 154.41852, 0.2, -486.6601, -8.369, 0, 13.6946, 8.369, 0, -13.6946, 168.00972, 0.20000005, -584.42694, -7.2277, 0, -15.5967, 7.2277, 0, 15.5967, 248.75783, 0.20000005, -570.84784, -5.7061, 0, -20.1616, 5.7061, 0, 20.1616, 239.79184, 0.20000005, -449.80298, -13.3142, 0, -3.0433, 13.3142, 0, 3.0433, 272.7277, 0.20000005, -428.20645, 0, 0, 0, 0, 0, 0, 309.62073, 0.061340213, -484.45233, -14.0751, 0, 23.5852, 14.0751, 0, -23.5852, 327.58182, 0.19995117, -513.4218, -19.7812, 0, 23.9656, 19.7812, 0, -23.9656, 337.8014, 0.2, -589.37, -25.1069, 0, -4.1845, 25.1069, 0, 4.1845, 426.8166, 0.2, -596.2173, -15.9771, 0, -17.3085, 15.9771, 0, 17.3085, 488.4425, 0.2, -564.2632, -7.9885, 0, -27.1991, 7.9885, 0, 27.1991, 522.6791, 0.2, -492.3662, -4.1845, 0, -26.0579, 4.1845, 0, 26.0579, 536.3738, 0.2, -401.0686, -7.6081, 0, -10.8416, 7.6081, 0, 10.8416, 547.786, 0.2, -336.019, -10.271, 0, 6.4669, 10.271, 0, -6.4669, 582.0226, 0.2, -322.36615, -6.4669, 0, 39.9427, 6.4669, 0, -39.9427, 609.4119, 0.2, -374.8205, -21.6832, 0, 35.7583, 21.6832, 0, -35.7583, 620.63654, 2.7025084, -575.7891, -27.3893, 0, 0.7608, 27.3893, 0, -0.7608, 739.5111, 0.2, -627.9181, -7.6081, 0, -21.3028, 7.6081, 0, 21.3028, 785.27704, 1.7314637, -580.282, 1.902, 0, -30.4326, -1.902, 0, 30.4326, 785.1599, 0.2, -461.5533, 14.4555, 0, -16.7379, -14.4555, 0, 16.7379, 773.7477, 0.2, -397.6449, 16.3575, 0, -10.271, -16.3575, 0, 10.271, 698.5086, 3.3891194, -401.03528, -7.6081, 0, -12.173, 7.6081, 0, 12.173, 675.6027, 0.2, -336.019, -16.7379, 0, -16.7379, 16.7379, 0, 16.7379, 744.23175, 2.9282463, -288.24347, 4.1845, 0, -14.4555, -4.1845, 0, 14.4555, 776.2663, 10.611551, -235.52325, 24.1558, 0, -12.9338, -24.1558, 0, 12.9338, 720.0297, 13.138555, -155.88329, 22.2538, 0, 11.0318, -22.2538, 0, -11.0318, 586.5495, 0.9777317, -158.99278, 20.9224, 0, 16.3575, -20.9224, 0, -16.3575, 519.3689, 0.2, -224.1794, 23.5852, 0, 6.4669, -23.5852, 0, -6.4669, 442.7937, 0.20000005, -383.96313, 28.9109, 0, 0, -28.9109, 0, 0, 356.0609, 0.20000005, -383.35217, 17.1183, 0, -4.9453, -17.1183, 0, 4.9453, 268.31827, 0.20000005, -350.55505, -6.4669, 0, -8.7494, 6.4669, 0, 8.7494, 253.351, 0.2, -267.6189, -28.9109, 0, -4.1845, 28.9109, 0, 4.1845, 308.1296, 0.2, -237.683, -24.7265, 0, -4.9453, 24.7265, 0, 4.9453, 395.06577, 0.2, -260.22937, -1.1412, 0, -9.5102, 1.1412, 0, 9.5102, 456.4883, 0.2, -180.813, 19.4008, 0, -5.3257, -19.4008, 0, 5.3257, 433.6639, 0.2, -151.1412, 22.8244, 0, 1.902, -22.8244, 0, -1.902, 340.0838, 0.2, -148.8588, 28.1501, 0, 2.2824, -28.1501, 0, -2.2824, 258.30148, 0.2, -162.5534, 36.8995, 0, -2.2824, -36.8995, 0, 2.2824, 171.1831, 0.2, -162.5534, 28.5305, 0, -2.0922, -28.5305, 0, 2.0922, 75.3206, 0.2, -148.8588),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 52
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.055, 0.062, 0.066, 1)
+roughness = 0.82
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wd2y"]
+albedo_color = Color(0.05, 0.85, 1, 0.7)
+emission_enabled = true
+emission = Color(0.05, 0.55, 1, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_h1alj"]
+top_radius = 4.0
+bottom_radius = 4.0
+height = 0.12
+radial_segments = 48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nt88g"]
+emission_enabled = true
+emission = Color(1, 0.05, 0.1, 1)
+emission_energy_multiplier = 0.45
+
+[sub_resource type="BoxMesh" id="BoxMesh_5akmi"]
+
+[node name="ManualTrackAuthoring" type="Node3D" unique_id=145802683]
+script = ExtResource("1_race_scene")
+metadata/intent = "Manual semi-realistic race track authoring scene. Edit road pieces, centerline handles, spawn markers, and checkpoint volumes directly in the inspector."
+metadata/workflow = "Edit TrackSpline_4km, Road, Rail_left, Rail_right, GroundPlane, and SpawnMarkers directly in this scene. Press Play Current Scene to test the same authored layout."
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=698404042]
+environment = SubResource("Environment_nt88g")
+
+[node name="World" type="Node3D" parent="." unique_id=1504892348]
+
+[node name="TrackSpline_4km" type="Path3D" parent="World" unique_id=1329722864]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -378.832, 1, 417.65)
+curve = SubResource("Curve3D_0wd2y")
+debug_custom_color = Color(1, 0.16, 0.12, 1)
+metadata/authoring_note = "Closed manual race centerline based on the provided sketch. Points are scaled so the intended centerline length is 4000 meters."
+metadata/target_length_m = 4000.0
+metadata/curve_role = "editable_track_centerline"
+
+[node name="GroundPlane" type="MeshInstance3D" parent="World" unique_id=443374643]
+transform = Transform3D(1000, 0, 0, 0, 0.105, 0, 0, 0, 815.79, 0.315094, -0.295332, 28.196106)
+material_override = SubResource("Material_ground")
+mesh = SubResource("BoxMesh_unit")
+metadata/authoring_note = "Large neutral floor for visual blockout only."
+
+[node name="SpawnMarkers" type="Node3D" parent="World" unique_id=756809230]
+metadata/authoring_note = "Container for manually placed car spawn markers."
+
+[node name="PlayerCarSpawn" type="Marker3D" parent="World/SpawnMarkers" unique_id=1696616702]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -206.26242, 1.5597636, 251.17503)
+metadata/spawn_role = "player_car_start"
+metadata/authoring_note = "Move and rotate this marker to set the player car starting position and facing direction."
+
+[node name="SpawnRing" type="MeshInstance3D" parent="World/SpawnMarkers/PlayerCarSpawn" unique_id=1240581810]
+material_override = SubResource("StandardMaterial3D_0wd2y")
+mesh = SubResource("CylinderMesh_h1alj")
+
+[node name="ForwardArrow" type="MeshInstance3D" parent="World/SpawnMarkers/PlayerCarSpawn" unique_id=350059045]
+material_override = SubResource("StandardMaterial3D_nt88g")
+mesh = SubResource("BoxMesh_5akmi")
+
+[node name="TrackRoot" type="Node3D" parent="World" unique_id=1053827748]
+script = ExtResource("2_track_generator")
+track_profile = ExtResource("3_track_profile")
+source_path_node_path = NodePath("../TrackSpline_4km")
+manual_spawn_marker_path = NodePath("../SpawnMarkers/PlayerCarSpawn")
+generate_on_ready = false
+generate_road = false
+generate_markings = false
+generate_guardrails = false
+generate_scenery = false
+generate_collision = false
+generate_spawn_marker = false
+
+[node name="Vehicles" type="Node3D" parent="World" unique_id=1301044678]
+
+[node name="PlayerCar" parent="World/Vehicles" unique_id=1684524657 instance=ExtResource("4_player_car")]
+
+[node name="NpcCars" type="Node3D" parent="World/Vehicles" unique_id=1644580461]
+
+[node name="TechnicianCar" parent="World/Vehicles/NpcCars" unique_id=1137668471 instance=ExtResource("4_player_car")]
+car_color_variant = "green"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/TechnicianCar" unique_id=1967708301]
+script = ExtResource("5_npc_driver")
+track_query_path = NodePath("../../../../TrackRoot")
+lane_index = 1
+
+[node name="BullyCar" parent="World/Vehicles/NpcCars" unique_id=797989343 instance=ExtResource("4_player_car")]
+car_color_variant = "red"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/BullyCar" unique_id=273319808]
+script = ExtResource("5_npc_driver")
+track_query_path = NodePath("../../../../TrackRoot")
+
+[node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=1671862288 instance=ExtResource("4_player_car")]
+car_color_variant = "yellow"
+driver_path = NodePath("NpcDriver")
+use_default_player_driver = false
+
+[node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=1486679597]
+script = ExtResource("5_npc_driver")
+track_query_path = NodePath("../../../../TrackRoot")
+lane_index = 1
+
+[node name="CameraRig" type="Node3D" parent="World" unique_id=511334241]
+script = ExtResource("6_camera_rig")
+target_path = NodePath("../Vehicles/PlayerCar")
+track_query_provider_path = NodePath("../TrackRoot")
+chase_profile = ExtResource("11_chase_camera")
+cockpit_profile = ExtResource("12_cockpit_camera")
+look_back_profile = ExtResource("13_look_back_camera")
+
+[node name="Camera3D" type="Camera3D" parent="World/CameraRig" unique_id=134897527]
+current = true
+fov = 67.0
+
+[node name="AudioListener3D" type="AudioListener3D" parent="World/CameraRig/Camera3D" unique_id=1637022339]
+current = true
+
+[node name="Lighting" type="Node3D" parent="World" unique_id=823825601]
+
+[node name="Sun" type="DirectionalLight3D" parent="World/Lighting" unique_id=1684517148]
+transform = Transform3D(0.8480481, -0.3938068, 0.35458517, 0, 0.66913056, 0.74314487, -0.52991927, -0.63022256, 0.5674549, 0, 40, 0)
+light_color = Color(1, 0.68, 0.38, 1)
+light_energy = 2.55
+light_indirect_energy = 1.05
+shadow_enabled = true
+
+[node name="Road" type="CSGPolygon3D" parent="." unique_id=1317222122]
+use_collision = true
+polygon = PackedVector2Array(-12.4, 0, -12.4, 0.3, 12.4, 0.3, 12.4, 0)
+mode = 2
+path_node = NodePath("../World/TrackSpline_4km")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
+
+[node name="Managers" type="Node" parent="." unique_id=322357310]
+
+[node name="RaceManager" type="Node" parent="Managers" unique_id=757718417]
+script = ExtResource("7_race_manager")
+
+[node name="RaceAudio" type="Node" parent="Managers" unique_id=278157922]
+script = ExtResource("8_race_audio")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=883422327]
+script = ExtResource("9_race_hud")
+race_manager_path = NodePath("../Managers/RaceManager")
+player_car_path = NodePath("../World/Vehicles/PlayerCar")
+
+[node name="RaceFlowOverlay" type="CanvasLayer" parent="." unique_id=20078976]
+layer = 20
+script = ExtResource("10_flow_overlay")
+
+[node name="Rail_left" type="CSGPolygon3D" parent="." unique_id=211941085]
+use_collision = true
+polygon = PackedVector2Array(-12.5, 0, -12.5, 1.1, -12.4, 1.1, -12.4, 0)
+mode = 2
+path_node = NodePath("../World/TrackSpline_4km")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false
+
+[node name="Rail_right" type="CSGPolygon3D" parent="." unique_id=1741901814]
+use_collision = true
+polygon = PackedVector2Array(12.4, 0, 12.4, 1.1, 12.5, 1.1, 12.5, 0)
+mode = 2
+path_node = NodePath("../World/TrackSpline_4km")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_rotation_accurate = false
+path_local = false
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = false

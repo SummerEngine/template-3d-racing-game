@@ -50,11 +50,8 @@ var _time_label: Label = null
 var _results_label: Label = null
 var _fallback_label: Label = null
 var _camera_overlay_root: Control = null
-var _top_shade: ColorRect = null
-var _bottom_shade: ColorRect = null
 var _speed_panel: Control = null
 var _summary_panel: Control = null
-var _position_panel: Control = null
 var _gear_panel: Control = null
 var _gear_label: Label = null
 var _rpm_container: HBoxContainer = null
@@ -161,31 +158,17 @@ func _ensure_default_camera_overlay() -> void:
 	_camera_overlay_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_camera_overlay_root)
 
-	_top_shade = _make_shade("TopShade", Color(0.012, 0.016, 0.04, 0.88))
-	_bottom_shade = _make_shade("BottomShade", Color(0.012, 0.016, 0.04, 0.90))
-
-	_position_panel = _make_overlay_panel(_camera_overlay_root, "PositionPanel", Color(0.86, 0.0, 0.16, 0.16), Color(0.86, 0.0, 0.16, 0.52))
-	var position_box := VBoxContainer.new()
-	position_box.name = "PositionBox"
-	position_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	position_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	_position_panel.add_child(position_box)
-	position_box.add_child(_make_overlay_label("PositionCaption", "POS", 10, Color(0.91, 0.0, 0.18, 1.0), HORIZONTAL_ALIGNMENT_CENTER))
-	_position_label = _make_overlay_label(String(position_label_name), "P1", 30, Color(0.94, 0.94, 0.94, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
-	_position_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	position_box.add_child(_position_label)
-
-	_summary_panel = _make_overlay_panel(_camera_overlay_root, "RaceSummaryPanel", Color(0.012, 0.016, 0.04, 0.28), Color(1.0, 1.0, 1.0, 0.08))
+	_summary_panel = _make_overlay_panel(_camera_overlay_root, "RaceSummaryPanel", Color(0.012, 0.016, 0.04, 0.0), Color(1.0, 1.0, 1.0, 0.0))
 	var summary_box := HBoxContainer.new()
 	summary_box.name = "RaceSummaryBox"
 	summary_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	summary_box.alignment = BoxContainer.ALIGNMENT_BEGIN
-	summary_box.add_theme_constant_override("separation", 16)
+	summary_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	summary_box.add_theme_constant_override("separation", 10)
 	_summary_panel.add_child(summary_box)
 
-	summary_box.add_child(_make_stat_group("LAP", String(lap_label_name), "1 / 3", 19, Color(0.94, 0.94, 0.94, 1.0)))
-	summary_box.add_child(_make_divider())
-	summary_box.add_child(_make_stat_group("TIME", String(time_label_name), "00:00.000", 19, Color(0.94, 0.94, 0.94, 1.0)))
+	summary_box.add_child(_make_stat_group("TIME", String(time_label_name), "00:00.000", 18, Color(0.94, 0.94, 0.94, 1.0)))
+	summary_box.add_child(_make_stat_group("POS", String(position_label_name), "P1", 30, Color(0.94, 0.94, 0.94, 1.0)))
+	summary_box.add_child(_make_stat_group("LAP", String(lap_label_name), "1 / 3", 22, Color(0.94, 0.94, 0.94, 1.0)))
 
 	_speed_panel = _make_overlay_panel(_camera_overlay_root, "SpeedCluster", Color(0.012, 0.016, 0.04, 0.0), Color(1.0, 1.0, 1.0, 0.0))
 	var speed_root := VBoxContainer.new()
@@ -222,7 +205,7 @@ func _ensure_default_camera_overlay() -> void:
 	speed_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	speed_box.alignment = BoxContainer.ALIGNMENT_END
 	speed_row.add_child(speed_box)
-	_speed_label = _make_overlay_label(String(speed_label_name), "0", 60, Color(0.94, 0.94, 0.94, 1.0), HORIZONTAL_ALIGNMENT_RIGHT)
+	_speed_label = _make_overlay_label(String(speed_label_name), "0", 84, Color(0.94, 0.94, 0.94, 1.0), HORIZONTAL_ALIGNMENT_RIGHT)
 	speed_box.add_child(_speed_label)
 	var speed_caption := _make_overlay_label("SpeedCaption", "KM/H", 12, Color(0.29, 0.29, 0.42, 1.0), HORIZONTAL_ALIGNMENT_RIGHT)
 	speed_box.add_child(speed_caption)
@@ -234,7 +217,7 @@ func _ensure_default_camera_overlay() -> void:
 	gear_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_gear_panel.add_child(gear_box)
 	gear_box.add_child(_make_overlay_label("GearCaption", "GEAR", 9, Color(0.91, 0.0, 0.18, 1.0), HORIZONTAL_ALIGNMENT_CENTER))
-	_gear_label = _make_overlay_label("GearLabel", "1", 25, Color(0.94, 0.94, 0.94, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
+	_gear_label = _make_overlay_label("GearLabel", "1", 36, Color(0.94, 0.94, 0.94, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
 	gear_box.add_child(_gear_label)
 
 	if hide_legacy_fallback_panel:
@@ -250,15 +233,6 @@ func _make_overlay_panel(parent: Node, panel_name: String, fill: Color, border: 
 	panel.add_theme_stylebox_override("panel", _make_panel_style(fill, border))
 	parent.add_child(panel)
 	return panel
-
-
-func _make_shade(shade_name: String, color: Color) -> ColorRect:
-	var shade := ColorRect.new()
-	shade.name = shade_name
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shade.color = color
-	_camera_overlay_root.add_child(shade)
-	return shade
 
 
 func _make_panel_style(fill: Color, border: Color) -> StyleBoxFlat:
@@ -294,18 +268,30 @@ func _make_overlay_label(label_name: String, text: String, font_size: int, color
 	return label
 
 
-func _make_stat_group(caption: String, label_name: String, value: String, value_size: int, value_color: Color) -> VBoxContainer:
-	var group := VBoxContainer.new()
+func _make_stat_group(caption: String, label_name: String, value: String, value_size: int, value_color: Color) -> PanelContainer:
+	var group := PanelContainer.new()
 	group.name = "%sGroup" % caption.replace(" ", "")
 	group.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.alignment = BoxContainer.ALIGNMENT_CENTER
-	group.add_theme_constant_override("separation", 1)
-	var caption_label := _make_overlay_label("%sCaption" % group.name, caption, 10, Color(0.29, 0.29, 0.42, 1.0), HORIZONTAL_ALIGNMENT_LEFT)
-	group.add_child(caption_label)
-	var value_label := _make_overlay_label(label_name, value, value_size, value_color, HORIZONTAL_ALIGNMENT_LEFT)
-	group.add_child(value_label)
+	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	group.add_theme_stylebox_override("panel", _make_panel_style(Color(0.012, 0.016, 0.04, 0.42), Color(1.0, 1.0, 1.0, 0.12)))
+	group.add_theme_constant_override("margin_left", 14)
+	group.add_theme_constant_override("margin_top", 8)
+	group.add_theme_constant_override("margin_right", 14)
+	group.add_theme_constant_override("margin_bottom", 8)
+
+	var row := HBoxContainer.new()
+	row.name = "%sRow" % group.name
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	group.add_child(row)
+
+	var value_label := _make_overlay_label(label_name, value, value_size, value_color, HORIZONTAL_ALIGNMENT_CENTER)
+	row.add_child(value_label)
 	if label_name == String(lap_label_name):
 		_lap_label = value_label
+	elif label_name == String(position_label_name):
+		_position_label = value_label
 	elif label_name == String(time_label_name):
 		_time_label = value_label
 	return group
@@ -333,58 +319,36 @@ func _update_camera_overlay_layout(force: bool = false) -> void:
 		reference = Vector2(1152.0, 648.0)
 	var ui_scale: float = clampf(minf(viewport_size.x / reference.x, viewport_size.y / reference.y), overlay_min_scale, overlay_max_scale)
 
-	_layout_bar(_top_shade, true, 94.0, ui_scale)
-	_layout_bar(_bottom_shade, false, 156.0, ui_scale)
-	_layout_panel_top_left(_position_panel, Vector2(16.0, 10.0), Vector2(72.0, 58.0), ui_scale)
-	_layout_panel_top_left(_summary_panel, Vector2(104.0, 10.0), Vector2(292.0, 58.0), ui_scale)
-	_layout_panel_bottom_right(_speed_panel, Vector2(16.0, 16.0), Vector2(286.0, 96.0), ui_scale)
+	_layout_panel_top_center(_summary_panel, 18.0, Vector2(640.0, 58.0), ui_scale)
+	_layout_panel_bottom_right(_speed_panel, Vector2(24.0, 22.0), Vector2(370.0, 136.0), ui_scale)
 
-	_apply_overlay_margins(_speed_panel, 16, 10, 16, 12, ui_scale)
-	_apply_overlay_margins(_summary_panel, 18, 10, 18, 10, ui_scale)
-	_apply_overlay_margins(_position_panel, 14, 8, 14, 8, ui_scale)
-	_apply_overlay_margins(_gear_panel, 8, 6, 8, 6, ui_scale)
-	_set_control_minimum(_gear_panel, Vector2(50.0, 50.0), ui_scale)
-	_set_label_font(_speed_label, 60, ui_scale, 34, 80)
-	_set_label_font(_lap_label, 19, ui_scale, 13, 28)
-	_set_label_font(_time_label, 19, ui_scale, 13, 28)
-	_set_label_font(_position_label, 30, ui_scale, 20, 42)
-	_set_label_font(_gear_label, 25, ui_scale, 18, 36)
+	_apply_overlay_margins(_speed_panel, 20, 12, 20, 16, ui_scale)
+	_apply_overlay_margins(_summary_panel, 0, 0, 0, 0, ui_scale)
+	_apply_overlay_margins(_gear_panel, 12, 8, 12, 8, ui_scale)
+	_set_control_minimum(_gear_panel, Vector2(68.0, 66.0), ui_scale)
+	_set_label_font(_speed_label, 84, ui_scale, 48, 116)
+	_set_label_font(_lap_label, 24, ui_scale, 16, 36)
+	_set_label_font(_time_label, 18, ui_scale, 12, 26)
+	_set_label_font(_position_label, 30, ui_scale, 20, 44)
+	_set_label_font(_gear_label, 36, ui_scale, 24, 52)
 	if _rpm_container != null:
-		_rpm_container.add_theme_constant_override("separation", max(2, roundi(3.0 * ui_scale)))
+		_rpm_container.add_theme_constant_override("separation", max(3, roundi(4.0 * ui_scale)))
 	for block: ColorRect in _rpm_blocks:
-		block.custom_minimum_size = Vector2(roundf(8.0 * ui_scale), roundf(13.0 * ui_scale))
+		block.custom_minimum_size = Vector2(roundf(11.0 * ui_scale), roundf(17.0 * ui_scale))
 
 
-func _layout_bar(bar: Control, at_top: bool, height: float, ui_scale: float) -> void:
-	if bar == null:
-		return
-	bar.anchor_left = 0.0
-	bar.anchor_right = 1.0
-	bar.offset_left = 0.0
-	bar.offset_right = 0.0
-	if at_top:
-		bar.anchor_top = 0.0
-		bar.anchor_bottom = 0.0
-		bar.offset_top = 0.0
-		bar.offset_bottom = roundf(height * ui_scale)
-	else:
-		bar.anchor_top = 1.0
-		bar.anchor_bottom = 1.0
-		bar.offset_top = -roundf(height * ui_scale)
-		bar.offset_bottom = 0.0
-
-
-func _layout_panel_top_left(panel: Control, margin: Vector2, size: Vector2, ui_scale: float) -> void:
+func _layout_panel_top_center(panel: Control, top_margin: float, size: Vector2, ui_scale: float) -> void:
 	if panel == null:
 		return
-	panel.anchor_left = 0.0
-	panel.anchor_right = 0.0
+	var scaled_size: Vector2 = Vector2(roundf(size.x * ui_scale), roundf(size.y * ui_scale))
+	panel.anchor_left = 0.5
+	panel.anchor_right = 0.5
 	panel.anchor_top = 0.0
 	panel.anchor_bottom = 0.0
-	panel.offset_left = roundf(margin.x * ui_scale)
-	panel.offset_right = roundf((margin.x + size.x) * ui_scale)
-	panel.offset_top = roundf(margin.y * ui_scale)
-	panel.offset_bottom = roundf((margin.y + size.y) * ui_scale)
+	panel.offset_left = -roundf(scaled_size.x * 0.5)
+	panel.offset_right = roundf(scaled_size.x * 0.5)
+	panel.offset_top = roundf(top_margin * ui_scale)
+	panel.offset_bottom = roundf(top_margin * ui_scale + scaled_size.y)
 
 
 func _layout_panel_bottom_right(panel: Control, margin: Vector2, size: Vector2, ui_scale: float) -> void:

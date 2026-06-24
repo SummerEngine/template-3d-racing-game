@@ -11,17 +11,17 @@ extends Camera3D
 @export var composition_smoothing: float = 7.0
 
 @export_category("Distance")
-@export var low_speed_distance: float = 11.0
-@export var high_speed_distance: float = 9.5
-@export var low_speed_height: float = 4.3
-@export var high_speed_height: float = 3.6
+@export var low_speed_distance: float = 8.2
+@export var high_speed_distance: float = 7.2
+@export var low_speed_height: float = 3.25
+@export var high_speed_height: float = 2.8
 
 @export_category("Road Preview")
-@export var low_speed_look_ahead: float = 7.5
-@export var high_speed_look_ahead: float = 17.0
-@export var look_height: float = 1.4
-@export var corner_look_offset: float = 2.0
-@export_range(0.0, 1.0, 0.01) var grip_velocity_bias: float = 0.25
+@export var low_speed_look_ahead: float = 6.0
+@export var high_speed_look_ahead: float = 12.0
+@export var look_height: float = 1.25
+@export var corner_look_offset: float = 1.7
+@export_range(0.0, 1.0, 0.01) var grip_velocity_bias: float = 0.20
 @export_range(0.0, 1.0, 0.01) var drift_velocity_bias: float = 0.55
 
 @export_category("Smoothing")
@@ -30,12 +30,12 @@ extends Camera3D
 @export var lateral_smoothing: float = 8.0
 @export var vertical_smoothing: float = 7.0
 @export var rotation_smoothing: float = 12.0
-@export var max_follow_lag: float = 4.0
+@export var max_follow_lag: float = 2.2
 
 @export_category("Speed Feel")
-@export var min_fov: float = 67.0
-@export var max_fov: float = 82.0
-@export var fov_speed_power: float = 0.75
+@export var min_fov: float = 66.0
+@export var max_fov: float = 74.0
+@export var fov_speed_power: float = 1.05
 @export var fov_smoothing: float = 4.0
 @export var roll_degrees: float = 3.5
 @export var drift_roll_bonus_degrees: float = 2.0
