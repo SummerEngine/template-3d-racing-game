@@ -16,6 +16,9 @@ const DEFAULT_CAR_MODEL_PATH: String = "res://assets/cars/player_hypercar.glb"
 const DEFAULT_TRANSMISSION_MODE: String = "automatic"
 const SETTINGS_PATH: String = "user://racing_template_settings.cfg"
 const MIN_WINDOW_SIZE: Vector2i = Vector2i(1080, 720)
+const BRIGHTNESS_OVERLAY_LAYER: int = 4090
+const BRIGHTNESS_OVERLAY_NAME: String = "RuntimeBrightnessOverlay"
+const BRIGHTNESS_OVERLAY_RECT_NAME: String = "BrightnessAdjustment"
 
 const COLOR_VARIANTS: Array[String] = ["blue", "red", "green", "yellow"]
 const DIFFICULTIES: Array[String] = ["easy", "medium", "hard"]
@@ -159,8 +162,10 @@ const TRACK_OPTIONS: Array[Dictionary] = [
 		"lap_count": 1,
 		"target_length_m": 4000.0,
 		"preview_texture_path": "res://assets/ui/figma_tracks/figma_track_oval.jpg",
-		"is_available": true,
-		"locked": false,
+		"is_available": false,
+		"locked": true,
+		"status": "locked",
+		"locked_reason": "This track is locked for now. You can inspect the route brief, but racing is disabled.",
 	},
 ]
 
@@ -212,6 +217,8 @@ const DIFFICULTY_OPTIONS: Array[Dictionary] = [
 
 var _pending_loading_target: String = DEFAULT_TRACK_SCENE_PATH
 var _preloaded_resources: Dictionary = {}
+var _brightness_overlay_layer: CanvasLayer = null
+var _brightness_overlay_rect: ColorRect = null
 
 
 func _ready() -> void:
@@ -220,6 +227,8 @@ func _ready() -> void:
 	_load_settings()
 	_normalize_state()
 	apply_audio_settings()
+	_ensure_brightness_overlay()
+	_apply_brightness_overlay()
 
 
 func _apply_minimum_window_size() -> void:
@@ -451,6 +460,7 @@ func set_brightness(value: float) -> void:
 		return
 	brightness = normalized
 	_save_settings()
+	_apply_brightness_overlay()
 	settings_changed.emit()
 
 
@@ -535,7 +545,7 @@ func get_boot_loading_manifest() -> Array[String]:
 	return _dedupe_paths([
 		"res://scenes/ui/main_menu.tscn",
 		"res://assets/ui/menu_showroom_background.png",
-		"res://assets/audio/music/race_loop_arcade_drift.mp3",
+		"res://assets/audio/music/race_neon_sprint_loop.mp3",
 		DEFAULT_PLAYER_SCENE_PATH,
 		DEFAULT_CAR_MODEL_PATH,
 	])
@@ -554,9 +564,10 @@ func get_race_loading_manifest() -> Array[String]:
 		get_track_scene_path(),
 		get_car_scene_path(),
 		get_car_model_path(),
-		"res://assets/audio/music/race_loop_arcade_drift.mp3",
-		"res://assets/audio/sfx/countdown_start_stinger.mp3",
-		"res://assets/audio/sfx/race_finish_stinger.mp3",
+		"res://assets/audio/music/race_neon_sprint_loop.mp3",
+		"res://assets/audio/sfx/race_countdown_3_hype.wav",
+		"res://assets/audio/sfx/race_go_hype_launch.wav",
+		"res://assets/audio/sfx/race_finish_hype_flyby.wav",
 		"res://assets/audio/sfx/engine_hybrid_idle_loop.mp3",
 		"res://assets/audio/sfx/vehicles/premium_engine_acceleration_loop.wav",
 		"res://assets/audio/sfx/vehicles/premium_braking_deceleration_loop.wav",
@@ -589,6 +600,8 @@ func apply_audio_settings() -> void:
 func apply_brightness_to_scene(root: Node) -> void:
 	if root == null:
 		return
+	_ensure_brightness_overlay()
+	_apply_brightness_overlay()
 	var environments: Array[WorldEnvironment] = []
 	_collect_world_environments(root, environments)
 	for world_environment: WorldEnvironment in environments:
@@ -596,6 +609,39 @@ func apply_brightness_to_scene(root: Node) -> void:
 			continue
 		_set_if_property(world_environment.environment, &"adjustment_enabled", true)
 		_set_if_property(world_environment.environment, &"adjustment_brightness", brightness)
+
+
+func _ensure_brightness_overlay() -> void:
+	if _brightness_overlay_layer != null and is_instance_valid(_brightness_overlay_layer):
+		return
+
+	_brightness_overlay_layer = CanvasLayer.new()
+	_brightness_overlay_layer.name = BRIGHTNESS_OVERLAY_NAME
+	_brightness_overlay_layer.layer = BRIGHTNESS_OVERLAY_LAYER
+	add_child(_brightness_overlay_layer)
+
+	_brightness_overlay_rect = ColorRect.new()
+	_brightness_overlay_rect.name = BRIGHTNESS_OVERLAY_RECT_NAME
+	_brightness_overlay_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_brightness_overlay_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_brightness_overlay_layer.add_child(_brightness_overlay_rect)
+
+
+func _apply_brightness_overlay() -> void:
+	_ensure_brightness_overlay()
+	if _brightness_overlay_rect == null or not is_instance_valid(_brightness_overlay_rect):
+		return
+
+	if brightness < 1.0:
+		var dim_alpha: float = inverse_lerp(1.0, 0.65, brightness) * 0.42
+		_brightness_overlay_rect.color = Color(0.0, 0.0, 0.0, clampf(dim_alpha, 0.0, 0.42))
+	elif brightness > 1.0:
+		var lift_alpha: float = inverse_lerp(1.0, 1.35, brightness) * 0.18
+		_brightness_overlay_rect.color = Color(1.0, 1.0, 1.0, clampf(lift_alpha, 0.0, 0.18))
+	else:
+		_brightness_overlay_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+
+	_brightness_overlay_rect.visible = _brightness_overlay_rect.color.a > 0.001
 
 
 func _normalize_state() -> void:

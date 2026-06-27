@@ -1,0 +1,47 @@
+{
+	"assetId": "7e9d67db-119c-4281-a64a-b85dcea11dbd",
+	"metadata": {
+		"downloadUrl": "https://v3b.fal.media/files/b/0a9fba33/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"fileName": "-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"filename": "-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"id": "7e9d67db-119c-4281-a64a-b85dcea11dbd",
+		"metadata": {
+			"aspect_ratio": "1:1",
+			"batchCapped": false,
+			"batchSize": 1.0,
+			"clientImageModel": "fal-ai/nano-banana-2",
+			"entrypoint": "api/art/generate",
+			"falModelId": "fal-ai/nano-banana-2",
+			"falPrompt": "asphalt tileable texture, AAA game art, PBR, sharp focus",
+			"finalPrompt": "asphalt tileable texture",
+			"generatedAt": "2026-06-25T15:15:29.248Z",
+			"generationBatchId": "fa1803b1-7252-4ad2-9103-9fbff5bd029c",
+			"height": 1024.0,
+			"multiview": false,
+			"numImages": 1.0,
+			"numImagesRequested": 1.0,
+			"pose": "none",
+			"promptRefined": false,
+			"referenceCount": 0.0,
+			"runIndex": 0.0,
+			"style": "realistic",
+			"surface": "studio",
+			"width": 1024.0
+		},
+		"name": "asphalt tileable texture",
+		"previewUrl": "https://v3b.fal.media/files/b/0a9fba33/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"primary": true,
+		"thumbnailUrl": "https://v3b.fal.media/files/b/0a9fba33/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"title": "asphalt tileable texture",
+		"type": "image",
+		"url": "https://v3b.fal.media/files/b/0a9fba33/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+		"version": "2026-06-25"
+	},
+	"name": "asphalt tileable texture",
+	"paths": [
+		"res://assets/summer/7e9d67db-119c-4281-a64a-b85dcea11dbd/2026-06-25/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png"
+	],
+	"primaryPath": "res://assets/summer/7e9d67db-119c-4281-a64a-b85dcea11dbd/2026-06-25/-yBDlsXt8KHQLziOh7cgr_XYNDAjiz.png",
+	"source": "summer-studio",
+	"version": "2026-06-25"
+}

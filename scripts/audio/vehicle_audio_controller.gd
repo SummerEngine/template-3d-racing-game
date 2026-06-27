@@ -14,11 +14,11 @@ extends Node
 @export var audio_bus: StringName = &"SFX"
 @export_category("Mix")
 @export var player_focus_mix: bool = true
-@export var engine_idle_volume_db: float = -17.0
-@export var engine_load_volume_db: float = -16.0
-@export var engine_high_rpm_volume_db: float = -18.5
-@export var brake_max_volume_db: float = -14.0
-@export var drift_max_volume_db: float = -11.0
+@export var engine_idle_volume_db: float = -15.5
+@export var engine_load_volume_db: float = -13.75
+@export var engine_high_rpm_volume_db: float = -15.75
+@export var brake_max_volume_db: float = -13.0
+@export var drift_max_volume_db: float = -10.0
 @export_range(3, 8, 1) var virtual_gear_count: int = 6
 @export_category("3D Attenuation")
 @export_range(24.0, 260.0, 1.0) var engine_max_distance_m: float = 180.0
@@ -137,11 +137,11 @@ func _update_engine_layers(speed_ratio: float, throttle_ratio: float) -> void:
 
 	if _engine_load_player != null:
 		_engine_load_player.volume_db = lerpf(-36.0, engine_load_volume_db, load_ratio)
-		_engine_load_player.pitch_scale = lerpf(0.86, 1.28, clampf(speed_ratio * 0.8 + throttle_ratio * 0.45, 0.0, 1.0))
+		_engine_load_player.pitch_scale = lerpf(0.88, 1.42, clampf(speed_ratio * 0.8 + throttle_ratio * 0.45, 0.0, 1.0))
 
 	if _engine_high_rpm_player != null:
 		_engine_high_rpm_player.volume_db = lerpf(-42.0, engine_high_rpm_volume_db, high_ratio)
-		_engine_high_rpm_player.pitch_scale = lerpf(0.92, 1.38, speed_ratio)
+		_engine_high_rpm_player.pitch_scale = lerpf(0.96, 1.62, speed_ratio)
 
 
 func _update_brake_layer(brake_ratio: float, speed_ratio: float) -> void:

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://brqy8nh5owoik"]
 
 [ext_resource type="Script" uid="uid://b2ripyg1c0nws" path="res://scripts/race/storm_coast_preview_scene.gd" id="1_scene"]
-[ext_resource type="PackedScene" uid="uid://boy8sqrtmcvva" path="res://scenes/tracks/storm_coast/storm_coast_authoring.tscn" id="2_track_authoring"]
+[ext_resource type="PackedScene" uid="uid://b0uc0suv2bfm4" path="res://scenes/tracks/storm_coast/storm_coast_authoring.tscn" id="2_track_authoring"]
 [ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="3_player_car"]
 [ext_resource type="Script" uid="uid://d4ec4dtsyad7u" path="res://scripts/camera/camera_rig.gd" id="4_camera_rig"]
 [ext_resource type="Resource" path="res://resources/profiles/camera/chase_camera_view.tres" id="5_chase_camera"]
@@ -15,44 +15,50 @@
 [ext_resource type="Script" uid="uid://ifa13ytuiofq" path="res://scripts/ui/race_hud.gd" id="13_race_hud"]
 [ext_resource type="Script" uid="uid://uk7esavwrjs8" path="res://scripts/ui/race_flow_overlay.gd" id="14_flow_overlay"]
 [ext_resource type="PackedScene" uid="uid://jbhpsjba2hgg" path="res://assets/environment/generated_grandstand_hunyuan.glb" id="15_grandstand"]
+[ext_resource type="Texture2D" uid="uid://bdhj1j3f4eubu" path="res://assets/environment/sky/evening_road_01_puresky_polyhaven.jpg" id="16_sky_panorama"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_storm_coast_preview"]
-sky_top_color = Color(0.08, 0.18, 0.36, 1)
-sky_horizon_color = Color(1, 0.58, 0.3, 1)
-sky_curve = 0.11
-sky_energy_multiplier = 1.18
-ground_bottom_color = Color(0.06, 0.07, 0.08, 1)
-ground_horizon_color = Color(0.38, 0.24, 0.2, 1)
-ground_curve = 0.05
-sun_angle_max = 20.0
-sun_curve = 0.05
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_storm_coast_preview"]
+panorama = ExtResource("16_sky_panorama")
+energy_multiplier = 0.72
 
 [sub_resource type="Sky" id="Sky_storm_coast_preview"]
-sky_material = SubResource("ProceduralSkyMaterial_storm_coast_preview")
+sky_material = SubResource("PanoramaSkyMaterial_storm_coast_preview")
 
 [sub_resource type="Environment" id="Environment_storm_coast_preview"]
 background_mode = 2
-background_color = Color(0.16, 0.26, 0.4, 1)
+background_color = Color(0.98, 0.58, 0.32, 1)
 sky = SubResource("Sky_storm_coast_preview")
 ambient_light_source = 2
-ambient_light_color = Color(0.78, 0.68, 0.58, 1)
-ambient_light_energy = 0.58
+ambient_light_color = Color(0.62, 0.66, 0.72, 1)
+ambient_light_energy = 0.44
 tonemap_mode = 3
-tonemap_exposure = 1.08
-tonemap_white = 6.0
+tonemap_exposure = 0.62
+tonemap_white = 7.5
 ssr_enabled = true
 ssr_max_steps = 48
 ssao_enabled = true
 ssao_radius = 2.2
 ssao_intensity = 0.55
 glow_enabled = true
-glow_intensity = 0.2
-glow_strength = 0.55
-glow_bloom = 0.08
+glow_intensity = 0.12
+glow_strength = 0.276
+glow_bloom = 0.048
 fog_enabled = true
-fog_light_color = Color(0.98, 0.62, 0.36, 1)
-fog_light_energy = 0.28
-fog_density = 0.00145
+fog_light_color = Color(0.82, 0.72, 0.6, 1)
+fog_light_energy = 0.09
+fog_sun_scatter = 0.32
+fog_density = 0.00115
+fog_aerial_perspective = 0.58
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0072
+volumetric_fog_albedo = Color(0.72, 0.7, 0.66, 1)
+volumetric_fog_emission = Color(0.78, 0.46, 0.24, 1)
+volumetric_fog_emission_energy = 0.012
+volumetric_fog_length = 220.0
+volumetric_fog_sky_affect = 0.276
+adjustment_enabled = true
+adjustment_contrast = 1.03
+adjustment_saturation = 1.08
 
 [node name="StormCoastPreviewRace" type="Node3D" unique_id=1039963252]
 script = ExtResource("1_scene")
@@ -69,15 +75,6 @@ metadata/last_authoring_record_counts = {
 "width_markers": 3,
 "zone_markers": 4
 }
-
-[node name="StormCoastTrackGenerator" parent="World/TrackAuthoring/Generated" index="0"]
-generate_on_ready = false
-sample_spacing_m = 8.0
-generate_surrounding_terrain = false
-collision_spacing_m = 8.0
-
-[node name="AuthoringPreview" parent="World/TrackAuthoring/Generated" index="1"]
-visible = false
 
 [node name="CoastalBackdrop" type="Node3D" parent="World" unique_id=679288389]
 visible = false
@@ -136,7 +133,6 @@ use_default_player_driver = false
 
 [node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/BullyCar" unique_id=1859163831]
 script = ExtResource("10_npc_driver")
-personality_id = &"technician"
 
 [node name="ShowoffCar" parent="World/Vehicles/NpcCars" unique_id=1823916510 instance=ExtResource("3_player_car")]
 transform = Transform3D(-0.9181216, 0, 0.39629883, 0, 1, 0, -0.39629883, 0, -0.9181216, 0.0026307106, -1.1920929e-07, -0.001437664)
@@ -146,7 +142,6 @@ use_default_player_driver = false
 
 [node name="NpcDriver" type="Node" parent="World/Vehicles/NpcCars/ShowoffCar" unique_id=1447713846]
 script = ExtResource("10_npc_driver")
-personality_id = &"technician"
 lane_index = 1
 
 [node name="CameraRig" type="Node3D" parent="World" unique_id=428696892]
@@ -166,9 +161,12 @@ current = true
 
 [node name="Sun" type="DirectionalLight3D" parent="World" unique_id=1313742438]
 transform = Transform3D(0.66913074, 0.30226403, -0.67889625, 0, 0.9135448, 0.40673643, 0.74314505, -0.2721597, 0.6112808, 0, 80, 0)
-light_color = Color(1, 0.66, 0.36, 1)
-light_energy = 2.35
-light_angular_distance = 0.95
+light_color = Color(1, 0.84, 0.58, 1)
+light_energy = 1.18
+light_indirect_energy = 0.28
+light_volumetric_fog_energy = 0.68
+light_angular_distance = 1.08
+light_specular = 1.15
 shadow_enabled = true
 shadow_bias = 0.025
 shadow_normal_bias = 0.85
@@ -181,8 +179,8 @@ environment = SubResource("Environment_storm_coast_preview")
 [node name="SkyFillLight" type="DirectionalLight3D" parent="World" unique_id=2122635602]
 transform = Transform3D(0.57357645, 0.33317915, -0.7483326, 0, 0.9135454, 0.40673664, 0.81915206, -0.23329456, 0.5239881, 0, 0, 0)
 light_color = Color(0.45, 0.56, 0.82, 1)
-light_energy = 0.18
-light_specular = 0.06
+light_energy = 0.34
+light_specular = 0.02
 
 [node name="Managers" type="Node" parent="." unique_id=1370992983]
 

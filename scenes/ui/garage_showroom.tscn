@@ -1,0 +1,773 @@
+[gd_scene format=3 uid="uid://dtjo3iy7lphrj"]
+
+[ext_resource type="Texture2D" uid="uid://b725ilrrekm8t" path="res://assets/ui/showroom/hangar_ceiling_panels_4k.png" id="3_1opr4"]
+[ext_resource type="PackedScene" uid="uid://d0cfru1ksqqx1" path="res://assets/ui/showroom/platform/rotation_platform.glb" id="4_6kje4"]
+[ext_resource type="PackedScene" uid="uid://cx8v57ddwaoi3" path="res://assets/ui/showroom/props/tool_cart.glb" id="7_cwj2n"]
+[ext_resource type="Texture2D" uid="uid://cn8p3hvtl7vci" path="res://assets/ui/showroom/hangar_wall_panels_4k.png" id="8_wall4k"]
+[ext_resource type="Texture2D" uid="uid://cao10ufv4ufr" path="res://assets/ui/showroom/hangar_wall_panels_4k_normal.png" id="9_walln"]
+[ext_resource type="PackedScene" uid="uid://f4y21ww6qhd8" path="res://assets/ui/showroom/lights/industrial_ceiling_light_reference.glb" id="10_ceilinglight"]
+[ext_resource type="Texture2D" uid="uid://bs53uavipns17" path="res://assets/ui/showroom/hangar_floor_workshop_concrete_4k.png" id="11_floor4k"]
+[ext_resource type="AudioStream" uid="uid://ceihgpqcl325" path="res://assets/audio/music/menu_neon_garage_loop.mp3" id="11_nma5v"]
+[ext_resource type="Texture2D" uid="uid://b86bl4702o0oh" path="res://assets/ui/showroom/hangar_floor_workshop_concrete_4k_normal.png" id="12_floorn"]
+[ext_resource type="Texture2D" uid="uid://dyjrsqqa5vski" path="res://assets/ui/showroom/tire_marks_decal_4k.png" id="13_tiremarks"]
+[ext_resource type="Texture2D" uid="uid://bsi6krs6mv8yc" path="res://assets/ui/showroom/hangar_ceiling_panels_4k_normal.png" id="14_ceilingn"]
+
+[sub_resource type="Environment" id="Environment_6kje4"]
+background_mode = 1
+background_color = Color(0.006, 0.008, 0.012, 1)
+background_energy_multiplier = 0.65
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.7, 0.78, 1)
+ambient_light_energy = 0.46
+reflected_light_source = 1
+tonemap_mode = 4
+tonemap_exposure = 1.056
+tonemap_white = 6.0
+tonemap_agx_white = 12.0
+tonemap_agx_contrast = 1.126
+ssr_max_steps = 96
+ssr_fade_in = 0.08
+ssr_fade_out = 2.8
+ssr_depth_tolerance = 0.25
+ssao_enabled = true
+ssao_radius = 2.2
+ssao_intensity = 0.826
+ssao_power = 1.245
+ssao_detail = 0.455
+ssil_enabled = true
+ssil_radius = 3.0
+ssil_intensity = 0.266
+glow_enabled = true
+glow_intensity = 0.196
+glow_strength = 0.504
+glow_bloom = 0.056
+adjustment_enabled = true
+adjustment_brightness = 1.014
+adjustment_contrast = 1.049
+adjustment_saturation = 0.972
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oluo4"]
+albedo_color = Color(0.72, 0.73, 0.71, 1)
+albedo_texture = ExtResource("11_floor4k")
+metallic_specular = 0.52
+roughness = 0.32
+normal_enabled = true
+normal_scale = 0.2
+normal_texture = ExtResource("12_floorn")
+uv1_scale = Vector3(1, 0.455, 0.909)
+uv1_offset = Vector3(1, 0.81, 0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vm0sv"]
+uv2_padding = 0.0
+size = Vector3(11, 0.08, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tiremarks"]
+transparency = 1
+cull_mode = 2
+albedo_texture = ExtResource("13_tiremarks")
+roughness = 0.88
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_tiremarks"]
+size = Vector2(3.4, 5.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cwj2n"]
+albedo_color = Color(0.76, 0.79, 0.79, 1)
+albedo_texture = ExtResource("8_wall4k")
+roughness = 0.6
+normal_enabled = true
+normal_scale = -16.0
+normal_texture = ExtResource("9_walln")
+
+[sub_resource type="BoxMesh" id="BoxMesh_cql6c"]
+size = Vector3(11, 3.5, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nma5v"]
+albedo_color = Color(0.64, 0.68, 0.69, 1)
+albedo_texture = ExtResource("8_wall4k")
+roughness = 0.62
+normal_enabled = true
+normal_scale = -16.0
+normal_texture = ExtResource("9_walln")
+
+[sub_resource type="BoxMesh" id="BoxMesh_bwo0h"]
+size = Vector3(0.1, 3.5, 15)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dw6ow"]
+size = Vector3(0.1, 3.5, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ulryu"]
+albedo_color = Color(0.36, 0.38, 0.4, 1)
+albedo_texture = ExtResource("3_1opr4")
+metallic = 0.38
+metallic_specular = 0.34
+normal_enabled = true
+normal_scale = 0.49
+normal_texture = ExtResource("14_ceilingn")
+uv1_scale = Vector3(10, 10, 10)
+uv1_triplanar_sharpness = 0.46651444
+
+[sub_resource type="BoxMesh" id="BoxMesh_vxdv4"]
+size = Vector3(15, 0.1, 17)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cpb4y"]
+albedo_color = Color(1, 0.96, 0.84, 1)
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.93, 0.72, 1)
+emission_energy_multiplier = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_idyfp"]
+size = Vector3(1.5, 0.035, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kk2ri"]
+albedo_color = Color(0.055, 0.06, 0.065, 1)
+metallic = 0.38
+roughness = 0.36
+
+[sub_resource type="BoxMesh" id="BoxMesh_m353o"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4abe4"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7uxi"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0ffc0"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jbnl4"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hcaii"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kphty"]
+size = Vector3(0.055, 3.25, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ts4d3"]
+size = Vector3(10.65, 0.045, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vmnc1"]
+size = Vector3(10.65, 0.045, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ilthv"]
+size = Vector3(10.65, 0.045, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dfc8s"]
+albedo_color = Color(0.13, 0.15, 0.16, 1)
+metallic = 0.26
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_ywawh"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mrwkk"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_twnd3"]
+size = Vector3(10.75, 0.08, 0.075)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ph1a8"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kcak4"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tnd3t"]
+size = Vector3(10.75, 0.08, 0.075)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lenw6"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pu3f2"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5wcvc"]
+size = Vector3(10.75, 0.08, 0.075)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ijls1"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m1p3b"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pcxhx"]
+size = Vector3(10.75, 0.08, 0.075)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bofw3"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pceyc"]
+size = Vector3(0.08, 3.05, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ja0q8"]
+size = Vector3(10.75, 0.08, 0.075)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d3sg4"]
+albedo_color = Color(0.58, 0.88, 1, 0.88)
+roughness = 0.12
+emission_enabled = true
+emission = Color(0.4, 0.86, 1, 1)
+emission_energy_multiplier = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_bucvj"]
+size = Vector3(1.18, 0.38, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7mqc1"]
+size = Vector3(1.18, 0.38, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dcbsl"]
+size = Vector3(1.18, 0.38, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lk6ud"]
+size = Vector3(1.18, 0.38, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3b8bp"]
+size = Vector3(1.18, 0.38, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0y41o"]
+size = Vector3(0.035, 0.32, 4.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cukek"]
+size = Vector3(0.035, 0.32, 4.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3lk8r"]
+size = Vector3(10.7, 0.36, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pp3rl"]
+size = Vector3(0.055, 0.34, 8.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qu2a8"]
+size = Vector3(0.055, 0.34, 8.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_showroom_softbox"]
+albedo_color = Color(0.93, 0.965, 1, 1)
+roughness = 0.05
+emission_enabled = true
+emission = Color(0.78, 0.9, 1, 1)
+emission_energy_multiplier = 2.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_beauty_softbox_wide"]
+size = Vector3(3.1, 0.035, 0.48)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_showroom_warm_softbox"]
+albedo_color = Color(1, 0.955, 0.84, 1)
+roughness = 0.06
+emission_enabled = true
+emission = Color(1, 0.86, 0.62, 1)
+emission_energy_multiplier = 1.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_beauty_softbox_tall"]
+size = Vector3(0.045, 1.45, 3.15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ct86"]
+albedo_color = Color(0.018, 0.017, 0.016, 1)
+roughness = 0.72
+
+[sub_resource type="TorusMesh" id="TorusMesh_6vyk7"]
+inner_radius = 0.16
+outer_radius = 0.34
+rings = 18
+ring_segments = 10
+
+[sub_resource type="TorusMesh" id="TorusMesh_wwkdd"]
+inner_radius = 0.16
+outer_radius = 0.34
+rings = 18
+ring_segments = 10
+
+[sub_resource type="TorusMesh" id="TorusMesh_xeuud"]
+inner_radius = 0.16
+outer_radius = 0.34
+rings = 18
+ring_segments = 10
+
+[node name="GarageShowroom" type="Node3D" unique_id=1180893611]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1796534305]
+environment = SubResource("Environment_6kje4")
+
+[node name="EditableRoom" type="Node3D" parent="." unique_id=1096837698]
+
+[node name="HangarPolishedFloor" type="MeshInstance3D" parent="EditableRoom" unique_id=1107219271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06261897, -0.124090746, -1.3688226)
+material_override = SubResource("StandardMaterial3D_oluo4")
+mesh = SubResource("BoxMesh_vm0sv")
+
+[node name="EditableFloorDecals" type="Node3D" parent="EditableRoom" unique_id=1150364244]
+
+[node name="TireMarksDecal_01" type="MeshInstance3D" parent="EditableRoom/EditableFloorDecals" unique_id=1928864508]
+transform = Transform3D(2.828427, 0, 2.828427, 0, 1, 0, -2.828427, 0, 2.828427, 2.1447296, -0.07946789, 1.9838173)
+material_override = SubResource("StandardMaterial3D_tiremarks")
+mesh = SubResource("PlaneMesh_tiremarks")
+
+[node name="HangarBackWall" type="MeshInstance3D" parent="EditableRoom" unique_id=393444583]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6108707, -7.015946)
+material_override = SubResource("StandardMaterial3D_cwj2n")
+mesh = SubResource("BoxMesh_cql6c")
+
+[node name="HangarLeftWall" type="MeshInstance3D" parent="EditableRoom" unique_id=8327461]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.42, 1.6034238, 0)
+material_override = SubResource("StandardMaterial3D_nma5v")
+mesh = SubResource("BoxMesh_bwo0h")
+
+[node name="HangarRightWall" type="MeshInstance3D" parent="EditableRoom" unique_id=1348648860]
+transform = Transform3D(1.05, 0, 0, 0, 1.05, 0, 0, 0, 1.05, 5.42, 1.6246607, 0)
+material_override = SubResource("StandardMaterial3D_nma5v")
+mesh = SubResource("BoxMesh_dw6ow")
+
+[node name="HangarCeiling" type="MeshInstance3D" parent="EditableRoom" unique_id=2118281972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38726068, 3.34, 1.1655893)
+material_override = SubResource("StandardMaterial3D_ulryu")
+mesh = SubResource("BoxMesh_vxdv4")
+
+[node name="EditableCeilingFixtures" type="Node3D" parent="EditableRoom" unique_id=2132893965]
+
+[node name="IndustrialCeilingLightReference_01" type="Node3D" parent="EditableRoom/EditableCeilingFixtures" unique_id=587343393]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.12, -0.55)
+
+[node name="IndustrialCeilingLightMesh" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=197550115 instance=ExtResource("10_ceilinglight")]
+transform = Transform3D(0.8, 0, 0, 0, 0.5, 0, 0, 0, 1, -1.8968254, -0.1947658, -3.3783019)
+
+[node name="IndustrialCeilingLightMesh3" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=1820636708 instance=ExtResource("10_ceilinglight")]
+transform = Transform3D(0.8, 0, 0, 0, 0.5, 0, 0, 0, 1, 2.61036, -0.1947658, -3.3783019)
+
+[node name="IndustrialCeilingLightMesh4" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=2051499174 instance=ExtResource("10_ceilinglight")]
+transform = Transform3D(0.8, 0, 0, 0, 0.5, 0, 0, 0, 1, -1.8968254, -0.1947658, 3.445015)
+
+[node name="IndustrialCeilingLightMesh5" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=1256514590 instance=ExtResource("10_ceilinglight")]
+transform = Transform3D(0.8, 0, 0, 0, 0.5, 0, 0, 0, 1, 2.61036, -0.1947658, 3.445015)
+
+[node name="LightEmitterPanel" type="MeshInstance3D" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=98054472]
+transform = Transform3D(0.9, 0, 0, 0, 0.55, 0, 0, 0, 0.9, 0, -1.3047528, 0)
+visible = false
+material_override = SubResource("StandardMaterial3D_cpb4y")
+mesh = SubResource("BoxMesh_idyfp")
+
+[node name="RealLightSpot" type="SpotLight3D" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=767689236]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, -0.24, 0)
+visible = false
+light_color = Color(1, 0.955, 0.86, 1)
+light_energy = 3.2
+shadow_enabled = true
+spot_range = 6.8
+spot_attenuation = 1.15
+spot_angle = 52.0
+
+[node name="RealLightGlow" type="OmniLight3D" parent="EditableRoom/EditableCeilingFixtures/IndustrialCeilingLightReference_01" unique_id=741779980]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
+visible = false
+light_color = Color(1, 0.93, 0.78, 1)
+light_energy = 0.55
+omni_range = 3.2
+
+[node name="HangarBackVerticalBeam_00" type="MeshInstance3D" parent="EditableRoom" unique_id=775060962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_m353o")
+
+[node name="HangarBackVerticalBeam_01" type="MeshInstance3D" parent="EditableRoom" unique_id=117397335]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_4abe4")
+
+[node name="HangarBackVerticalBeam_02" type="MeshInstance3D" parent="EditableRoom" unique_id=724125550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_w7uxi")
+
+[node name="HangarBackVerticalBeam_03" type="MeshInstance3D" parent="EditableRoom" unique_id=1552817343]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.881784e-16, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_0ffc0")
+
+[node name="HangarBackVerticalBeam_04" type="MeshInstance3D" parent="EditableRoom" unique_id=865309360]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_jbnl4")
+
+[node name="HangarBackVerticalBeam_05" type="MeshInstance3D" parent="EditableRoom" unique_id=2119913216]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_hcaii")
+
+[node name="HangarBackVerticalBeam_06" type="MeshInstance3D" parent="EditableRoom" unique_id=1774201851]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.55, -4.2)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_kphty")
+
+[node name="HangarBackHorizontalBeam_0_5" type="MeshInstance3D" parent="EditableRoom" unique_id=1847118031]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, -4.18)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_ts4d3")
+
+[node name="HangarBackHorizontalBeam_1_6" type="MeshInstance3D" parent="EditableRoom" unique_id=1698219023]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, -4.18)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_vmnc1")
+
+[node name="HangarBackHorizontalBeam_2_7" type="MeshInstance3D" parent="EditableRoom" unique_id=808064096]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.74, -4.18)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_ilthv")
+
+[node name="HangarLeftBayBeam_00" type="MeshInstance3D" parent="EditableRoom" unique_id=1921564019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1583827, 1.7734439, -4.2400055)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_ywawh")
+
+[node name="HangarRightBayBeam_00" type="MeshInstance3D" parent="EditableRoom" unique_id=1996989180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.32, 1.45, -3.45)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_mrwkk")
+
+[node name="HangarRoofRib_00" type="MeshInstance3D" parent="EditableRoom" unique_id=576094266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22, -3.45)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_twnd3")
+
+[node name="HangarLeftBayBeam_01" type="MeshInstance3D" parent="EditableRoom" unique_id=1564128106]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.32, 1.45, -1.73)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_ph1a8")
+
+[node name="HangarRightBayBeam_01" type="MeshInstance3D" parent="EditableRoom" unique_id=513433537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.32, 1.45, -1.73)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_kcak4")
+
+[node name="HangarRoofRib_01" type="MeshInstance3D" parent="EditableRoom" unique_id=1025817635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22, -1.73)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_tnd3t")
+
+[node name="HangarLeftBayBeam_02" type="MeshInstance3D" parent="EditableRoom" unique_id=74445762]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.32, 1.45, -0.01)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_lenw6")
+
+[node name="HangarRightBayBeam_02" type="MeshInstance3D" parent="EditableRoom" unique_id=1664705825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.32, 1.45, -0.01)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_pu3f2")
+
+[node name="HangarRoofRib_02" type="MeshInstance3D" parent="EditableRoom" unique_id=351543560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22, -0.01)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_5wcvc")
+
+[node name="HangarLeftBayBeam_03" type="MeshInstance3D" parent="EditableRoom" unique_id=95928270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.32, 1.45, 1.71)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_ijls1")
+
+[node name="HangarRightBayBeam_03" type="MeshInstance3D" parent="EditableRoom" unique_id=634689194]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.32, 1.45, 1.71)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_m1p3b")
+
+[node name="HangarRoofRib_03" type="MeshInstance3D" parent="EditableRoom" unique_id=832958338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22, 1.71)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_pcxhx")
+
+[node name="HangarLeftBayBeam_04" type="MeshInstance3D" parent="EditableRoom" unique_id=1598524128]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.32, 1.45, 3.43)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_bofw3")
+
+[node name="HangarRightBayBeam_04" type="MeshInstance3D" parent="EditableRoom" unique_id=1386614695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.32, 1.45, 3.43)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_pceyc")
+
+[node name="HangarRoofRib_04" type="MeshInstance3D" parent="EditableRoom" unique_id=1005227606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22, 3.43)
+visible = false
+material_override = SubResource("StandardMaterial3D_kk2ri")
+mesh = SubResource("BoxMesh_ja0q8")
+
+[node name="HangarUpperWindow_00" type="MeshInstance3D" parent="EditableRoom" unique_id=1948728479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.55, 2.34, -4.13)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_bucvj")
+
+[node name="HangarUpperWindow_01" type="MeshInstance3D" parent="EditableRoom" unique_id=119166142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.77, 2.34, -4.13)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_7mqc1")
+
+[node name="HangarUpperWindow_02" type="MeshInstance3D" parent="EditableRoom" unique_id=289713319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.01, 2.34, -4.13)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_dcbsl")
+
+[node name="HangarUpperWindow_03" type="MeshInstance3D" parent="EditableRoom" unique_id=1339527896]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.79, 2.34, -4.13)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_lk6ud")
+
+[node name="HangarUpperWindow_04" type="MeshInstance3D" parent="EditableRoom" unique_id=1680437130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.57, 2.34, -4.13)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_3b8bp")
+
+[node name="HangarLeftWindowStrip" type="MeshInstance3D" parent="EditableRoom" unique_id=1018698248]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 2.28, -1)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_0y41o")
+
+[node name="HangarRightWindowStrip" type="MeshInstance3D" parent="EditableRoom" unique_id=2060479232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, 2.28, -1)
+visible = false
+material_override = SubResource("StandardMaterial3D_d3sg4")
+mesh = SubResource("BoxMesh_cukek")
+
+[node name="HangarBackLowerKickPlate" type="MeshInstance3D" parent="EditableRoom" unique_id=1816889865]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18, -4.12)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_3lk8r")
+
+[node name="HangarLeftLowerKickPlate" type="MeshInstance3D" parent="EditableRoom" unique_id=1236219602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 0.17, 0)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_pp3rl")
+
+[node name="HangarRightLowerKickPlate" type="MeshInstance3D" parent="EditableRoom" unique_id=1828111161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, 0.17, 0)
+visible = false
+material_override = SubResource("StandardMaterial3D_dfc8s")
+mesh = SubResource("BoxMesh_qu2a8")
+
+[node name="EditableLights" type="Node3D" parent="." unique_id=1903542068]
+
+[node name="KeyLight" type="DirectionalLight3D" parent="EditableLights" unique_id=1408837627]
+transform = Transform3D(-0.5782436, -0.81585765, 0.0032660589, 0.79295033, -0.5610568, 0.2375816, -0.19200028, 0.13996986, 0.97136205, 0, -4.2749243, 1.616065)
+visible = false
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.7
+shadow_enabled = true
+
+[node name="HangarSoftLight_01_01" type="OmniLight3D" parent="EditableLights" unique_id=1847373409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8555583, 2.2392612, -3.9765973)
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 2.051
+light_volumetric_fog_energy = 1.829
+light_size = 1.0
+light_specular = 0.05
+light_bake_mode = 1
+omni_range = 4.6
+
+[node name="HangarSoftLight_01_02" type="OmniLight3D" parent="EditableLights" unique_id=923708157]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6516268, 2.2392612, -3.9765973)
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 2.051
+light_volumetric_fog_energy = 1.829
+light_size = 1.0
+light_specular = 0.05
+light_bake_mode = 1
+omni_range = 4.6
+
+[node name="HangarSoftLight_01_03" type="OmniLight3D" parent="EditableLights" unique_id=1030838293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8555583, 2.2392612, 2.8467193)
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 2.051
+light_volumetric_fog_energy = 1.829
+light_size = 1.0
+light_specular = 0.05
+light_bake_mode = 1
+omni_range = 4.6
+
+[node name="HangarSoftLight_01_04" type="OmniLight3D" parent="EditableLights" unique_id=195670297]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6516268, 2.2392612, 2.8467193)
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 2.051
+light_volumetric_fog_energy = 1.829
+light_size = 1.0
+light_specular = 0.05
+light_bake_mode = 1
+omni_range = 4.6
+
+[node name="HangarLightPanel_02_01" type="MeshInstance3D" parent="EditableLights" unique_id=534750954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.593702, 3.2866418, 2.870864)
+visible = false
+material_override = SubResource("StandardMaterial3D_cpb4y")
+mesh = SubResource("BoxMesh_idyfp")
+
+[node name="HangarLightPanel_02_02" type="MeshInstance3D" parent="EditableLights" unique_id=507284571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.593702, 3.2866418, -0.55268)
+visible = false
+material_override = SubResource("StandardMaterial3D_cpb4y")
+mesh = SubResource("BoxMesh_idyfp")
+
+[node name="HangarLightPanel_02_03" type="MeshInstance3D" parent="EditableLights" unique_id=958523981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8741977, 3.2866418, -0.5238054)
+visible = false
+material_override = SubResource("StandardMaterial3D_cpb4y")
+gi_lightmap_texel_scale = 0.01
+mesh = SubResource("BoxMesh_idyfp")
+
+[node name="HangarLightPanel_02_04" type="MeshInstance3D" parent="EditableLights" unique_id=1803794933]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8741977, 3.2866418, 2.8635182)
+visible = false
+material_override = SubResource("StandardMaterial3D_cpb4y")
+mesh = SubResource("BoxMesh_idyfp")
+
+[node name="EditableBeautyLighting" type="Node3D" parent="." unique_id=564410881]
+
+[node name="ShowroomReflectionProbe" type="ReflectionProbe" parent="EditableBeautyLighting" unique_id=133797735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32117683, 1.6484271, -0.35)
+intensity = 0.128
+blend_distance = 1.15
+size = Vector3(13.5, 5.2, 15.5)
+origin_offset = Vector3(0, 0.15, 0)
+box_projection = true
+interior = true
+
+[node name="BeautySoftbox_Ceiling_Left" type="MeshInstance3D" parent="EditableBeautyLighting" unique_id=709308867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.95, 3.24, 0.65)
+visible = false
+material_override = SubResource("StandardMaterial3D_showroom_softbox")
+mesh = SubResource("BoxMesh_beauty_softbox_wide")
+
+[node name="BeautySoftbox_Ceiling_Right" type="MeshInstance3D" parent="EditableBeautyLighting" unique_id=763543502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 3.24, 0.65)
+visible = false
+material_override = SubResource("StandardMaterial3D_showroom_softbox")
+mesh = SubResource("BoxMesh_beauty_softbox_wide")
+
+[node name="BeautySoftbox_Back_Warm" type="MeshInstance3D" parent="EditableBeautyLighting" unique_id=1242303148]
+transform = Transform3D(1, 0, 0, 0, 0.76604444, -0.64278764, 0, 0.64278764, 0.76604444, -0.25, 2.34, -4.04)
+visible = false
+material_override = SubResource("StandardMaterial3D_showroom_warm_softbox")
+mesh = SubResource("BoxMesh_beauty_softbox_wide")
+
+[node name="BeautySoftbox_Left_Rim" type="MeshInstance3D" parent="EditableBeautyLighting" unique_id=1727563127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.18, 1.65, 0.7)
+visible = false
+material_override = SubResource("StandardMaterial3D_showroom_softbox")
+mesh = SubResource("BoxMesh_beauty_softbox_tall")
+
+[node name="BeautySoftbox_Right_Rim" type="MeshInstance3D" parent="EditableBeautyLighting" unique_id=188211348]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.18, 1.65, 0.7)
+visible = false
+material_override = SubResource("StandardMaterial3D_showroom_softbox")
+mesh = SubResource("BoxMesh_beauty_softbox_tall")
+
+[node name="BeautyOverheadSpot_Left" type="SpotLight3D" parent="EditableBeautyLighting" unique_id=1070302738]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -1.95, 3.02, 0.65)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 0.2
+light_size = 1.25
+shadow_enabled = true
+shadow_blur = 2.0
+spot_range = 7.0
+spot_attenuation = 1.1
+spot_angle = 58.0
+
+[node name="BeautyOverheadSpot_Right" type="SpotLight3D" parent="EditableBeautyLighting" unique_id=111584613]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 1.65, 3.02, 0.65)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+light_size = 1.2
+shadow_enabled = true
+shadow_blur = 2.0
+spot_range = 7.0
+spot_attenuation = 1.1
+spot_angle = 58.0
+
+[node name="BeautyLeftCoolRim" type="OmniLight3D" parent="EditableBeautyLighting" unique_id=1459851653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2369115, 1.55, 1.7)
+light_color = Color(0.55, 0.82, 1, 1)
+light_energy = 0.875
+light_size = 0.9
+omni_range = 4.6
+
+[node name="BeautyRightCoolRim" type="OmniLight3D" parent="EditableBeautyLighting" unique_id=1499474802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.45, 1.55, 1.7)
+light_color = Color(0.55, 0.82, 1, 1)
+light_energy = 0.665
+light_size = 0.9
+omni_range = 4.6
+
+[node name="BeautyFrontWarmKicker" type="OmniLight3D" parent="EditableBeautyLighting" unique_id=1608417487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0.61491436, 3.05)
+light_color = Color(1, 0.8, 0.56, 1)
+light_energy = 0.504
+light_size = 0.85
+omni_range = 3.8
+
+[node name="Turntable" type="Node3D" parent="." unique_id=2137964704]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.8861984, 0, -0.3040762)
+
+[node name="RotationPlatformModel" parent="Turntable" unique_id=356792081 instance=ExtResource("4_6kje4")]
+transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, 0.0025858446, 0.23249164, 0.0022535285)
+
+[node name="CarMount" type="Node3D" parent="Turntable" unique_id=523497369]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0.4893585, 0)
+
+[node name="PreviewCamera" type="Camera3D" parent="." unique_id=2061868927]
+transform = Transform3D(0.9998949, 0.004176669, -0.013885363, -0.0031452773, 0.99729115, 0.07348806, 0.014154685, -0.073436655, 0.9971995, -0.12371826, 1.7033482, 5.9380455)
+current = true
+fov = 42.0
+
+[node name="EditableProps" type="Node3D" parent="." unique_id=512885895]
+
+[node name="SpareTire_00" type="MeshInstance3D" parent="EditableProps" unique_id=1152687275]
+transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, -4.1109104, 0.017884463, -4.866491)
+material_override = SubResource("StandardMaterial3D_6ct86")
+mesh = SubResource("TorusMesh_6vyk7")
+
+[node name="SpareTire_01" type="MeshInstance3D" parent="EditableProps" unique_id=598078234]
+transform = Transform3D(1, 0, 0, 0, 0.28662485, -0.95804286, 0, 0.95804286, 0.28662485, -4.9494452, 0.27539715, -5.3446484)
+material_override = SubResource("StandardMaterial3D_6ct86")
+mesh = SubResource("TorusMesh_wwkdd")
+
+[node name="SpareTire_02" type="MeshInstance3D" parent="EditableProps" unique_id=77812962]
+transform = Transform3D(0.8937475, 0.4423693, 0.07432886, 0, 0.16570166, -0.9861759, -0.4485704, 0.88139224, 0.14809544, -4.6206503, 0.27539715, -5.175664)
+material_override = SubResource("StandardMaterial3D_6ct86")
+mesh = SubResource("TorusMesh_xeuud")
+
+[node name="ToolCart" parent="EditableProps" unique_id=2142711124 instance=ExtResource("7_cwj2n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2100496, 0.8746084, -6.0490556)
+
+[node name="ToolCart2" parent="EditableProps" unique_id=649437547 instance=ExtResource("7_cwj2n")]
+transform = Transform3D(0.9646541, 0, -0.2635195, 0, 1, 0, 0.2635195, 0, 0.9646541, 4.6441336, 0.8746084, -5.534447)
+
+[node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=2004744149]
+stream = ExtResource("11_nma5v")
+volume_db = -7.0
+autoplay = true

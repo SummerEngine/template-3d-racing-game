@@ -1,7 +1,22 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://resources/materials/storm_coast_wet_asphalt.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/environment/road/new_asphalt_grain_albedo.png" id="2_albedo"]
+[ext_resource type="Texture2D" path="res://assets/environment/road/new_asphalt_micro_reflection_map.png" id="3_reflection"]
 
 [resource]
-resource_name = "StormCoastDarkAsphalt"
-albedo_color = Color(0.022, 0.023, 0.022, 1)
-metallic = 0.0
-roughness = 0.88
+resource_name = "StormCoastNewAsphalt"
+shader = ExtResource("1_shader")
+shader_parameter/asphalt_dark = Color(0.008, 0.0085, 0.008, 1)
+shader_parameter/asphalt_mid = Color(0.038, 0.039, 0.037, 1)
+shader_parameter/aggregate_color = Color(0.125, 0.122, 0.112, 1)
+shader_parameter/rubber_color = Color(0.004, 0.004, 0.0035, 1)
+shader_parameter/asphalt_albedo = ExtResource("2_albedo")
+shader_parameter/micro_reflection_map = ExtResource("3_reflection")
+shader_parameter/asphalt_texture_scale = 7.0
+shader_parameter/texture_strength = 0.82
+shader_parameter/wetness = 0.52
+shader_parameter/grain_strength = 0.78
+shader_parameter/rubber_line_strength = 0.22
+shader_parameter/reflection_bias = 0.52
+shader_parameter/sun_sheen_strength = 0.46

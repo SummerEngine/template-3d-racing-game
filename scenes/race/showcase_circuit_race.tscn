@@ -16,44 +16,53 @@
 [ext_resource type="Resource" path="res://resources/profiles/camera/cockpit_placeholder_camera_view.tres" id="14_cockpit_camera"]
 [ext_resource type="Resource" path="res://resources/profiles/camera/look_back_camera_view.tres" id="15_look_back_camera"]
 [ext_resource type="PackedScene" uid="uid://d2nm4owyajfhx" path="res://scenes/tracks/manual_track_authoring.tscn" id="16_manual_track"]
+[ext_resource type="Texture2D" path="res://assets/environment/sky/evening_road_01_puresky_polyhaven.jpg" id="17_sky_panorama"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(1.9, 1, 4.35)
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_showcase"]
-sky_top_color = Color(0.1, 0.2, 0.38, 1)
-sky_horizon_color = Color(1, 0.58, 0.28, 1)
-sky_curve = 0.12
-sky_energy_multiplier = 1.24
-ground_bottom_color = Color(0.08, 0.08, 0.09, 1)
-ground_horizon_color = Color(0.38, 0.24, 0.2, 1)
-sun_angle_max = 20.0
-sun_curve = 0.05
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_showcase"]
+panorama = ExtResource("17_sky_panorama")
+energy_multiplier = 0.72
 
 [sub_resource type="Sky" id="Sky_showcase"]
-sky_material = SubResource("ProceduralSkyMaterial_showcase")
+sky_material = SubResource("PanoramaSkyMaterial_showcase")
 
 [sub_resource type="Environment" id="Environment_55qj1"]
 background_mode = 2
-background_color = Color(0.55, 0.66, 0.85, 1)
+background_color = Color(0.98, 0.58, 0.32, 1)
 sky = SubResource("Sky_showcase")
 ambient_light_source = 2
-ambient_light_color = Color(0.88, 0.76, 0.65, 1)
-ambient_light_energy = 0.68
+ambient_light_color = Color(0.62, 0.66, 0.72, 1)
+ambient_light_energy = 0.44
 tonemap_mode = 3
-tonemap_exposure = 1.16
-tonemap_white = 6.0
+tonemap_exposure = 0.62
+tonemap_white = 7.5
+adjustment_enabled = true
+adjustment_brightness = 1.0
+adjustment_contrast = 1.03
+adjustment_saturation = 1.08
 ssr_enabled = true
 ssao_enabled = true
 ssao_radius = 2.0
 ssao_intensity = 0.52
 glow_enabled = true
-glow_intensity = 0.28
-glow_strength = 0.62
+glow_intensity = 0.12
+glow_strength = 0.276
+glow_bloom = 0.048
 fog_enabled = true
-fog_light_color = Color(0.92, 0.64, 0.43, 1)
-fog_light_energy = 0.26
-fog_density = 0.00145
+fog_light_color = Color(0.82, 0.72, 0.6, 1)
+fog_light_energy = 0.09
+fog_sun_scatter = 0.32
+fog_density = 0.00115
+fog_aerial_perspective = 0.58
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0072
+volumetric_fog_albedo = Color(0.72, 0.7, 0.66, 1)
+volumetric_fog_emission = Color(0.78, 0.46, 0.24, 1)
+volumetric_fog_emission_energy = 0.012
+volumetric_fog_length = 220.0
+volumetric_fog_sky_affect = 0.276
 
 [node name="ShowcaseCircuitRace" type="Node3D" unique_id=1398284230]
 script = ExtResource("1_a4f8a")
@@ -213,14 +222,22 @@ current = true
 
 [node name="Sun" type="DirectionalLight3D" parent="World/Lighting" unique_id=381049704]
 transform = Transform3D(0.8480481, -0.3938068, 0.35458517, 0, 0.66913056, 0.74314487, -0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
-light_color = Color(1, 0.68, 0.38, 1)
-light_energy = 2.55
-light_indirect_energy = 1.05
-light_angular_distance = 0.9
+light_color = Color(1, 0.84, 0.58, 1)
+light_energy = 1.18
+light_indirect_energy = 0.28
+light_volumetric_fog_energy = 0.68
+light_angular_distance = 1.08
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="World/Lighting" unique_id=939563467]
 environment = SubResource("Environment_55qj1")
+
+[node name="SkyFillLight" type="DirectionalLight3D" parent="World/Lighting"]
+transform = Transform3D(0.57357645, 0.33317915, -0.7483326, 0, 0.9135454, 0.40673664, 0.81915206, -0.23329456, 0.5239881, 0, 0, 0)
+light_color = Color(0.45, 0.56, 0.82, 1)
+light_energy = 0.34
+light_specular = 0.02
+shadow_enabled = false
 
 [node name="Managers" type="Node" parent="." unique_id=603629456]
 

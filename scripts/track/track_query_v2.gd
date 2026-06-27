@@ -22,8 +22,8 @@ var _default_width_m: float = 12.0
 var _lane_count: int = 2
 var _lane_spacing_m: float = 3.6
 var _smooth_centerline: bool = true
-var _centerline_tangent_strength: float = 0.55
-var _curve_subdivisions: int = 10
+var _centerline_tangent_strength: float = 0.72
+var _curve_subdivisions: int = 24
 var _closest_query_points: PackedVector3Array = PackedVector3Array()
 var _closest_query_distances: PackedFloat32Array = PackedFloat32Array()
 

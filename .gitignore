@@ -16,12 +16,14 @@ id_ed25519*
 credentials*.json
 *credentials*.json
 export_presets.cfg
+export_presets.cfg.*
 export_credentials.cfg
 
 # Local brainstorming/browser companion state
 .superpowers/
 downloads/
 node_modules/
+build/
 
 # Godot/Summer generated editor cache
 .godot/

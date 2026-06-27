@@ -30,6 +30,15 @@ const TRACK_AUTHORING_SNAPSHOT_SCRIPT := preload("res://scripts/track_authoring/
 @export_tool_button("Freeze Final") var freeze_final_button: Callable = freeze_final
 
 
+func _ready() -> void:
+	if not Engine.is_editor_hint():
+		var generated_branch := get_node_or_null(generated_branch_path) as Node3D
+		if generated_branch != null:
+			var preview_root := generated_branch.get_node_or_null(PREVIEW_ROOT_NAME) as Node3D
+			if preview_root != null:
+				preview_root.visible = false
+
+
 func preview_regenerate() -> Dictionary:
 	_ensure_standard_branches()
 	var records: Dictionary = collect_authoring_records()
@@ -450,9 +459,15 @@ func _generator_settings_snapshot() -> Dictionary:
 		"generate_curbs",
 		"generate_surrounding_terrain",
 		"generate_guardrail_hooks",
+		"generate_guardrail_markers",
 		"terrain_width_m",
 		"terrain_outer_drop_m",
+		"terrain_roughness_m",
 		"terrain_edge_gap_m",
+		"terrain_band_count",
+		"terrain_mountain_height_m",
+		"terrain_ridge_position",
+		"guardrail_sample_spacing_m",
 		"guardrail_edge_offset_m",
 		"guardrail_seam_gap_m",
 	])

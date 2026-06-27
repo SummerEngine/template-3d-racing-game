@@ -255,8 +255,8 @@ func _selected_car_name() -> String:
 		var car: Variant = session.call("get_selected_car_option")
 		if car is Dictionary:
 			var car_dict: Dictionary = car
-			return str(car_dict.get("short_name", car_dict.get("display_name", "Apex GT")))
-	return "Apex GT"
+			return str(car_dict.get("short_name", car_dict.get("display_name", "Summer GT")))
+	return "Summer GT"
 
 
 func _selected_track_name() -> String:

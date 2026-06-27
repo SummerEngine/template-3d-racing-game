@@ -5,10 +5,19 @@ const RACE_LOADING_SCENE_PATH: String = "res://scenes/ui/race_loading.tscn"
 const MENU_AUDIO_CONTROLLER_SCRIPT_PATH: String = "res://scripts/audio/menu_audio_controller.gd"
 const MENU_BACKGROUND_TEXTURE_PATH: String = "res://assets/ui/menu_showroom_background.png"
 const DEFAULT_CAR_CARD_TEXTURE_PATH: String = MENU_BACKGROUND_TEXTURE_PATH
-const HANGAR_FLOOR_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_floor_generated.png"
+const GARAGE_SHOWROOM_SCENE_PATH: String = "res://scenes/ui/garage_showroom.tscn"
+const GARAGE_PLATFORM_MODEL_PATH: String = "res://assets/ui/showroom/platform/rotation_platform.glb"
+const HANGAR_FLOOR_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_floor_workshop_concrete_4k.png"
+const HANGAR_FLOOR_NORMAL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_floor_workshop_concrete_4k_normal.png"
 const HANGAR_WALL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_generated.png"
 const HANGAR_WALL_TILE_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_tileable.png"
-const HANGAR_CEILING_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_ceiling_generated.png"
+const HANGAR_WALL_PANEL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_panels_4k.png"
+const HANGAR_WALL_NORMAL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_wall_panels_4k_normal.png"
+const HANGAR_CEILING_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_ceiling_panels_4k.png"
+const HANGAR_CEILING_NORMAL_TEXTURE_PATH: String = "res://assets/ui/showroom/hangar_ceiling_panels_4k_normal.png"
+const GARAGE_PLATFORM_SCALE: float = 2.746472
+const GARAGE_PLATFORM_POSITION: Vector3 = Vector3(0.0025858446, 0.23249164, 0.0022535285)
+const GARAGE_PLATFORM_TOP_Y: float = 0.4894
 
 const VIEW_HOME: StringName = &"home"
 const VIEW_CAR_SELECT: StringName = &"car_select"
@@ -358,13 +367,13 @@ func _make_home_brand() -> HBoxContainer:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 0)
 
-	var apex := _make_label("APEX", _font_px(62, 112, 0.096), Color(0.86, 0.85, 0.86, 1.0), true)
-	apex.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(apex)
+	var summer := _make_label("SUMMER", _font_px(62, 112, 0.096), Color(0.86, 0.85, 0.86, 1.0), true)
+	summer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(summer)
 
-	var drive := _make_label("DRIVE", _font_px(62, 112, 0.096), COLOR_RACING_RED, true)
-	drive.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	row.add_child(drive)
+	var racer := _make_label("RACER", _font_px(62, 112, 0.096), COLOR_RACING_RED, true)
+	racer.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.add_child(racer)
 	return row
 
 
@@ -1079,6 +1088,83 @@ func _build_car_preview_column() -> PanelContainer:
 	var root3d := Node3D.new()
 	root3d.name = "StageRoot"
 	_preview_subviewport.add_child(root3d)
+	var showroom_loaded := _load_editable_garage_showroom(root3d)
+	if not showroom_loaded:
+		_build_generated_preview_stage(root3d)
+	_ensure_preview_stage_contract(root3d, not showroom_loaded, not showroom_loaded)
+	_rebuild_car_preview()
+	return panel
+
+
+func _build_car_stats_column() -> VBoxContainer:
+	var column := _make_equal_top_column("CarStats")
+	column.add_child(_make_label("PERFORMANCE", _font_px(15, 20, 0.018), Color(0.46, 0.84, 1.0, 1.0), true))
+	var stats: Dictionary = _displayed_car_option().get("stats", {})
+	for stat_name: String in STAT_ORDER:
+		var row := _make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
+		_car_stat_labels[stat_name] = row.get_child(0)
+		_car_stat_bars[stat_name] = row.get_child(1)
+		column.add_child(row)
+	return column
+
+
+func _build_preview_world_environment(root3d: Node3D) -> void:
+	var world_environment := WorldEnvironment.new()
+	world_environment.name = "PreviewHangarWorldEnvironment"
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.006, 0.008, 0.012, 1.0)
+	environment.background_energy_multiplier = 0.65
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.62, 0.70, 0.78, 1.0)
+	environment.ambient_light_energy = 0.46
+	environment.set("reflected_light_source", 1)
+	environment.set("tonemap_mode", 4)
+	environment.tonemap_exposure = 1.056
+	environment.tonemap_white = 6.0
+	environment.set("tonemap_agx_contrast", 1.126)
+	environment.set("tonemap_agx_white", 12.0)
+	environment.ssr_enabled = false
+	environment.ssr_max_steps = 96
+	environment.ssr_fade_in = 0.08
+	environment.ssr_fade_out = 2.8
+	environment.ssr_depth_tolerance = 0.25
+	environment.ssao_enabled = true
+	environment.ssao_radius = 2.2
+	environment.ssao_intensity = 0.826
+	environment.ssao_power = 1.245
+	environment.ssao_detail = 0.455
+	environment.ssil_enabled = true
+	environment.ssil_radius = 3.0
+	environment.ssil_intensity = 0.266
+	environment.glow_enabled = true
+	environment.glow_intensity = 0.196
+	environment.glow_strength = 0.504
+	environment.glow_bloom = 0.056
+	environment.adjustment_enabled = true
+	environment.adjustment_brightness = 1.014
+	environment.adjustment_contrast = 1.049
+	environment.adjustment_saturation = 0.972
+	world_environment.environment = environment
+	root3d.add_child(world_environment)
+
+
+func _load_editable_garage_showroom(root3d: Node3D) -> bool:
+	var packed := load(GARAGE_SHOWROOM_SCENE_PATH) as PackedScene
+	if packed == null:
+		return false
+	var showroom := packed.instantiate()
+	if showroom == null:
+		return false
+	showroom.name = "EditableGarageShowroom"
+	root3d.add_child(showroom)
+	_preview_turntable = _find_node3d_by_name(showroom, &"Turntable")
+	_preview_car_mount = _find_node3d_by_name(showroom, &"CarMount")
+	_preview_camera = _find_camera3d_by_name(showroom, &"PreviewCamera")
+	return _preview_turntable != null
+
+
+func _build_generated_preview_stage(root3d: Node3D) -> void:
 	_build_preview_world_environment(root3d)
 	var light := DirectionalLight3D.new()
 	light.name = "KeyLight"
@@ -1103,55 +1189,75 @@ func _build_car_preview_column() -> PanelContainer:
 	root3d.add_child(front_reflector)
 	_build_preview_room(root3d)
 	_build_hangar_ceiling_lights(root3d)
+	_build_preview_beauty_lighting(root3d)
 	_preview_turntable = Node3D.new()
 	_preview_turntable.name = "Turntable"
-	_preview_turntable.rotation_degrees.y = _preview_turntable_yaw_degrees
 	root3d.add_child(_preview_turntable)
 	_build_preview_platform(_preview_turntable)
-	_preview_car_mount = Node3D.new()
-	_preview_car_mount.name = "CarMount"
-	_preview_car_mount.position = Vector3(0.0, 0.14, 0.0)
-	_preview_turntable.add_child(_preview_car_mount)
-	_preview_camera = Camera3D.new()
-	_preview_camera.name = "PreviewCamera"
-	_preview_camera.fov = 42.0
+
+
+func _ensure_preview_stage_contract(root3d: Node3D, position_camera: bool, allow_platform_fallback: bool) -> void:
+	if _preview_turntable == null:
+		_preview_turntable = Node3D.new()
+		_preview_turntable.name = "Turntable"
+		root3d.add_child(_preview_turntable)
+	if allow_platform_fallback:
+		_build_missing_preview_platform()
+	_preview_turntable.rotation_degrees.y = _preview_turntable_yaw_degrees
+	if _preview_car_mount == null:
+		_preview_car_mount = Node3D.new()
+		_preview_car_mount.name = "CarMount"
+		var mount_y := 0.14
+		if _preview_turntable.get_node_or_null("RotationPlatformModel") != null:
+			mount_y = GARAGE_PLATFORM_TOP_Y
+		_preview_car_mount.position = Vector3(0.0, mount_y, 0.0)
+		_preview_turntable.add_child(_preview_car_mount)
+	if _preview_camera == null:
+		_preview_camera = Camera3D.new()
+		_preview_camera.name = "PreviewCamera"
+		_preview_camera.fov = 42.0
+		root3d.add_child(_preview_camera)
+		position_camera = true
 	_preview_camera.current = true
-	root3d.add_child(_preview_camera)
-	_position_preview_camera()
-	_rebuild_car_preview()
-	return panel
+	if position_camera:
+		_position_preview_camera()
 
 
-func _build_car_stats_column() -> VBoxContainer:
-	var column := _make_equal_top_column("CarStats")
-	column.add_child(_make_label("PERFORMANCE", _font_px(15, 20, 0.018), Color(0.46, 0.84, 1.0, 1.0), true))
-	var stats: Dictionary = _displayed_car_option().get("stats", {})
-	for stat_name: String in STAT_ORDER:
-		var row := _make_stat_row(STAT_LABELS.get(stat_name, stat_name), int(stats.get(stat_name, 0)), STAT_COLORS.get(stat_name, Color.WHITE))
-		_car_stat_labels[stat_name] = row.get_child(0)
-		_car_stat_bars[stat_name] = row.get_child(1)
-		column.add_child(row)
-	return column
+func _build_missing_preview_platform() -> void:
+	if _preview_turntable == null:
+		return
+	if _preview_turntable.get_node_or_null("RotationPlatformModel") != null:
+		return
+	if _preview_turntable.get_node_or_null("RotatingRoundPlatform") != null:
+		return
+	_build_preview_platform(_preview_turntable)
 
 
-func _build_preview_world_environment(root3d: Node3D) -> void:
-	var world_environment := WorldEnvironment.new()
-	world_environment.name = "PreviewHangarWorldEnvironment"
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.018, 0.022, 0.027, 1.0)
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.70, 0.78, 0.84, 1.0)
-	environment.ambient_light_energy = 0.88
-	world_environment.environment = environment
-	root3d.add_child(world_environment)
+func _find_node3d_by_name(root: Node, node_name: StringName) -> Node3D:
+	if root is Node3D and StringName(root.name) == node_name:
+		return root as Node3D
+	for child: Node in root.get_children():
+		var match := _find_node3d_by_name(child, node_name)
+		if match != null:
+			return match
+	return null
+
+
+func _find_camera3d_by_name(root: Node, node_name: StringName) -> Camera3D:
+	if root is Camera3D and StringName(root.name) == node_name:
+		return root as Camera3D
+	for child: Node in root.get_children():
+		var match := _find_camera3d_by_name(child, node_name)
+		if match != null:
+			return match
+	return null
 
 
 func _build_preview_room(root3d: Node3D) -> void:
-	var floor_material := _make_preview_material(Color(0.68, 0.70, 0.70, 1.0), 0.16, 0.18, HANGAR_FLOOR_TEXTURE_PATH, Vector3(2.2, 1.0, 2.0))
-	var wall_material := _make_preview_material(Color(0.76, 0.79, 0.79, 1.0), 0.0, 0.50, HANGAR_WALL_TILE_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0))
-	var side_wall_material := _make_preview_material(Color(0.64, 0.68, 0.69, 1.0), 0.0, 0.56, HANGAR_WALL_TILE_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0))
-	var ceiling_material := _make_preview_material(Color(0.36, 0.38, 0.40, 1.0), 0.10, 0.46, HANGAR_CEILING_TEXTURE_PATH, Vector3(1.9, 1.0, 1.6))
+	var floor_material := _make_preview_material(Color(0.72, 0.73, 0.71, 1.0), 0.0, 0.32, HANGAR_FLOOR_TEXTURE_PATH, Vector3(2.2, 1.0, 2.0), Color.TRANSPARENT, 0.0, HANGAR_FLOOR_NORMAL_TEXTURE_PATH, 0.20)
+	var wall_material := _make_preview_material(Color(0.76, 0.79, 0.79, 1.0), 0.0, 0.60, HANGAR_WALL_PANEL_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0), Color.TRANSPARENT, 0.0, HANGAR_WALL_NORMAL_TEXTURE_PATH, 0.24)
+	var side_wall_material := _make_preview_material(Color(0.64, 0.68, 0.69, 1.0), 0.0, 0.62, HANGAR_WALL_PANEL_TEXTURE_PATH, Vector3(1.0, 1.0, 1.0), Color.TRANSPARENT, 0.0, HANGAR_WALL_NORMAL_TEXTURE_PATH, 0.22)
+	var ceiling_material := _make_preview_material(Color(0.36, 0.38, 0.40, 1.0), 0.10, 0.46, HANGAR_CEILING_TEXTURE_PATH, Vector3(1.9, 1.0, 1.6), Color.TRANSPARENT, 0.0, HANGAR_CEILING_NORMAL_TEXTURE_PATH, 0.32)
 	var beam_material := _make_preview_material(Color(0.055, 0.060, 0.065, 1.0), 0.38, 0.36)
 	var trim_material := _make_preview_material(Color(0.13, 0.15, 0.16, 1.0), 0.26, 0.40)
 	var window_material := _make_preview_material(Color(0.58, 0.88, 1.0, 0.88), 0.0, 0.12, "", Vector3.ONE, Color(0.40, 0.86, 1.0, 1.0), 0.85)
@@ -1185,7 +1291,7 @@ func _build_preview_room(root3d: Node3D) -> void:
 
 
 func _build_hangar_ceiling_lights(root3d: Node3D) -> void:
-	var panel_material := _make_preview_material(Color(1.0, 0.96, 0.84, 1.0), 0.0, 0.08, "", Vector3.ONE, Color(1.0, 0.93, 0.72, 1.0), 1.8)
+	var panel_material := _make_preview_material(Color(1.0, 0.96, 0.84, 1.0), 0.0, 0.32, "", Vector3.ONE, Color(1.0, 0.93, 0.72, 1.0), 0.9)
 	for row: int in range(3):
 		var z := -2.45 + float(row) * 2.35
 		for column: int in range(3):
@@ -1198,6 +1304,70 @@ func _build_hangar_ceiling_lights(root3d: Node3D) -> void:
 			light.omni_range = 4.6
 			light.position = Vector3(x, 2.94, z)
 			root3d.add_child(light)
+
+
+func _build_preview_beauty_lighting(root3d: Node3D) -> void:
+	var beauty := Node3D.new()
+	beauty.name = "EditableBeautyLighting"
+	root3d.add_child(beauty)
+
+	var probe := ReflectionProbe.new()
+	probe.name = "ShowroomReflectionProbe"
+	probe.position = Vector3(-0.45, 1.35, -0.35)
+	probe.size = Vector3(13.5, 5.2, 15.5)
+	probe.origin_offset = Vector3(0.0, 0.15, 0.0)
+	probe.box_projection = true
+	probe.interior = true
+	probe.intensity = 0.128
+	probe.blend_distance = 1.15
+	beauty.add_child(probe)
+
+	var cool_softbox := _make_preview_material(Color(0.93, 0.965, 1.0, 1.0), 0.0, 0.05, "", Vector3.ONE, Color(0.78, 0.90, 1.0, 1.0), 2.6)
+	var warm_softbox := _make_preview_material(Color(1.0, 0.955, 0.84, 1.0), 0.0, 0.06, "", Vector3.ONE, Color(1.0, 0.86, 0.62, 1.0), 1.65)
+	_add_hidden_preview_beauty_box(beauty, "BeautySoftbox_Ceiling_Left", Vector3(3.1, 0.035, 0.48), Vector3(-1.95, 3.24, 0.65), cool_softbox)
+	_add_hidden_preview_beauty_box(beauty, "BeautySoftbox_Ceiling_Right", Vector3(3.1, 0.035, 0.48), Vector3(1.65, 3.24, 0.65), cool_softbox)
+	_add_hidden_preview_beauty_box(beauty, "BeautySoftbox_Back_Warm", Vector3(3.1, 0.035, 0.48), Vector3(-0.25, 2.34, -4.04), warm_softbox, Vector3(40.0, 0.0, 0.0))
+	_add_hidden_preview_beauty_box(beauty, "BeautySoftbox_Left_Rim", Vector3(0.045, 1.45, 3.15), Vector3(-5.18, 1.65, 0.7), cool_softbox)
+	_add_hidden_preview_beauty_box(beauty, "BeautySoftbox_Right_Rim", Vector3(0.045, 1.45, 3.15), Vector3(5.18, 1.65, 0.7), cool_softbox)
+
+	_add_preview_beauty_spot(beauty, "BeautyOverheadSpot_Left", Vector3(-1.95, 3.02, 0.65), Color(0.88, 0.95, 1.0, 1.0), 1.505, 1.25)
+	_add_preview_beauty_spot(beauty, "BeautyOverheadSpot_Right", Vector3(1.65, 3.02, 0.65), Color(0.88, 0.95, 1.0, 1.0), 1.4, 1.2)
+	_add_preview_beauty_omni(beauty, "BeautyLeftCoolRim", Vector3(-4.45, 1.55, 1.7), Color(0.55, 0.82, 1.0, 1.0), 0.875, 4.6)
+	_add_preview_beauty_omni(beauty, "BeautyRightCoolRim", Vector3(4.45, 1.55, 1.7), Color(0.55, 0.82, 1.0, 1.0), 0.665, 4.6)
+	_add_preview_beauty_omni(beauty, "BeautyFrontWarmKicker", Vector3(-2.8, 0.95, 3.05), Color(1.0, 0.80, 0.56, 1.0), 0.504, 3.8)
+
+
+func _add_hidden_preview_beauty_box(parent: Node3D, node_name: String, box_size: Vector3, box_position: Vector3, box_material: Material, box_rotation_degrees: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+	var node := _add_preview_box(parent, node_name, box_size, box_position, box_material, box_rotation_degrees)
+	node.visible = false
+	return node
+
+
+func _add_preview_beauty_spot(parent: Node3D, node_name: String, light_position: Vector3, color: Color, energy: float, size: float) -> void:
+	var light := SpotLight3D.new()
+	light.name = node_name
+	light.position = light_position
+	light.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	light.light_color = color
+	light.light_energy = energy
+	light.light_size = size
+	light.shadow_enabled = true
+	light.shadow_blur = 2.0
+	light.spot_range = 7.0
+	light.spot_angle = 58.0
+	light.spot_attenuation = 1.1
+	parent.add_child(light)
+
+
+func _add_preview_beauty_omni(parent: Node3D, node_name: String, light_position: Vector3, color: Color, energy: float, light_range: float) -> void:
+	var light := OmniLight3D.new()
+	light.name = node_name
+	light.position = light_position
+	light.light_color = color
+	light.light_energy = energy
+	light.light_size = 0.9
+	light.omni_range = light_range
+	parent.add_child(light)
 
 
 func _add_preview_box(parent: Node3D, node_name: String, box_size: Vector3, box_position: Vector3, box_material: Material, box_rotation_degrees: Vector3 = Vector3.ZERO) -> MeshInstance3D:
@@ -1214,6 +1384,16 @@ func _add_preview_box(parent: Node3D, node_name: String, box_size: Vector3, box_
 
 
 func _build_preview_platform(parent: Node3D) -> void:
+	var platform_scene := load(GARAGE_PLATFORM_MODEL_PATH) as PackedScene
+	if platform_scene != null:
+		var platform_model := platform_scene.instantiate() as Node3D
+		if platform_model != null:
+			platform_model.name = "RotationPlatformModel"
+			platform_model.scale = Vector3.ONE * GARAGE_PLATFORM_SCALE
+			platform_model.position = GARAGE_PLATFORM_POSITION
+			parent.add_child(platform_model)
+			return
+
 	var base := MeshInstance3D.new()
 	base.name = "RotatingRoundPlatform"
 	var mesh := CylinderMesh.new()
@@ -1239,7 +1419,7 @@ func _build_preview_platform(parent: Node3D) -> void:
 	parent.add_child(highlight)
 
 
-func _make_preview_material(color: Color, metallic: float, roughness: float, texture_path: String = "", uv_scale: Vector3 = Vector3.ONE, emission_color: Color = Color.TRANSPARENT, emission_energy: float = 0.0) -> StandardMaterial3D:
+func _make_preview_material(color: Color, metallic: float, roughness: float, texture_path: String = "", uv_scale: Vector3 = Vector3.ONE, emission_color: Color = Color.TRANSPARENT, emission_energy: float = 0.0, normal_texture_path: String = "", normal_scale: float = 0.25) -> StandardMaterial3D:
 	var preview_material := StandardMaterial3D.new()
 	preview_material.albedo_color = color
 	preview_material.metallic = metallic
@@ -1250,6 +1430,12 @@ func _make_preview_material(color: Color, metallic: float, roughness: float, tex
 		if texture != null:
 			preview_material.albedo_texture = texture
 			preview_material.set("texture_repeat", 1)
+	if not normal_texture_path.is_empty():
+		var normal_texture := _load_texture_safely(normal_texture_path)
+		if normal_texture != null:
+			preview_material.set("normal_enabled", true)
+			preview_material.set("normal_scale", normal_scale)
+			preview_material.set("normal_texture", normal_texture)
 	if emission_energy > 0.0:
 		preview_material.set("emission_enabled", true)
 		preview_material.set("emission", emission_color)
@@ -1261,10 +1447,6 @@ func _build_car_card(option: Dictionary) -> Button:
 	var car_id := StringName(option.get("id", &""))
 	var card := _make_card_button("CarCard")
 	card.tooltip_text = str(option.get("display_name", "Car"))
-	card.mouse_entered.connect(Callable(self, "_preview_car").bind(car_id))
-	card.mouse_exited.connect(Callable(self, "_clear_car_preview").bind(car_id))
-	card.focus_entered.connect(Callable(self, "_preview_car").bind(car_id))
-	card.focus_exited.connect(Callable(self, "_clear_car_preview").bind(car_id))
 	card.pressed.connect(Callable(self, "_select_car").bind(car_id))
 	_car_buttons[car_id] = card
 	var image := _card_image(card)
@@ -1327,15 +1509,16 @@ func _build_track_description_column() -> VBoxContainer:
 func _build_track_card(option: Dictionary) -> Button:
 	var track_id := StringName(option.get("id", &""))
 	var card := _make_card_button("TrackCard")
+	var can_start := _track_can_start(option)
 	card.tooltip_text = str(option.get("display_name", "Track"))
-	card.mouse_entered.connect(Callable(self, "_preview_track").bind(track_id))
-	card.mouse_exited.connect(Callable(self, "_clear_track_preview").bind(track_id))
-	card.focus_entered.connect(Callable(self, "_preview_track").bind(track_id))
-	card.focus_exited.connect(Callable(self, "_clear_track_preview").bind(track_id))
+	if not can_start:
+		card.tooltip_text = str(option.get("locked_reason", option.get("unavailable_reason", "Track locked")))
 	card.pressed.connect(Callable(self, "_select_track").bind(track_id))
 	_track_buttons[track_id] = card
 	var image := _card_image(card)
 	image.texture = _load_track_preview_texture(option)
+	if not can_start:
+		_add_locked_track_card_overlay(card)
 	return card
 
 
@@ -1374,7 +1557,7 @@ func _make_logo_top_bar() -> PanelContainer:
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(center)
 
-	var brand := _make_label("APEXDRIVE", _font_px(24, 40, 0.036), COLOR_TEXT_MAIN, true)
+	var brand := _make_label("SUMMER RACER", _font_px(24, 40, 0.036), COLOR_TEXT_MAIN, true)
 	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	brand.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	center.add_child(brand)
@@ -1515,6 +1698,29 @@ func _card_image(card: Button) -> TextureRect:
 	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(image)
 	return image
+
+
+func _add_locked_track_card_overlay(card: Button) -> void:
+	var overlay := ColorRect.new()
+	overlay.name = "LockedOverlay"
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.color = Color(0.02, 0.022, 0.026, 0.58)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	card.add_child(overlay)
+
+	var label_shell := CenterContainer.new()
+	label_shell.name = "LockedLabelShell"
+	label_shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label_shell.set_anchors_preset(Control.PRESET_FULL_RECT)
+	card.add_child(label_shell)
+
+	var label := _make_label("LOCKED", _font_px(13, 18, 0.017), Color(0.78, 0.78, 0.74, 1.0), true)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label_shell.add_child(label)
 
 
 func _make_skin_button(skin: Dictionary) -> Button:
@@ -2175,12 +2381,14 @@ func _sync_track_start_state() -> void:
 	var can_start := _selected_track_can_start()
 	_race_now_button.disabled = not can_start
 	if can_start:
+		_race_now_button.text = "RACE NOW"
 		_race_now_button.tooltip_text = "Start race"
 	else:
 		var track := _selected_track_option()
 		var reason := str(track.get("locked_reason", track.get("unavailable_reason", "Track unavailable")))
 		if reason.strip_edges().is_empty():
 			reason = "Track unavailable"
+		_race_now_button.text = "TRACK LOCKED"
 		_race_now_button.tooltip_text = reason
 
 
@@ -2221,6 +2429,7 @@ func _rebuild_car_preview() -> void:
 		car.call("set_controls_enabled", false)
 	if car.has_method("set_car_color_variant"):
 		car.call("set_car_color_variant", _displayed_car_color())
+	_soften_preview_car_reflections(car)
 
 
 func _load_preview_packed_scene(scene_path: String) -> PackedScene:
@@ -2311,6 +2520,57 @@ func _disable_preview_processing(root: Node) -> void:
 	root.set_process_unhandled_input(false)
 	for child: Node in root.get_children():
 		_disable_preview_processing(child)
+
+
+func _soften_preview_car_reflections(root: Node) -> void:
+	if root == null:
+		return
+	if root is MeshInstance3D:
+		_soften_preview_mesh_materials(root as MeshInstance3D)
+	for child: Node in root.get_children():
+		_soften_preview_car_reflections(child)
+
+
+func _soften_preview_mesh_materials(mesh_instance: MeshInstance3D) -> void:
+	if mesh_instance.material_override != null:
+		mesh_instance.material_override = _softened_preview_material(mesh_instance.material_override, mesh_instance.name)
+		return
+	if mesh_instance.mesh == null:
+		return
+	var surface_count := mesh_instance.mesh.get_surface_count()
+	for surface_index: int in range(surface_count):
+		var source_material := mesh_instance.get_surface_override_material(surface_index)
+		if source_material == null:
+			source_material = mesh_instance.mesh.surface_get_material(surface_index)
+		var softened_material := _softened_preview_material(source_material, mesh_instance.name)
+		if softened_material != null:
+			mesh_instance.set_surface_override_material(surface_index, softened_material)
+
+
+func _softened_preview_material(source_material: Material, context_name: StringName) -> Material:
+	if not (source_material is BaseMaterial3D):
+		return source_material
+	var material := source_material.duplicate() as BaseMaterial3D
+	if material == null:
+		return source_material
+	var material_context := ("%s %s" % [material.resource_name, String(context_name)]).to_lower()
+	var min_roughness := 0.36
+	if _text_contains_any(material_context, ["glass", "window", "windshield", "windscreen"]):
+		min_roughness = 0.22
+	elif _text_contains_any(material_context, ["tire", "tyre", "rubber"]):
+		min_roughness = 0.62
+	elif _text_contains_any(material_context, ["wheel", "rim", "brake", "caliper"]):
+		min_roughness = 0.42
+	material.roughness = maxf(material.roughness, min_roughness)
+	material.set("metallic_specular", minf(float(material.get("metallic_specular")), 0.38))
+	return material
+
+
+func _text_contains_any(text: String, needles: Array[String]) -> bool:
+	for needle: String in needles:
+		if text.contains(needle):
+			return true
+	return false
 
 
 func _position_preview_camera() -> void:

@@ -5,5 +5,5 @@
 [resource]
 resource_name = "StormCoastAuthoringProfile"
 script = ExtResource("1_profile")
-last_tool_summary = "Bake Editable completed from 61 road points. V2 road mesh regenerated at 2099.9m. Editable scene owners assigned. Snapshot saved to res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres. ManualOverrides were preserved."
+last_tool_summary = "Bake Editable completed from 56 road points. V2 road mesh regenerated at 2103.3m. Editable scene owners assigned. Snapshot saved to res://resources/tracks/storm_coast/storm_coast_preview_snapshot.tres. ManualOverrides were preserved."
 notes = "Agent A authoring/profile resource only. Road mesh, collision, lane markings, guardrails, and generated prop override storage belong to later agents."

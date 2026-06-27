@@ -37,8 +37,16 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export var reverse_turn_multiplier: float = 0.72
 @export_range(0.5, 2.5, 0.05) var steering_response_exponent: float = 1.0
 @export var normal_lateral_grip: float = 58.0
-@export var ground_stick_force: float = 4.0
-@export var gravity: float = 28.0
+@export var ground_stick_force: float = 12.0
+@export var high_speed_ground_stick_force: float = 24.0
+@export_range(0.0, 3.0, 0.05) var ground_snap_length_m: float = 1.1
+@export_range(0.0, 85.0, 1.0) var floor_max_angle_degrees: float = 68.0
+@export var gravity: float = 42.0
+
+@export_category("Surface Alignment")
+@export_range(0.0, 1.0, 0.01) var ground_surface_alignment: float = 1.0
+@export_range(1.0, 30.0, 0.1) var ground_surface_alignment_damping: float = 12.0
+@export_range(1.0, 30.0, 0.1) var air_surface_recovery_damping: float = 4.0
 
 @export_category("Rear-Wheel Drive")
 @export var rear_drive_turn_assist: float = 0.28
@@ -62,14 +70,16 @@ signal vehicle_bumped(intensity: float, contact_position: Vector3, contact_norma
 @export_range(0.0, 1.0, 0.01) var wall_contact_max_up_dot: float = 0.48
 
 @export_category("Visual Feel")
-@export var body_roll_degrees: float = 7.5
-@export var drift_roll_degrees: float = 10.0
-@export var pitch_degrees: float = 0.8
+@export var body_roll_degrees: float = 4.5
+@export var drift_roll_degrees: float = 6.0
+@export var pitch_degrees: float = 0.35
 @export_range(0.0, 1.0, 0.01) var pitch_fade_start_speed_ratio: float = 0.35
 @export_range(0.0, 1.0, 0.01) var pitch_fade_end_speed_ratio: float = 0.85
-@export_range(0.0, 1.0, 0.01) var high_speed_pitch_multiplier: float = 0.15
-@export_range(1.0, 20.0, 0.1) var visual_roll_damping: float = 6.0
-@export_range(1.0, 20.0, 0.1) var visual_pitch_damping: float = 4.5
+@export_range(0.0, 1.0, 0.01) var high_speed_pitch_multiplier: float = 0.08
+@export_range(0.0, 1.0, 0.01) var high_speed_roll_multiplier: float = 0.5
+@export_range(1.0, 30.0, 0.1) var visual_input_damping: float = 12.0
+@export_range(1.0, 30.0, 0.1) var visual_roll_damping: float = 10.0
+@export_range(1.0, 30.0, 0.1) var visual_pitch_damping: float = 10.0
 @export var wheel_spin_multiplier: float = 2.8
 @export var front_wheel_steer_degrees: float = 28.0
 @export_enum("blue", "red", "green", "yellow") var car_color_variant: String = "blue"
@@ -158,9 +168,15 @@ var _was_drifting: bool = false
 var _last_reported_drift_intensity: float = 0.0
 var _wall_scrape_cooldown: float = 0.0
 var _vehicle_bump_cooldown: float = 0.0
+var _visual_steer_amount: float = 0.0
+var _visual_throttle_amount: float = 0.0
+var _visual_brake_amount: float = 0.0
+var _visual_drift_intensity: float = 0.0
+var _surface_up: Vector3 = Vector3.UP
 
 
 func _ready() -> void:
+	_sync_character_body_grounding_settings()
 	_current_gear = clampi(starting_gear, 1, maxi(gear_count, 1))
 	_resolve_driver()
 	_apply_car_color_variant()
@@ -182,8 +198,10 @@ func _exit_tree() -> void:
 func _physics_process(delta: float) -> void:
 	if not _is_finite_float(delta) or delta <= 0.0:
 		return
+	_sync_character_body_grounding_settings()
 	_sanitize_physics_state()
-	var previous_planar_velocity: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
+	_update_surface_alignment(delta)
+	var previous_planar_velocity: Vector3 = _drive_plane_velocity()
 	_wall_scrape_cooldown = maxf(0.0, _wall_scrape_cooldown - delta)
 	_vehicle_bump_cooldown = maxf(0.0, _vehicle_bump_cooldown - delta)
 	_shift_cooldown = maxf(0.0, _shift_cooldown - delta)
@@ -198,10 +216,10 @@ func _physics_process(delta: float) -> void:
 
 
 func get_speed() -> float:
-	var planar_velocity := Vector3(velocity.x, 0.0, velocity.z)
-	if not planar_velocity.is_finite():
+	var drive_plane_velocity := _drive_plane_velocity()
+	if not drive_plane_velocity.is_finite():
 		return 0.0
-	return planar_velocity.length()
+	return drive_plane_velocity.length()
 
 
 func get_speed_ratio() -> float:
@@ -382,7 +400,9 @@ func _sync_command_state() -> void:
 func _update_planar_velocity(delta: float) -> void:
 	var forward: Vector3 = _flat_forward()
 	var right: Vector3 = _flat_right()
-	var vertical_speed: float = _finite_or(velocity.y, 0.0)
+	var vertical_velocity: Vector3 = velocity - forward * velocity.dot(forward) - right * velocity.dot(right)
+	if not vertical_velocity.is_finite():
+		vertical_velocity = Vector3.ZERO
 
 	_forward_speed = velocity.dot(forward)
 	_side_speed = velocity.dot(right)
@@ -447,12 +467,20 @@ func _update_planar_velocity(delta: float) -> void:
 	_apply_planar_speed_cap(_planar_speed_cap(current_gear_speed_limit))
 
 	if is_on_floor():
-		vertical_speed = -ground_stick_force
+		var speed_stick_alpha: float = smoothstep(
+				0.18,
+				0.92,
+				clampf(absf(_forward_speed) / safe_max_speed, 0.0, 1.0)
+		)
+		vertical_velocity = -_driving_up() * lerpf(
+				maxf(_finite_or(ground_stick_force, 0.0), 0.0),
+				maxf(_finite_or(high_speed_ground_stick_force, ground_stick_force), 0.0),
+				speed_stick_alpha
+		)
 	else:
-		vertical_speed -= gravity * delta
+		vertical_velocity += Vector3.DOWN * gravity * delta
 
-	velocity = forward * _forward_speed + right * _side_speed
-	velocity.y = vertical_speed
+	velocity = forward * _forward_speed + right * _side_speed + vertical_velocity
 	if not velocity.is_finite():
 		velocity = Vector3.ZERO
 
@@ -507,8 +535,11 @@ func _soften_downshift_overspeed() -> void:
 		return
 
 	var side_speed: float = velocity.dot(right)
+	var vertical_velocity: Vector3 = velocity - forward * forward_speed - right * side_speed
+	if not vertical_velocity.is_finite():
+		vertical_velocity = Vector3.ZERO
 	var softened_speed: float = lerpf(forward_speed, gear_limit, clampf(downshift_speed_blend, 0.0, 1.0))
-	velocity = forward * softened_speed + right * side_speed + Vector3.UP * _finite_or(velocity.y, 0.0)
+	velocity = forward * softened_speed + right * side_speed + vertical_velocity
 	_forward_speed = softened_speed
 	_side_speed = side_speed
 
@@ -582,17 +613,25 @@ func _settle_low_speed_residuals() -> void:
 
 func _update_visuals(delta: float) -> void:
 	if visual_root != null:
-		var roll_strength: float = lerpf(body_roll_degrees, drift_roll_degrees, drift_intensity)
-		var target_roll: float = deg_to_rad(-effective_steer_amount * roll_strength)
 		var pitch_speed_ratio: float = clampf(absf(_forward_speed) / maxf(_finite_or(max_speed, 1.0), 1.0), 0.0, 1.0)
+		var visual_input_weight: float = _exp_weight(visual_input_damping, delta)
+		_visual_steer_amount = lerpf(_visual_steer_amount, effective_steer_amount, visual_input_weight)
+		_visual_throttle_amount = lerpf(_visual_throttle_amount, throttle_amount, visual_input_weight)
+		_visual_brake_amount = lerpf(_visual_brake_amount, brake_amount, visual_input_weight)
+		_visual_drift_intensity = lerpf(_visual_drift_intensity, drift_intensity, visual_input_weight)
+
+		var roll_speed_alpha: float = smoothstep(0.35, 0.92, pitch_speed_ratio)
+		var roll_speed_multiplier: float = lerpf(1.0, clampf(high_speed_roll_multiplier, 0.0, 1.0), roll_speed_alpha)
+		var roll_strength: float = lerpf(body_roll_degrees, drift_roll_degrees, _visual_drift_intensity) * roll_speed_multiplier
+		var target_roll: float = deg_to_rad(-_visual_steer_amount * roll_strength)
 		var pitch_fade_range: float = maxf(pitch_fade_end_speed_ratio - pitch_fade_start_speed_ratio, 0.001)
 		var pitch_fade_alpha: float = clampf((pitch_speed_ratio - pitch_fade_start_speed_ratio) / pitch_fade_range, 0.0, 1.0)
 		var pitch_multiplier: float = lerpf(1.0, clampf(high_speed_pitch_multiplier, 0.0, 1.0), pitch_fade_alpha)
-		var target_pitch: float = deg_to_rad((throttle_amount - brake_amount) * pitch_degrees * pitch_multiplier)
-		visual_root.rotation.z = lerp_angle(visual_root.rotation.z, target_roll, 1.0 - exp(-visual_roll_damping * delta))
-		visual_root.rotation.x = lerp_angle(visual_root.rotation.x, target_pitch, 1.0 - exp(-visual_pitch_damping * delta))
+		var target_pitch: float = deg_to_rad((_visual_throttle_amount - _visual_brake_amount) * pitch_degrees * pitch_multiplier)
+		visual_root.rotation.z = lerp_angle(visual_root.rotation.z, target_roll, _exp_weight(visual_roll_damping, delta))
+		visual_root.rotation.x = lerp_angle(visual_root.rotation.x, target_pitch, _exp_weight(visual_pitch_damping, delta))
 
-	var target_front_wheel_yaw: float = deg_to_rad(effective_steer_amount * front_wheel_steer_degrees)
+	var target_front_wheel_yaw: float = deg_to_rad(_visual_steer_amount * front_wheel_steer_degrees)
 	var wheel_steer_weight: float = 1.0 - exp(-14.0 * delta)
 	for i: int in range(front_wheel_steering_nodes.size()):
 		var steering_node: Node3D = front_wheel_steering_nodes[i]
@@ -868,17 +907,84 @@ func _shape_axis(value: float, exponent: float) -> float:
 	return signf(value) * pow(absf(value), exponent)
 
 
-func _flat_forward() -> Vector3:
+func _update_surface_alignment(delta: float) -> void:
+	var current_up: Vector3 = _driving_up()
+	var target_up: Vector3 = Vector3.UP
+	var damping: float = air_surface_recovery_damping
+	if is_on_floor():
+		var floor_normal: Vector3 = get_floor_normal()
+		if floor_normal.is_finite() and floor_normal.length_squared() > 0.0001:
+			target_up = floor_normal.normalized()
+			var alignment_strength: float = clampf(_finite_or(ground_surface_alignment, 1.0), 0.0, 1.0)
+			target_up = Vector3.UP.slerp(target_up, alignment_strength).normalized()
+			damping = ground_surface_alignment_damping
+
+	_surface_up = current_up.slerp(target_up, _exp_weight(damping, delta)).normalized()
+	if not _surface_up.is_finite() or _surface_up.length_squared() <= 0.0001:
+		_surface_up = Vector3.UP
+	up_direction = _surface_up
+	_align_body_to_surface_up(_surface_up)
+
+
+func _align_body_to_surface_up(surface_up: Vector3) -> void:
+	if not surface_up.is_finite() or surface_up.length_squared() <= 0.0001:
+		return
+	var up: Vector3 = surface_up.normalized()
 	var forward: Vector3 = -global_transform.basis.z
-	forward.y = 0.0
+	forward = forward.slide(up)
 	if not forward.is_finite() or forward.length_squared() <= 0.0001:
+		var right_fallback: Vector3 = global_transform.basis.x.slide(up)
+		if not right_fallback.is_finite() or right_fallback.length_squared() <= 0.0001:
+			right_fallback = Vector3.RIGHT.slide(up)
+		if not right_fallback.is_finite() or right_fallback.length_squared() <= 0.0001:
+			right_fallback = Vector3.FORWARD.cross(up)
+		right_fallback = right_fallback.normalized()
+		forward = up.cross(right_fallback)
+	if not forward.is_finite() or forward.length_squared() <= 0.0001:
+		return
+	forward = forward.normalized()
+	var right: Vector3 = forward.cross(up)
+	if not right.is_finite() or right.length_squared() <= 0.0001:
+		return
+	right = right.normalized()
+	global_transform.basis = Basis(right, up, -forward).orthonormalized()
+
+
+func _drive_plane_velocity() -> Vector3:
+	var forward: Vector3 = _flat_forward()
+	var right: Vector3 = _flat_right()
+	return forward * velocity.dot(forward) + right * velocity.dot(right)
+
+
+func _driving_up() -> Vector3:
+	var up: Vector3 = _surface_up
+	if not up.is_finite() or up.length_squared() <= 0.0001:
+		up = global_transform.basis.y
+	if not up.is_finite() or up.length_squared() <= 0.0001:
+		return Vector3.UP
+	return up.normalized()
+
+
+func _flat_forward() -> Vector3:
+	var surface_up: Vector3 = _driving_up()
+	var forward: Vector3 = -global_transform.basis.z
+	forward = forward.slide(surface_up)
+	if not forward.is_finite() or forward.length_squared() <= 0.0001:
+		var fallback: Vector3 = Vector3.FORWARD.slide(surface_up)
+		if fallback.is_finite() and fallback.length_squared() > 0.0001:
+			return fallback.normalized()
 		return Vector3(0.0, 0.0, -1.0)
 	return forward.normalized()
 
 
 func _flat_right() -> Vector3:
+	var surface_up: Vector3 = _driving_up()
+	var forward: Vector3 = _flat_forward()
+	var right_from_forward: Vector3 = forward.cross(surface_up)
+	if right_from_forward.is_finite() and right_from_forward.length_squared() > 0.0001:
+		return right_from_forward.normalized()
 	var right: Vector3 = global_transform.basis.x
-	right.y = 0.0
+	right = right.slide(surface_up)
 	if not right.is_finite() or right.length_squared() <= 0.0001:
 		return Vector3.RIGHT
 	return right.normalized()
@@ -900,9 +1006,21 @@ func _sanitize_physics_state() -> void:
 		velocity = Vector3.ZERO
 		_forward_speed = 0.0
 		_side_speed = 0.0
+		_surface_up = Vector3.UP
+		up_direction = Vector3.UP
 		return
 
 	global_transform.basis = current_basis.orthonormalized()
+
+
+func _sync_character_body_grounding_settings() -> void:
+	floor_snap_length = maxf(_finite_or(ground_snap_length_m, 0.0), 0.0)
+	floor_max_angle = deg_to_rad(clampf(_finite_or(floor_max_angle_degrees, 45.0), 0.0, 85.0))
+	up_direction = _driving_up()
+
+
+func _exp_weight(damping: float, delta: float) -> float:
+	return 1.0 - exp(-maxf(_finite_or(damping, 0.0), 0.0) * maxf(delta, 0.0))
 
 
 func _is_finite_float(value: float) -> bool:

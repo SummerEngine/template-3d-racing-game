@@ -1,18 +1,18 @@
-[gd_resource type="Resource" script_class="TrackAuthoringSnapshot" format=3 uid="uid://d1fum7e2t1rm"]
+[gd_resource type="Resource" script_class="TrackAuthoringSnapshot" format=3]
 
-[ext_resource type="Script" uid="uid://dcpa1xx8hppob" path="res://scripts/track_authoring/track_authoring_snapshot.gd" id="1_l6vp4"]
+[ext_resource type="Script" path="res://scripts/track_authoring/track_authoring_snapshot.gd" id="1_l6vp4"]
 
 [resource]
 script = ExtResource("1_l6vp4")
 track_id = &"storm_coast"
 display_name = "Storm Coast Circuit"
 source_scene_path = "res://scenes/tracks/storm_coast/storm_coast_authoring.tscn"
-created_at = "2026-06-24 08:58:50"
+created_at = "2026-06-26 16:47:56"
 tool_api_version = &"storm_coast_authoring_v1"
 marker_counts = {
 "banking_markers": 2,
 "elevation_markers": 4,
-"road_points": 61,
+"road_points": 55,
 "set_piece_markers": 1,
 "start_grid_markers": 1,
 "width_markers": 3,
@@ -128,7 +128,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(0, 0, 0),
+"local_position": Vector3(-1.0520363, 0, 0),
 "marker_id": &"rp_000_start",
 "notes": "Start/finish area with room for preset grid.",
 "preferred_speed_kmh": 150.0,
@@ -137,7 +137,7 @@ authoring_records = {
 "sequence_index": 0,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(0, 0, 0),
+"world_position": Vector3(-1.0520363, 0, 0),
 "zone_id": &"start_coast"
 }, {
 "authoring_order": 1,
@@ -148,7 +148,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(-12.316, 0.989, 30.551),
+"local_position": Vector3(-11.839632, 0.989, 30.551),
 "marker_id": &"rp_guide_000_001_q1",
 "notes": "Inserted Q1 RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing.",
 "preferred_speed_kmh": 155.0,
@@ -157,7 +157,7 @@ authoring_records = {
 "sequence_index": 1,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(-12.316, 0.989, 30.551),
+"world_position": Vector3(-11.839632, 0.989, 30.551),
 "zone_id": &"start_coast"
 }, {
 "authoring_order": 2,
@@ -168,7 +168,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(-26.453, 2.656, 77.516),
+"local_position": Vector3(-27.841541, 2.656, 77.516),
 "marker_id": &"rp_guide_000_001",
 "notes": "Inserted guide RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing.",
 "preferred_speed_kmh": 160.0,
@@ -177,7 +177,7 @@ authoring_records = {
 "sequence_index": 2,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(-26.453, 2.656, 77.516),
+"world_position": Vector3(-27.841541, 2.656, 77.516),
 "zone_id": &"start_coast"
 }, {
 "authoring_order": 3,
@@ -188,7 +188,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(-44.543, 3.98, 119.496),
+"local_position": Vector3(-45.777557, 3.98, 132.05074),
 "marker_id": &"rp_guide_000_001_q3",
 "notes": "Inserted Q3 RoadPoint between RP_000_Start and RP_001_CoastalSweep for finer curve editing.",
 "preferred_speed_kmh": 165.0,
@@ -197,7 +197,7 @@ authoring_records = {
 "sequence_index": 3,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(-44.543, 3.98, 119.496),
+"world_position": Vector3(-45.777557, 3.98, 132.05074),
 "zone_id": &"start_coast"
 }, {
 "authoring_order": 4,
@@ -228,7 +228,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(-25.82, 8.233, 205.445),
+"local_position": Vector3(-31.768984, 8.233, 190.28214),
 "marker_id": &"rp_guide_001_002_q1",
 "notes": "Inserted Q1 RoadPoint between RP_001_CoastalSweep and RP_002_CliffApproach for finer curve editing.",
 "preferred_speed_kmh": 173.75,
@@ -237,7 +237,7 @@ authoring_records = {
 "sequence_index": 5,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(-25.82, 8.233, 205.445),
+"world_position": Vector3(-31.768984, 8.233, 190.28214),
 "zone_id": &"cliff_approach"
 }, {
 "authoring_order": 6,
@@ -288,7 +288,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(70, 16, 310),
+"local_position": Vector3(77.787155, 16, 321.8407),
 "marker_id": &"rp_002_cliff_approach",
 "notes": "",
 "preferred_speed_kmh": 185.0,
@@ -297,7 +297,7 @@ authoring_records = {
 "sequence_index": 8,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(70, 16, 310),
+"world_position": Vector3(77.787155, 16, 321.8407),
 "zone_id": &"cliff_approach"
 }, {
 "authoring_order": 9,
@@ -308,7 +308,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(87.787, 18.891, 339.023),
+"local_position": Vector3(88.79467, 18.446497, 339.023),
 "marker_id": &"rp_guide_002_003_q1",
 "notes": "Inserted Q1 RoadPoint between RP_002_CliffApproach and RP_003_RampCommit for finer curve editing.",
 "preferred_speed_kmh": 185.0,
@@ -317,7 +317,7 @@ authoring_records = {
 "sequence_index": 9,
 "surface_type": &"ramp",
 "tangent_mode": "AUTO",
-"world_position": Vector3(87.787, 18.891, 339.023),
+"world_position": Vector3(88.79467, 18.446497, 339.023),
 "zone_id": &"cliffside_jump"
 }, {
 "authoring_order": 10,
@@ -328,7 +328,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(96.509, 21.843, 359.906),
+"local_position": Vector3(96.509, 21.118032, 357.19403),
 "marker_id": &"rp_guide_002_003",
 "notes": "Inserted guide RoadPoint between RP_002_CliffApproach and RP_003_RampCommit for finer curve editing.",
 "preferred_speed_kmh": 185.0,
@@ -337,7 +337,7 @@ authoring_records = {
 "sequence_index": 10,
 "surface_type": &"ramp",
 "tangent_mode": "AUTO",
-"world_position": Vector3(96.509, 21.843, 359.906),
+"world_position": Vector3(96.509, 21.118032, 357.19403),
 "zone_id": &"cliffside_jump"
 }, {
 "authoring_order": 11,
@@ -368,7 +368,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(118, 28, 405),
+"local_position": Vector3(118, 28.555626, 405),
 "marker_id": &"rp_003_ramp_commit",
 "notes": "Extra approach control point to avoid a sudden ramp tangent.",
 "preferred_speed_kmh": 185.0,
@@ -377,7 +377,7 @@ authoring_records = {
 "sequence_index": 12,
 "surface_type": &"ramp",
 "tangent_mode": "AUTO",
-"world_position": Vector3(118, 28, 405),
+"world_position": Vector3(118, 28.555626, 405),
 "zone_id": &"cliffside_jump"
 }, {
 "authoring_order": 13,
@@ -428,7 +428,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(148.642, 40.212, 462.223),
+"local_position": Vector3(149.42683, 40.212, 462.223),
 "marker_id": &"rp_guide_003_004_q3",
 "notes": "Inserted Q3 RoadPoint between RP_003_RampCommit and RP_004_JumpTakeoff for finer curve editing.",
 "preferred_speed_kmh": 188.75,
@@ -437,7 +437,7 @@ authoring_records = {
 "sequence_index": 15,
 "surface_type": &"ramp",
 "tangent_mode": "AUTO",
-"world_position": Vector3(148.642, 40.212, 462.223),
+"world_position": Vector3(149.42683, 40.212, 462.223),
 "zone_id": &"cliffside_jump"
 }, {
 "authoring_order": 16,
@@ -468,7 +468,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(171.622, 43.079, 496.68),
+"local_position": Vector3(171.622, 42.590702, 496.68),
 "marker_id": &"rp_guide_004_005_q1",
 "notes": "Inserted Q1 RoadPoint between RP_004_JumpTakeoff and RP_005_LandingApproach for finer curve editing.",
 "preferred_speed_kmh": 186.25,
@@ -477,7 +477,7 @@ authoring_records = {
 "sequence_index": 17,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(171.622, 43.079, 496.68),
+"world_position": Vector3(171.622, 42.590702, 496.68),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 18,
@@ -488,7 +488,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(183.755, 41.224, 510.459),
+"local_position": Vector3(182.98314, 42.007683, 510.459),
 "marker_id": &"rp_guide_004_005",
 "notes": "Inserted guide RoadPoint between RP_004_JumpTakeoff and RP_005_LandingApproach for finer curve editing.",
 "preferred_speed_kmh": 182.5,
@@ -497,7 +497,7 @@ authoring_records = {
 "sequence_index": 18,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(183.755, 41.224, 510.459),
+"world_position": Vector3(182.98314, 42.007683, 510.459),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 19,
@@ -548,7 +548,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(228.401, 35.06, 557.879),
+"local_position": Vector3(245.17548, 31.943684, 573.67706),
 "marker_id": &"rp_guide_005_006_q1",
 "notes": "Inserted Q1 RoadPoint between RP_005_LandingApproach and RP_006_LandingCatch for finer curve editing.",
 "preferred_speed_kmh": 171.25,
@@ -557,27 +557,7 @@ authoring_records = {
 "sequence_index": 21,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(228.401, 35.06, 557.879),
-"zone_id": &"jump_landing"
-}, {
-"authoring_order": 22,
-"banking_degrees": -6.8,
-"checkpoint_hint": false,
-"display_name": "Guide 005-006",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(248.535, 31.582, 573.453),
-"marker_id": &"rp_guide_005_006",
-"notes": "Inserted guide RoadPoint between RP_005_LandingApproach and RP_006_LandingCatch for finer curve editing.",
-"preferred_speed_kmh": 167.5,
-"road_distance_m": 686.0,
-"road_width_m": 23.0,
-"sequence_index": 22,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(248.535, 31.582, 573.453),
+"world_position": Vector3(245.17548, 31.943684, 573.67706),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 23,
@@ -628,7 +608,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(306.733, 23.966, 605.139),
+"local_position": Vector3(306.733, 24.140926, 605.139),
 "marker_id": &"rp_guide_006_007_q1",
 "notes": "Inserted Q1 RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing.",
 "preferred_speed_kmh": 161.25,
@@ -637,27 +617,7 @@ authoring_records = {
 "sequence_index": 25,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(306.733, 23.966, 605.139),
-"zone_id": &"jump_landing"
-}, {
-"authoring_order": 26,
-"banking_degrees": -4.8,
-"checkpoint_hint": false,
-"display_name": "Guide 006-007",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(322.41, 24.052, 601.36),
-"marker_id": &"rp_guide_006_007",
-"notes": "Inserted guide RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing.",
-"preferred_speed_kmh": 162.5,
-"road_distance_m": 783.5,
-"road_width_m": 23.0,
-"sequence_index": 26,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(322.41, 24.052, 601.36),
+"world_position": Vector3(306.733, 24.140926, 605.139),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 28,
@@ -668,7 +628,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(338.886, 23.498, 596.621),
+"local_position": Vector3(330.52484, 23.498, 600.5776),
 "marker_id": &"rp_guide_006_007_q3",
 "notes": "Inserted Q3 RoadPoint between RP_006_LandingCatch and RP_007_LandingRunout for finer curve editing.",
 "preferred_speed_kmh": 163.75,
@@ -677,7 +637,7 @@ authoring_records = {
 "sequence_index": 28,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(338.886, 23.498, 596.621),
+"world_position": Vector3(330.52484, 23.498, 600.5776),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 29,
@@ -688,7 +648,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(355, 24, 585),
+"local_position": Vector3(350.38486, 24, 589.157),
 "marker_id": &"rp_007_landing_runout",
 "notes": "Keeps the landing from snapping directly into the mountain return bend.",
 "preferred_speed_kmh": 165.0,
@@ -697,7 +657,7 @@ authoring_records = {
 "sequence_index": 29,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(355, 24, 585),
+"world_position": Vector3(350.38486, 24, 589.157),
 "zone_id": &"jump_landing"
 }, {
 "authoring_order": 30,
@@ -708,7 +668,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(371.079, 25.037, 568.112),
+"local_position": Vector3(370.1728, 25.037, 566.3946),
 "marker_id": &"rp_guide_007_008_q1",
 "notes": "Inserted Q1 RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing.",
 "preferred_speed_kmh": 161.25,
@@ -717,67 +677,7 @@ authoring_records = {
 "sequence_index": 30,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(371.079, 25.037, 568.112),
-"zone_id": &"mountain_return"
-}, {
-"authoring_order": 31,
-"banking_degrees": 5.5,
-"checkpoint_hint": false,
-"display_name": "Guide 007-008",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(385.108, 26.815, 544.678),
-"marker_id": &"rp_guide_007_008",
-"notes": "Inserted guide RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing.",
-"preferred_speed_kmh": 157.5,
-"road_distance_m": 874.5,
-"road_width_m": 21.0,
-"sequence_index": 31,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(385.108, 26.815, 544.678),
-"zone_id": &"mountain_return"
-}, {
-"authoring_order": 32,
-"banking_degrees": 6.25,
-"checkpoint_hint": false,
-"display_name": "Guide 007-008 Q3",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(398.02167, 29.408, 523.423),
-"marker_id": &"rp_guide_007_008_q3",
-"notes": "Inserted Q3 RoadPoint between RP_007_LandingRunout and RP_008_MountainEntry for finer curve editing.",
-"preferred_speed_kmh": 153.75,
-"road_distance_m": 899.75,
-"road_width_m": 20.5,
-"sequence_index": 32,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(398.02167, 29.408, 523.423),
-"zone_id": &"mountain_return"
-}, {
-"authoring_order": 33,
-"banking_degrees": 7.0,
-"checkpoint_hint": false,
-"display_name": "Mountain entry",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(411.58725, 30.17215, 500),
-"marker_id": &"rp_008_mountain_entry",
-"notes": "Additional turn-in control point before the mountain return.",
-"preferred_speed_kmh": 150.0,
-"road_distance_m": 925.0,
-"road_width_m": 20.0,
-"sequence_index": 33,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(411.58725, 30.17215, 500),
+"world_position": Vector3(370.1728, 25.037, 566.3946),
 "zone_id": &"mountain_return"
 }, {
 "authoring_order": 34,
@@ -828,7 +728,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(435.77, 34.406, 449.27414),
+"local_position": Vector3(435.77, 33.87861, 449.27414),
 "marker_id": &"rp_guide_008_009_q3",
 "notes": "Inserted Q3 RoadPoint between RP_008_MountainEntry and RP_009_MountainReturn for finer curve editing.",
 "preferred_speed_kmh": 146.25,
@@ -837,7 +737,7 @@ authoring_records = {
 "sequence_index": 36,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(435.77, 34.406, 449.27414),
+"world_position": Vector3(435.77, 33.87861, 449.27414),
 "zone_id": &"mountain_return"
 }, {
 "authoring_order": 37,
@@ -848,7 +748,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(430, 34, 420),
+"local_position": Vector3(434.5764, 34, 427.2561),
 "marker_id": &"rp_009_mountain_return",
 "notes": "",
 "preferred_speed_kmh": 145.0,
@@ -857,7 +757,7 @@ authoring_records = {
 "sequence_index": 37,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(430, 34, 420),
+"world_position": Vector3(434.5764, 34, 427.2561),
 "zone_id": &"mountain_return"
 }, {
 "authoring_order": 38,
@@ -928,7 +828,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(320, 20, 110),
+"local_position": Vector3(319.5009, 20, 116.232544),
 "marker_id": &"rp_010_tunnel_descent",
 "notes": "",
 "preferred_speed_kmh": 135.0,
@@ -937,7 +837,7 @@ authoring_records = {
 "sequence_index": 41,
 "surface_type": &"tunnel",
 "tangent_mode": "AUTO",
-"world_position": Vector3(320, 20, 110),
+"world_position": Vector3(319.5009, 20, 116.232544),
 "zone_id": &"storm_tunnel"
 }, {
 "authoring_order": 42,
@@ -948,7 +848,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(309.141, 16.968, 47.547),
+"local_position": Vector3(310.34262, 16.968, 64.94408),
 "marker_id": &"rp_guide_010_011_q1",
 "notes": "Inserted Q1 RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing.",
 "preferred_speed_kmh": 140.0,
@@ -957,7 +857,7 @@ authoring_records = {
 "sequence_index": 42,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(309.141, 16.968, 47.547),
+"world_position": Vector3(310.34262, 16.968, 64.94408),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 43,
@@ -968,7 +868,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(308.625, 14.691, 2.344),
+"local_position": Vector3(308.625, 14.691, 34.44639),
 "marker_id": &"rp_guide_010_011",
 "notes": "Inserted guide RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing.",
 "preferred_speed_kmh": 145.0,
@@ -977,7 +877,7 @@ authoring_records = {
 "sequence_index": 43,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(308.625, 14.691, 2.344),
+"world_position": Vector3(308.625, 14.691, 34.44639),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 44,
@@ -988,7 +888,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(306.734, 12.104, -48.016),
+"local_position": Vector3(307.911, 12.104, -48.016),
 "marker_id": &"rp_guide_010_011_q3",
 "notes": "Inserted Q3 RoadPoint between RP_010_TunnelDescent and RP_011_FinalBend for finer curve editing.",
 "preferred_speed_kmh": 150.0,
@@ -997,7 +897,7 @@ authoring_records = {
 "sequence_index": 44,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(306.734, 12.104, -48.016),
+"world_position": Vector3(307.911, 12.104, -48.016),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 45,
@@ -1008,7 +908,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(300, 10, -95),
+"local_position": Vector3(299.2107, 10, -95),
 "marker_id": &"rp_011_final_bend",
 "notes": "",
 "preferred_speed_kmh": 155.0,
@@ -1017,7 +917,7 @@ authoring_records = {
 "sequence_index": 45,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(300, 10, -95),
+"world_position": Vector3(299.2107, 10, -95),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 46,
@@ -1028,7 +928,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(286.355, 8.252, -144.621),
+"local_position": Vector3(284.2721, 8.252, -153.50687),
 "marker_id": &"rp_guide_011_012_q1",
 "notes": "Inserted Q1 RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing.",
 "preferred_speed_kmh": 152.5,
@@ -1037,7 +937,7 @@ authoring_records = {
 "sequence_index": 46,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(286.355, 8.252, -144.621),
+"world_position": Vector3(284.2721, 8.252, -153.50687),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 47,
@@ -1048,7 +948,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(267.578, 7.242, -182.734),
+"local_position": Vector3(268.00455, 7.242, -193.68256),
 "marker_id": &"rp_guide_011_012",
 "notes": "Inserted guide RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing.",
 "preferred_speed_kmh": 150.0,
@@ -1057,7 +957,7 @@ authoring_records = {
 "sequence_index": 47,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(267.578, 7.242, -182.734),
+"world_position": Vector3(268.00455, 7.242, -193.68256),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 48,
@@ -1068,7 +968,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(251.379, 5.975, -228.582),
+"local_position": Vector3(245.53284, 5.975, -240.57715),
 "marker_id": &"rp_guide_011_012_q3",
 "notes": "Inserted Q3 RoadPoint between RP_011_FinalBend and RP_012_StartReturn for finer curve editing.",
 "preferred_speed_kmh": 147.5,
@@ -1077,7 +977,7 @@ authoring_records = {
 "sequence_index": 48,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(251.379, 5.975, -228.582),
+"world_position": Vector3(245.53284, 5.975, -240.57715),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 49,
@@ -1088,7 +988,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(230, 5, -255),
+"local_position": Vector3(232.38184, 5, -258.44284),
 "marker_id": &"rp_012_start_return",
 "notes": "Starts the return arc on the outside of the start area without crossing the player grid.",
 "preferred_speed_kmh": 145.0,
@@ -1097,7 +997,7 @@ authoring_records = {
 "sequence_index": 49,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(230, 5, -255),
+"world_position": Vector3(232.38184, 5, -258.44284),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 50,
@@ -1108,7 +1008,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(206.906, 4.132, -265.023),
+"local_position": Vector3(214.90912, 4.132, -265.58868),
 "marker_id": &"rp_guide_012_013_q1",
 "notes": "Inserted Q1 RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing.",
 "preferred_speed_kmh": 146.25,
@@ -1117,7 +1017,7 @@ authoring_records = {
 "sequence_index": 50,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(206.906, 4.132, -265.023),
+"world_position": Vector3(214.90912, 4.132, -265.58868),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 51,
@@ -1128,7 +1028,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(182.844, 3.63, -252.906),
+"local_position": Vector3(195.45253, 3.63, -263.66257),
 "marker_id": &"rp_guide_012_013",
 "notes": "Inserted guide RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing.",
 "preferred_speed_kmh": 147.5,
@@ -1137,7 +1037,7 @@ authoring_records = {
 "sequence_index": 51,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(182.844, 3.63, -252.906),
+"world_position": Vector3(195.45253, 3.63, -263.66257),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 52,
@@ -1148,7 +1048,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(159.125, 3.007, -248.695),
+"local_position": Vector3(159.125, 3.007, -248.31502),
 "marker_id": &"rp_guide_012_013_q3",
 "notes": "Inserted Q3 RoadPoint between RP_012_StartReturn and RP_013_OuterReturn for finer curve editing.",
 "preferred_speed_kmh": 148.75,
@@ -1157,7 +1057,7 @@ authoring_records = {
 "sequence_index": 52,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(159.125, 3.007, -248.695),
+"world_position": Vector3(159.125, 3.007, -248.31502),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 53,
@@ -1188,7 +1088,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(112.445, 2.021, -223.16),
+"local_position": Vector3(112.445, 2.021, -221.75319),
 "marker_id": &"rp_guide_013_014_q1",
 "notes": "Inserted Q1 RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing.",
 "preferred_speed_kmh": 146.25,
@@ -1197,7 +1097,7 @@ authoring_records = {
 "sequence_index": 54,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(112.445, 2.021, -223.16),
+"world_position": Vector3(112.445, 2.021, -221.75319),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 55,
@@ -1208,7 +1108,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(93.625, 1.698, -204.984),
+"local_position": Vector3(90.06479, 1.698, -205.40112),
 "marker_id": &"rp_guide_013_014",
 "notes": "Inserted guide RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing.",
 "preferred_speed_kmh": 142.5,
@@ -1217,7 +1117,7 @@ authoring_records = {
 "sequence_index": 55,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(93.625, 1.698, -204.984),
+"world_position": Vector3(90.06479, 1.698, -205.40112),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 56,
@@ -1228,7 +1128,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(73.43, 1.325, -191.793),
+"local_position": Vector3(73.43, 1.325, -189.23698),
 "marker_id": &"rp_guide_013_014_q3",
 "notes": "Inserted Q3 RoadPoint between RP_013_OuterReturn and RP_014_StartMerge for finer curve editing.",
 "preferred_speed_kmh": 138.75,
@@ -1237,7 +1137,7 @@ authoring_records = {
 "sequence_index": 56,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(73.43, 1.325, -191.793),
+"world_position": Vector3(73.43, 1.325, -189.23698),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 57,
@@ -1248,7 +1148,7 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(55, 1, -165),
+"local_position": Vector3(56.30175, 1, -165),
 "marker_id": &"rp_014_start_merge",
 "notes": "Approaches the start line along the same tangent as the outgoing straight.",
 "preferred_speed_kmh": 135.0,
@@ -1257,7 +1157,7 @@ authoring_records = {
 "sequence_index": 57,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(55, 1, -165),
+"world_position": Vector3(56.30175, 1, -165),
 "zone_id": &"final_descent"
 }, {
 "authoring_order": 58,
@@ -1268,16 +1168,16 @@ authoring_records = {
 "handle_in": Vector3(0, 0, 0),
 "handle_out": Vector3(0, 0, 0),
 "kind": &"road_point",
-"local_position": Vector3(37.383, 0.676, -125.297),
+"local_position": Vector3(39.88455, 0.676, -125.297),
 "marker_id": &"rp_guide_014_015_q1",
-"notes": "Inserted Q1 RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing.",
+"notes": "Inserted Q1 RoadPoint between RP_014_StartMerge and the closed-loop seam back to RP_000_Start for finer curve editing.",
 "preferred_speed_kmh": 138.75,
 "road_distance_m": 2112.5,
 "road_width_m": 20.0,
 "sequence_index": 58,
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
-"world_position": Vector3(37.383, 0.676, -125.297),
+"world_position": Vector3(39.88455, 0.676, -125.297),
 "zone_id": &"start_coast"
 }, {
 "authoring_order": 59,
@@ -1290,7 +1190,7 @@ authoring_records = {
 "kind": &"road_point",
 "local_position": Vector3(24.75, 0.448, -80.094),
 "marker_id": &"rp_guide_014_015",
-"notes": "Inserted guide RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing.",
+"notes": "Inserted guide RoadPoint between RP_014_StartMerge and the closed-loop seam back to RP_000_Start for finer curve editing.",
 "preferred_speed_kmh": 142.5,
 "road_distance_m": 2150.0,
 "road_width_m": 20.0,
@@ -1310,7 +1210,7 @@ authoring_records = {
 "kind": &"road_point",
 "local_position": Vector3(9.367, 0.169, -32.484),
 "marker_id": &"rp_guide_014_015_q3",
-"notes": "Inserted Q3 RoadPoint between RP_014_StartMerge and RP_015_LoopClosure for finer curve editing.",
+"notes": "Inserted Q3 RoadPoint between RP_014_StartMerge and the closed-loop seam back to RP_000_Start for finer curve editing.",
 "preferred_speed_kmh": 146.25,
 "road_distance_m": 2187.5,
 "road_width_m": 20.0,
@@ -1318,26 +1218,6 @@ authoring_records = {
 "surface_type": &"wet_asphalt",
 "tangent_mode": "AUTO",
 "world_position": Vector3(9.367, 0.169, -32.484),
-"zone_id": &"start_coast"
-}, {
-"authoring_order": 61,
-"banking_degrees": 0.0,
-"checkpoint_hint": false,
-"display_name": "Explicit loop closure",
-"enabled": true,
-"handle_in": Vector3(0, 0, 0),
-"handle_out": Vector3(0, 0, 0),
-"kind": &"road_point",
-"local_position": Vector3(0, 0, 0),
-"marker_id": &"rp_015_loop_closure",
-"notes": "Matches RP_000_Start. TrackQueryV2 treats this as an explicit closure point instead of adding a duplicate implicit seam.",
-"preferred_speed_kmh": 150.0,
-"road_distance_m": 2225.0,
-"road_width_m": 20.0,
-"sequence_index": 61,
-"surface_type": &"wet_asphalt",
-"tangent_mode": "AUTO",
-"world_position": Vector3(0, 0, 0),
 "zone_id": &"start_coast"
 }]),
 "set_piece_markers": Array[Dictionary]([{
@@ -1514,26 +1394,32 @@ authoring_records = {
 }])
 }
 generator_settings = {
-"centerline_tangent_strength": 0.55,
+"centerline_tangent_strength": 0.72,
 "closed_loop": true,
-"curve_subdivisions": 12,
+"curve_subdivisions": 24,
 "default_road_width_m": 20.0,
 "generate_collision": true,
 "generate_curbs": true,
 "generate_guardrail_hooks": true,
+"generate_guardrail_markers": false,
 "generate_lane_markings": true,
 "generate_road": true,
 "generate_shoulders": true,
 "generate_surrounding_terrain": true,
 "generated_root_name": "GeneratedStormCoastRoad",
 "guardrail_edge_offset_m": 1.8,
-"guardrail_seam_gap_m": 48.0,
+"guardrail_sample_spacing_m": 1.25,
+"guardrail_seam_gap_m": 90.0,
 "lane_count": 2,
 "lane_spacing_m": 4.6,
-"sample_spacing_m": 6.0,
+"sample_spacing_m": 2.0,
 "smooth_centerline": true,
+"terrain_band_count": 7,
 "terrain_edge_gap_m": 1.35,
-"terrain_outer_drop_m": 6.5,
-"terrain_width_m": 72.0
+"terrain_mountain_height_m": 18.0,
+"terrain_outer_drop_m": 3.0,
+"terrain_ridge_position": 0.58,
+"terrain_roughness_m": 3.2,
+"terrain_width_m": 88.0
 }
-bake_summary = "V2 road mesh regenerated at 2099.9m. Editable scene owners assigned."
+bake_summary = "V2 road mesh regenerated at 2102.3m. Editable scene owners assigned."

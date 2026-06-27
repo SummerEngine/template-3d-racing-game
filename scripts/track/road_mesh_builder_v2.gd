@@ -7,6 +7,7 @@ const MARKING_UV_SCALE_M: float = 8.0
 const WET_ASPHALT_MATERIAL := preload("res://resources/materials/storm_coast_wet_asphalt_placeholder.tres")
 const CURB_STRIPE_SHADER := preload("res://resources/materials/storm_coast_curb_stripe.gdshader")
 const TERRAIN_SHADER := preload("res://resources/materials/storm_coast_terrain.gdshader")
+const TERRAIN_ALBEDO_TEXTURE := preload("res://assets/environment/terrain/rocky_weeds_hillside_albedo.png")
 
 
 func build(parent: Node3D, query: TrackQueryV2, options: Dictionary = {}) -> Node3D:
@@ -91,7 +92,11 @@ func build_road_surface_mesh(query: TrackQueryV2, options: Dictionary = {}) -> A
 	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
 	var closed_loop: bool = _is_closed_loop(query)
-	var ring_count: int = _ring_count(query, options)
+	var sampling_options: Dictionary = options.duplicate()
+	var base_spacing_m: float = maxf(float(options.get("sample_spacing_m", 5.0)), 0.25)
+	var guardrail_spacing_m: float = maxf(float(options.get("guardrail_sample_spacing_m", minf(base_spacing_m, 2.0))), 0.25)
+	sampling_options["sample_spacing_m"] = minf(base_spacing_m, guardrail_spacing_m)
+	var ring_count: int = _ring_count(query, sampling_options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
 
 	for i: int in range(ring_count):
@@ -227,6 +232,14 @@ func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {
 	var inner_drop_m: float = maxf(float(options.get("terrain_inner_drop_m", 0.08)), 0.0)
 	var outer_drop_m: float = maxf(float(options.get("terrain_outer_drop_m", 6.5)), 0.0)
 	var roughness_m: float = maxf(float(options.get("terrain_roughness_m", 1.8)), 0.0)
+	var band_count: int = clampi(int(options.get("terrain_band_count", 6)), 2, 12)
+	var mountain_height_m: float = maxf(float(options.get("terrain_mountain_height_m", 0.0)), 0.0)
+	var ridge_position: float = clampf(float(options.get("terrain_ridge_position", 0.62)), 0.25, 0.85)
+	var row_stride: int = band_count + 1
+	var max_quad_edge_m: float = maxf(
+		float(options.get("terrain_max_quad_edge_m", maxf(terrain_width_m / float(band_count) * 2.75, 32.0))),
+		8.0
+	)
 
 	for side: float in [-1.0, 1.0]:
 		var base_index: int = vertices.size()
@@ -238,34 +251,88 @@ func build_surrounding_terrain_mesh(query: TrackQueryV2, options: Dictionary = {
 			var right: Vector3 = sample["right"]
 			var up: Vector3 = sample["up"]
 			var width_m: float = float(sample["road_width_m"])
-			var inner_offset: float = side_sign * (width_m * 0.5 + terrain_start_gap_m)
-			var outer_offset: float = side_sign * (width_m * 0.5 + terrain_start_gap_m + terrain_width_m)
 			var terrain_wave_m: float = _terrain_height_wave(distance_m, side_sign, roughness_m)
-			var inner_height_m: float = -inner_drop_m + terrain_wave_m * 0.08
-			var outer_height_m: float = -outer_drop_m + terrain_wave_m
 
-			vertices.append(center + right * inner_offset + up * inner_height_m)
-			vertices.append(center + right * outer_offset + up * outer_height_m)
-			normals.append(up)
-			normals.append(up)
-			uvs.append(Vector2(0.0, distance_m / ROAD_UV_SCALE_M))
-			uvs.append(Vector2(terrain_width_m / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
+			for band: int in range(row_stride):
+				var lateral_t: float = float(band) / float(band_count)
+				var edge_blend: float = smoothstep(0.0, 0.18, lateral_t)
+				var outer_blend: float = pow(lateral_t, 1.35)
+				var offset: float = side_sign * (width_m * 0.5 + terrain_start_gap_m + terrain_width_m * lateral_t)
+				var base_height_m: float = lerpf(-inner_drop_m, -outer_drop_m, outer_blend)
+				var wave_height_m: float = terrain_wave_m * (0.12 + 0.88 * lateral_t)
+				var ridge_height_m: float = _terrain_mountain_ridge(
+					distance_m,
+					side_sign,
+					lateral_t,
+					mountain_height_m,
+					ridge_position
+				)
+				var height_m: float = base_height_m + wave_height_m + ridge_height_m * edge_blend
+
+				vertices.append(center + right * offset + up * height_m)
+				uvs.append(Vector2(terrain_width_m * lateral_t / ROAD_UV_SCALE_M, distance_m / ROAD_UV_SCALE_M))
 
 		for i: int in range(_ring_span_count(ring_count, closed_loop)):
-			var a: int = base_index + i * 2
-			var b: int = base_index + i * 2 + 1
 			var next_i: int = _next_ring_index(i, ring_count, closed_loop)
-			var c: int = base_index + next_i * 2
-			var d: int = base_index + next_i * 2 + 1
-			if side < 0.0:
-				indices.append_array([a, c, b, b, c, d])
-			else:
-				indices.append_array([a, b, c, b, d, c])
+			var row: int = base_index + i * row_stride
+			var next_row: int = base_index + next_i * row_stride
+			for band: int in range(band_count):
+				var a: int = row + band
+				var b: int = row + band + 1
+				var c: int = next_row + band
+				var d: int = next_row + band + 1
+				if _quad_max_edge_m(vertices[a], vertices[b], vertices[c], vertices[d]) > max_quad_edge_m:
+					continue
+				if side < 0.0:
+					indices.append_array([a, c, b, b, c, d])
+				else:
+					indices.append_array([a, b, c, b, d, c])
 
+	normals = _surface_normals_from_indices(vertices, indices)
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
 
 
 func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dictionary = {}) -> ArrayMesh:
+	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
+	var rail_height_m: float = float(options.get("guardrail_height_m", 0.95))
+	var beam_height_m: float = float(options.get("guardrail_beam_height_m", 0.34))
+	var beam_thickness_m: float = maxf(float(options.get("guardrail_visual_thickness_m", 0.34)), 0.08)
+	return _build_guardrail_extrusion_mesh(
+		query,
+		side,
+		edge_offset_m,
+		rail_height_m + beam_height_m * 0.5,
+		beam_height_m,
+		beam_thickness_m,
+		options
+	)
+
+
+func build_guardrail_collision_mesh(query: TrackQueryV2, side: float, options: Dictionary = {}) -> ArrayMesh:
+	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
+	var thickness_m: float = maxf(float(options.get("guardrail_collision_thickness_m", 1.35)), 0.25)
+	var height_m: float = maxf(float(options.get("guardrail_collision_height_m", 2.15)), 0.5)
+	var vertical_offset_m: float = float(options.get("guardrail_collision_vertical_offset_m", height_m * 0.5))
+	return _build_guardrail_extrusion_mesh(
+		query,
+		side,
+		edge_offset_m,
+		vertical_offset_m,
+		height_m,
+		thickness_m,
+		options
+	)
+
+
+func _build_guardrail_extrusion_mesh(
+	query: TrackQueryV2,
+	side: float,
+	edge_offset_m: float,
+	center_height_m: float,
+	section_height_m: float,
+	section_thickness_m: float,
+	options: Dictionary = {}
+) -> ArrayMesh:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var uvs := PackedVector2Array()
@@ -273,15 +340,38 @@ func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dic
 	var closed_loop: bool = _is_closed_loop(query)
 	var ring_count: int = _ring_count(query, options)
 	var length_m: float = maxf(query.get_track_length_m(), 0.001)
-	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
-	var rail_height_m: float = float(options.get("guardrail_height_m", 0.95))
-	var beam_height_m: float = float(options.get("guardrail_beam_height_m", 0.34))
-	var beam_thickness_m: float = maxf(float(options.get("guardrail_visual_thickness_m", 0.34)), 0.08)
-	var beam_overlap_m: float = maxf(float(options.get("guardrail_visual_overlap_m", 0.45)), 0.0)
 	var connect_loop_seam: bool = bool(options.get("guardrail_connect_loop_seam", true))
 	var side_sign: float = -1.0 if side < 0.0 else 1.0
+	var half_thickness: float = section_thickness_m * 0.5
+	var half_height: float = section_height_m * 0.5
+	var sections: Array[Dictionary] = []
 
-	for i: int in range(_ring_span_count(ring_count, closed_loop)):
+	for i: int in range(ring_count):
+		var distance_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
+		var transform: Transform3D = query.road_edge_transform(
+			distance_m,
+			side_sign,
+			edge_offset_m,
+			center_height_m
+		)
+		var right: Vector3 = transform.basis.x.normalized()
+		var up: Vector3 = transform.basis.y.normalized()
+		var forward: Vector3 = -transform.basis.z.normalized()
+		var center: Vector3 = transform.origin
+		sections.append({
+			"corners": [
+				center - right * half_thickness - up * half_height,
+				center + right * half_thickness - up * half_height,
+				center - right * half_thickness + up * half_height,
+				center + right * half_thickness + up * half_height,
+			],
+			"right": right,
+			"up": up,
+			"forward": forward,
+		})
+
+	var span_count: int = _ring_span_count(ring_count, closed_loop)
+	for i: int in range(span_count):
 		var distance_a_m: float = _distance_for_ring(i, ring_count, length_m, closed_loop)
 		var next_i: int = _next_ring_index(i, ring_count, closed_loop)
 		if closed_loop and next_i == 0 and not connect_loop_seam:
@@ -289,27 +379,65 @@ func build_guardrail_preview_mesh(query: TrackQueryV2, side: float, options: Dic
 		var distance_b_m: float = _distance_for_ring(next_i, ring_count, length_m, closed_loop)
 		if closed_loop and next_i == 0:
 			distance_b_m += length_m
-		var midpoint_distance_m: float = fposmod((distance_a_m + distance_b_m) * 0.5, length_m)
-		if not _guardrail_enabled_at_distance(midpoint_distance_m, length_m, options):
+		if not _guardrail_span_enabled(distance_a_m, distance_b_m, length_m, options):
 			continue
 
-		var span_length_m: float = maxf(distance_b_m - distance_a_m + beam_overlap_m, 0.1)
-		var transform: Transform3D = query.road_edge_transform(
-			midpoint_distance_m,
-			side_sign,
-			edge_offset_m,
-			rail_height_m + beam_height_m * 0.5
-		)
-		_append_box(
-			vertices,
-			normals,
-			uvs,
-			indices,
-			transform,
-			Vector3(beam_thickness_m, beam_height_m, span_length_m)
-		)
+		_append_guardrail_extrusion_span(vertices, normals, uvs, indices, sections[i], sections[next_i])
+
+	if not closed_loop and bool(options.get("guardrail_cap_open_ends", true)) and sections.size() >= 2:
+		var start_forward: Vector3 = sections[0]["forward"]
+		var end_forward: Vector3 = sections[sections.size() - 1]["forward"]
+		_append_guardrail_extrusion_cap(vertices, normals, uvs, indices, sections[0], -start_forward)
+		_append_guardrail_extrusion_cap(vertices, normals, uvs, indices, sections[sections.size() - 1], end_forward)
 
 	return _array_mesh_from_surface(vertices, normals, uvs, indices)
+
+
+func _append_guardrail_extrusion_span(
+	vertices: PackedVector3Array,
+	normals: PackedVector3Array,
+	uvs: PackedVector2Array,
+	indices: PackedInt32Array,
+	section_a: Dictionary,
+	section_b: Dictionary
+) -> void:
+	var a_corners: Array = section_a["corners"]
+	var b_corners: Array = section_b["corners"]
+	var section_a_right: Vector3 = section_a["right"]
+	var section_b_right: Vector3 = section_b["right"]
+	var section_a_up: Vector3 = section_a["up"]
+	var section_b_up: Vector3 = section_b["up"]
+	var right: Vector3 = _average_direction(section_a_right, section_b_right, Vector3.RIGHT)
+	var up: Vector3 = _average_direction(section_a_up, section_b_up, Vector3.UP)
+	var a0: Vector3 = a_corners[0]
+	var a1: Vector3 = a_corners[1]
+	var a2: Vector3 = a_corners[2]
+	var a3: Vector3 = a_corners[3]
+	var b0: Vector3 = b_corners[0]
+	var b1: Vector3 = b_corners[1]
+	var b2: Vector3 = b_corners[2]
+	var b3: Vector3 = b_corners[3]
+
+	_append_mesh_quad(vertices, normals, uvs, indices, a2, a3, b2, b3, up)
+	_append_mesh_quad(vertices, normals, uvs, indices, a1, a0, b1, b0, -up)
+	_append_mesh_quad(vertices, normals, uvs, indices, a0, b0, a2, b2, -right)
+	_append_mesh_quad(vertices, normals, uvs, indices, a3, b3, a1, b1, right)
+
+
+func _append_guardrail_extrusion_cap(
+	vertices: PackedVector3Array,
+	normals: PackedVector3Array,
+	uvs: PackedVector2Array,
+	indices: PackedInt32Array,
+	section: Dictionary,
+	normal: Vector3
+) -> void:
+	var corners: Array = section["corners"]
+	var c0: Vector3 = corners[0]
+	var c1: Vector3 = corners[1]
+	var c2: Vector3 = corners[2]
+	var c3: Vector3 = corners[3]
+	_append_mesh_quad(vertices, normals, uvs, indices, c0, c1, c2, c3, normal)
 
 
 func _build_side_strips_mesh(
@@ -445,10 +573,11 @@ func _create_guardrail_branch(root: Node3D, query: TrackQueryV2, options: Dictio
 
 	_create_guardrail_visual_posts(guardrails, query, options, material)
 
-	var hooks := Node3D.new()
-	hooks.name = "GuardrailHooks"
-	guardrails.add_child(hooks)
-	_create_guardrail_hooks(hooks, query, options)
+	if bool(options.get("generate_guardrail_markers", false)):
+		var hooks := Node3D.new()
+		hooks.name = "GuardrailHooks"
+		guardrails.add_child(hooks)
+		_create_guardrail_hooks(hooks, query, options)
 
 	if bool(options.get("generate_collision", true)):
 		_create_guardrail_collision(guardrails, query, options)
@@ -525,42 +654,19 @@ func _create_guardrail_collision(parent: Node3D, query: TrackQueryV2, options: D
 	body.collision_layer = 1
 	body.collision_mask = 1
 	body.set_meta("collision_role", "solid_guardrail")
+	body.set_meta("collision_mode", "continuous_trimesh")
 	parent.add_child(body)
 
-	var track_length_m: float = query.get_track_length_m()
-	var spacing_m: float = maxf(float(options.get("guardrail_collision_spacing_m", options.get("collision_spacing_m", 6.0))), 0.5)
-	var segment_count: int = maxi(ceili(track_length_m / spacing_m), 1)
-	var segment_length_m: float = track_length_m / float(segment_count)
-	var edge_offset_m: float = float(options.get("guardrail_edge_offset_m", 0.72))
-	var thickness_m: float = maxf(float(options.get("guardrail_collision_thickness_m", 1.35)), 0.25)
-	var height_m: float = maxf(float(options.get("guardrail_collision_height_m", 2.15)), 0.5)
-	var vertical_offset_m: float = float(options.get("guardrail_collision_vertical_offset_m", height_m * 0.5))
-	var overlap_m: float = maxf(float(options.get("guardrail_collision_overlap_m", 1.2)), 0.0)
-
 	for side: float in [-1.0, 1.0]:
-		for i: int in range(segment_count):
-			var start_distance_m: float = float(i) * segment_length_m
-			var end_distance_m: float = minf(start_distance_m + segment_length_m, track_length_m)
-			var midpoint_distance_m: float = start_distance_m + (end_distance_m - start_distance_m) * 0.5
-			if not _guardrail_enabled_at_distance(midpoint_distance_m, track_length_m, options):
-				continue
+		var collision_mesh: ArrayMesh = build_guardrail_collision_mesh(query, side, options)
+		var shape: Shape3D = collision_mesh.create_trimesh_shape()
+		if shape == null:
+			continue
 
-			var slab_length_m: float = maxf(end_distance_m - start_distance_m + overlap_m, 0.1)
-			var transform: Transform3D = query.road_edge_transform(
-				midpoint_distance_m,
-				side,
-				edge_offset_m,
-				vertical_offset_m
-			)
-
-			var shape := BoxShape3D.new()
-			shape.size = Vector3(thickness_m, height_m, slab_length_m)
-
-			var collision := CollisionShape3D.new()
-			collision.name = "GuardrailCollision_%s_%03d" % ["L" if side < 0.0 else "R", i]
-			collision.shape = shape
-			collision.transform = transform
-			body.add_child(collision)
+		var collision := CollisionShape3D.new()
+		collision.name = "GuardrailCollision_%s_Continuous" % ("L" if side < 0.0 else "R")
+		collision.shape = shape
+		body.add_child(collision)
 
 
 func _create_mesh_child(
@@ -710,6 +816,24 @@ func _next_ring_index(index: int, ring_count: int, closed_loop: bool) -> int:
 	return index + 1
 
 
+func _average_direction(a: Vector3, b: Vector3, fallback: Vector3) -> Vector3:
+	var combined: Vector3 = a + b
+	if combined.length_squared() <= 0.0001:
+		if a.length_squared() > 0.0001:
+			return a.normalized()
+		if b.length_squared() > 0.0001:
+			return b.normalized()
+		return fallback.normalized()
+	return combined.normalized()
+
+
+func _quad_max_edge_m(a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> float:
+	return maxf(
+		maxf(a.distance_to(b), a.distance_to(c)),
+		maxf(maxf(b.distance_to(d), c.distance_to(d)), maxf(b.distance_to(c), a.distance_to(d)))
+	)
+
+
 func _is_closed_loop(query: TrackQueryV2) -> bool:
 	if query == null:
 		return false
@@ -728,6 +852,15 @@ func _guardrail_enabled_at_distance(distance_m: float, track_length_m: float, op
 	return resolved_distance_m > seam_gap_m and resolved_distance_m < track_length_m - seam_gap_m
 
 
+func _guardrail_span_enabled(distance_a_m: float, distance_b_m: float, track_length_m: float, options: Dictionary) -> bool:
+	var midpoint_distance_m: float = fposmod((distance_a_m + distance_b_m) * 0.5, track_length_m)
+	return (
+		_guardrail_enabled_at_distance(distance_a_m, track_length_m, options)
+		and _guardrail_enabled_at_distance(distance_b_m, track_length_m, options)
+		and _guardrail_enabled_at_distance(midpoint_distance_m, track_length_m, options)
+	)
+
+
 func _material(color: Color, roughness: float = 0.82, metallic: float = 0.0) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -737,6 +870,10 @@ func _material(color: Color, roughness: float = 0.82, metallic: float = 0.0) -> 
 
 
 func _road_material() -> Material:
+	var shader_material := WET_ASPHALT_MATERIAL.duplicate() as Material
+	if shader_material != null:
+		return shader_material
+
 	var material := StandardMaterial3D.new()
 	material.resource_name = "StormCoastRuntimeDarkAsphalt"
 	material.albedo_color = Color(0.022, 0.023, 0.022, 1.0)
@@ -783,6 +920,17 @@ func _guardrail_material() -> StandardMaterial3D:
 func _terrain_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = TERRAIN_SHADER
+	material.set_shader_parameter("terrain_albedo", TERRAIN_ALBEDO_TEXTURE)
+	material.set_shader_parameter("grass_dark", Color(0.038, 0.062, 0.041, 1.0))
+	material.set_shader_parameter("grass_sunlit", Color(0.13, 0.16, 0.082, 1.0))
+	material.set_shader_parameter("exposed_rock", Color(0.22, 0.205, 0.175, 1.0))
+	material.set_shader_parameter("dry_soil", Color(0.135, 0.105, 0.074, 1.0))
+	material.set_shader_parameter("patch_scale", 3.6)
+	material.set_shader_parameter("rock_strength", 0.68)
+	material.set_shader_parameter("soil_strength", 0.54)
+	material.set_shader_parameter("weed_strength", 0.62)
+	material.set_shader_parameter("texture_strength", 0.74)
+	material.set_shader_parameter("terrain_texture_scale", 12.0)
 	return material
 
 
@@ -793,6 +941,68 @@ func _terrain_height_wave(distance_m: float, side_sign: float, roughness_m: floa
 		sin(distance_m * 0.012 + side_sign * 1.7) * roughness_m
 		+ sin(distance_m * 0.031 + side_sign * 4.9) * roughness_m * 0.35
 	)
+
+
+func _terrain_mountain_ridge(
+	distance_m: float,
+	side_sign: float,
+	lateral_t: float,
+	mountain_height_m: float,
+	ridge_position: float
+) -> float:
+	if mountain_height_m <= 0.0:
+		return 0.0
+
+	var t: float = clampf(lateral_t, 0.0, 1.0)
+	var near_blend: float = smoothstep(0.10, 0.36, t)
+	var far_blend: float = 1.0 - smoothstep(0.86, 1.0, t)
+	var crest_distance: float = absf(t - ridge_position)
+	var crest_width: float = maxf(0.18, 0.58 - ridge_position * 0.24)
+	var crest: float = 1.0 - clampf(crest_distance / crest_width, 0.0, 1.0)
+	crest = pow(crest, 1.65)
+
+	var long_wave: float = 0.78
+	long_wave += sin(distance_m * 0.006 + side_sign * 2.8) * 0.20
+	long_wave += sin(distance_m * 0.017 + side_sign * 6.1) * 0.10
+	long_wave = clampf(long_wave, 0.38, 1.08)
+	return mountain_height_m * near_blend * far_blend * crest * long_wave
+
+
+func _surface_normals_from_indices(
+	vertices: PackedVector3Array,
+	indices: PackedInt32Array,
+	fallback_up: Vector3 = Vector3.UP
+) -> PackedVector3Array:
+	var recalculated := PackedVector3Array()
+	recalculated.resize(vertices.size())
+	for i: int in range(recalculated.size()):
+		recalculated[i] = Vector3.ZERO
+
+	for i: int in range(0, indices.size(), 3):
+		var ia: int = indices[i]
+		var ib: int = indices[i + 1]
+		var ic: int = indices[i + 2]
+		if ia < 0 or ib < 0 or ic < 0:
+			continue
+		if ia >= vertices.size() or ib >= vertices.size() or ic >= vertices.size():
+			continue
+
+		var normal: Vector3 = (vertices[ib] - vertices[ia]).cross(vertices[ic] - vertices[ia])
+		if normal.length_squared() <= 0.000001:
+			continue
+		normal = normal.normalized()
+		if normal.dot(fallback_up) < 0.0:
+			normal = -normal
+		recalculated[ia] += normal
+		recalculated[ib] += normal
+		recalculated[ic] += normal
+
+	for i: int in range(recalculated.size()):
+		if recalculated[i].length_squared() <= 0.000001:
+			recalculated[i] = fallback_up
+		else:
+			recalculated[i] = recalculated[i].normalized()
+	return recalculated
 
 
 func _assign_owner_recursive(node: Node, owner_node: Node) -> void:

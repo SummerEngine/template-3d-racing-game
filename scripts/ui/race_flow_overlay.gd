@@ -4,8 +4,16 @@ const FigmaUIFontScript := preload("res://scripts/ui/figma_ui_fonts.gd")
 
 @export var race_manager_path: NodePath = ^"../Managers/RaceManager"
 @export var main_menu_scene_path: String = "res://scenes/ui/main_menu.tscn"
+@export_category("Race Finish Transition")
+@export_range(0.0, 5.0, 0.05) var finish_coast_seconds: float = 1.55
+@export_range(0.0, 3.0, 0.05) var finish_fade_to_black_seconds: float = 0.60
+@export_range(0.0, 2.0, 0.05) var finish_black_hold_seconds: float = 0.25
+@export_range(0.0, 3.0, 0.05) var finish_results_reveal_seconds: float = 0.55
+@export_range(0.0, 3.0, 0.05) var race_music_fade_seconds: float = 1.15
+@export_range(0.0, 3.0, 0.05) var results_music_fade_seconds: float = 0.75
 
 const MENU_AUDIO_CONTROLLER_SCRIPT_PATH: String = "res://scripts/audio/menu_audio_controller.gd"
+const RESULT_BUTTON_BOLD_FONT_PATH: String = "res://assets/fonts/Rajdhani-Bold.ttf"
 const COUNTDOWN_TEXTURE_PATHS: Dictionary = {
 	3: "res://assets/ui/countdown_3.png",
 	2: "res://assets/ui/countdown_2.png",
@@ -60,9 +68,20 @@ var _results_time_value_label: Label = null
 var _results_best_lap_value_label: Label = null
 var _results_top_speed_value_label: Label = null
 var _results_laps_value_label: Label = null
+var _results_position_support_labels: Array[Label] = []
+var _results_identity_caption_labels: Array[Label] = []
+var _results_metric_caption_labels: Array[Label] = []
+var _results_metric_value_labels: Array[Label] = []
+var _results_standings_title_label: Label = null
 var _results_standings_list: VBoxContainer = null
+var _results_position_card: PanelContainer = null
+var _results_metric_cards: Array[PanelContainer] = []
+var _results_button_row: HBoxContainer = null
 var _results_main_menu_button: Button = null
 var _results_race_again_button: Button = null
+var _finish_fade_rect: ColorRect = null
+var _finish_transition_tween: Tween = null
+var _finish_transition_active: bool = false
 var _max_player_speed_kmh: int = 0
 var _last_results: Array = []
 
@@ -83,7 +102,7 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and not _results_visible:
+	if event.is_action_pressed("ui_cancel") and not _results_visible and not _finish_transition_active:
 		get_viewport().set_input_as_handled()
 		_toggle_pause()
 
@@ -193,6 +212,8 @@ func _build_interface() -> void:
 	FigmaUIFontScript.apply_tree(_overlay_root)
 	_build_results_interface()
 	FigmaUIFontScript.apply_tree(_results_root)
+	_refresh_results_typography()
+	_build_finish_transition_overlay()
 	call_deferred("_bind_ui_audio")
 
 
@@ -270,92 +291,103 @@ func _build_results_interface() -> void:
 
 	var stage := Control.new()
 	stage.name = "ResultsStage"
-	stage.anchor_left = 0.10
-	stage.anchor_top = 0.035
-	stage.anchor_right = 0.90
-	stage.anchor_bottom = 0.96
+	stage.anchor_left = 0.08
+	stage.anchor_top = 0.045
+	stage.anchor_right = 0.92
+	stage.anchor_bottom = 0.955
 	_results_root.add_child(stage)
 
-	_results_title_label = _make_result_label("CLASSIFIED", _overlay_font_px(64, 132, 0.105), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_results_title_label = _make_result_label("CLASSIFIED", _result_font_px(44, 96, 0.064), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
 	_results_title_label.name = "ResultsTitle"
 	_results_title_label.anchor_left = 0.0
 	_results_title_label.anchor_top = 0.0
 	_results_title_label.anchor_right = 1.0
-	_results_title_label.anchor_bottom = 0.16
+	_results_title_label.anchor_bottom = 0.13
 	_results_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	stage.add_child(_results_title_label)
 
 	var identity_row := HBoxContainer.new()
 	identity_row.name = "ResultIdentityRow"
 	identity_row.anchor_left = 0.18
-	identity_row.anchor_top = 0.18
+	identity_row.anchor_top = 0.15
 	identity_row.anchor_right = 0.82
-	identity_row.anchor_bottom = 0.36
+	identity_row.anchor_bottom = 0.34
 	identity_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	identity_row.add_theme_constant_override("separation", _overlay_space(28, 56))
+	identity_row.add_theme_constant_override("separation", _overlay_space(18, 38))
 	stage.add_child(identity_row)
 
-	var position_card := PanelContainer.new()
-	position_card.name = "PositionCard"
-	position_card.custom_minimum_size = Vector2(_overlay_space(150, 240), _overlay_space(150, 240))
-	position_card.add_theme_stylebox_override("panel", _make_style(Color(0.22, 0.025, 0.050, 0.64), Color(COLOR_RACING_RED, 0.78), 1, 0))
-	identity_row.add_child(position_card)
+	_results_position_card = PanelContainer.new()
+	_results_position_card.name = "PositionCard"
+	_results_position_card.custom_minimum_size = Vector2(_overlay_space(120, 175), _overlay_space(120, 175))
+	_results_position_card.add_theme_stylebox_override("panel", _make_style(Color(0.22, 0.025, 0.050, 0.64), Color(COLOR_RACING_RED, 0.78), 1, 0))
+	identity_row.add_child(_results_position_card)
 
 	var position_box := VBoxContainer.new()
 	position_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	position_box.add_theme_constant_override("separation", _overlay_space(6, 12))
-	position_card.add_child(position_box)
-	var medal := _make_result_label("MEDAL", _overlay_font_px(11, 18, 0.014), Color(1.0, 0.84, 0.0, 1.0), true, HORIZONTAL_ALIGNMENT_CENTER)
+	position_box.add_theme_constant_override("separation", _overlay_space(4, 8))
+	_results_position_card.add_child(position_box)
+	var medal := _make_result_label("MEDAL", _result_font_px(11, 18, 0.014), Color(1.0, 0.84, 0.0, 1.0), true, HORIZONTAL_ALIGNMENT_CENTER)
+	medal.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_position_support_labels.append(medal)
 	position_box.add_child(medal)
-	var position_caption := _make_result_label("P O S I T I O N", _overlay_font_px(11, 18, 0.014), Color(0.53, 0.52, 0.70, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	var position_caption := _make_result_label("P O S I T I O N", _result_font_px(11, 18, 0.014), Color(0.53, 0.52, 0.70, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	position_caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_position_support_labels.append(position_caption)
 	position_box.add_child(position_caption)
-	_results_position_label = _make_result_label("P--", _overlay_font_px(52, 92, 0.074), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_results_position_label = _make_result_label("P--", _result_font_px(54, 96, 0.070), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
+	_results_position_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	position_box.add_child(_results_position_label)
 
 	var identity_details := VBoxContainer.new()
 	identity_details.name = "ResultIdentityDetails"
 	identity_details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity_details.alignment = BoxContainer.ALIGNMENT_CENTER
-	identity_details.add_theme_constant_override("separation", _overlay_space(8, 16))
+	identity_details.add_theme_constant_override("separation", _overlay_space(5, 10))
 	identity_row.add_child(identity_details)
-	identity_details.add_child(_make_result_label("C A R", _overlay_font_px(10, 17, 0.013), Color(0.42, 0.42, 0.58, 1.0), false, HORIZONTAL_ALIGNMENT_LEFT))
-	_results_car_value_label = _make_result_label("--", _overlay_font_px(20, 34, 0.028), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var car_caption := _make_result_label("C A R", _result_font_px(11, 18, 0.014), Color(0.42, 0.42, 0.58, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	car_caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_identity_caption_labels.append(car_caption)
+	identity_details.add_child(car_caption)
+	_results_car_value_label = _make_result_label("--", _result_font_px(22, 38, 0.027), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
 	_configure_result_value_label(_results_car_value_label)
 	identity_details.add_child(_results_car_value_label)
-	identity_details.add_child(_make_result_label("C I R C U I T", _overlay_font_px(10, 17, 0.013), Color(0.42, 0.42, 0.58, 1.0), false, HORIZONTAL_ALIGNMENT_LEFT))
-	_results_track_value_label = _make_result_label("--", _overlay_font_px(18, 30, 0.025), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var circuit_caption := _make_result_label("C I R C U I T", _result_font_px(11, 18, 0.014), Color(0.42, 0.42, 0.58, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	circuit_caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_identity_caption_labels.append(circuit_caption)
+	identity_details.add_child(circuit_caption)
+	_results_track_value_label = _make_result_label("--", _result_font_px(20, 34, 0.024), COLOR_TEXT_MAIN, true, HORIZONTAL_ALIGNMENT_CENTER)
 	_configure_result_value_label(_results_track_value_label)
 	identity_details.add_child(_results_track_value_label)
 
 	var metrics_grid := GridContainer.new()
 	metrics_grid.name = "ResultsMetrics"
 	metrics_grid.columns = 2
-	metrics_grid.anchor_left = 0.02
-	metrics_grid.anchor_top = 0.39
-	metrics_grid.anchor_right = 0.98
-	metrics_grid.anchor_bottom = 0.57
-	metrics_grid.add_theme_constant_override("h_separation", _overlay_space(16, 28))
-	metrics_grid.add_theme_constant_override("v_separation", _overlay_space(14, 24))
+	metrics_grid.anchor_left = 0.08
+	metrics_grid.anchor_top = 0.37
+	metrics_grid.anchor_right = 0.92
+	metrics_grid.anchor_bottom = 0.55
+	metrics_grid.add_theme_constant_override("h_separation", _overlay_space(12, 22))
+	metrics_grid.add_theme_constant_override("v_separation", _overlay_space(10, 18))
 	stage.add_child(metrics_grid)
 	_results_time_value_label = _add_metric_card(metrics_grid, "R A C E  T I M E", "--:--.---", Color(0.92, 0.92, 0.95, 1.0))
 	_results_best_lap_value_label = _add_metric_card(metrics_grid, "B E S T  L A P", "--:--.---", Color(0.0, 1.0, 0.48, 1.0))
 	_results_top_speed_value_label = _add_metric_card(metrics_grid, "T O P  S P E E D", "-- km/h", Color(0.0, 0.80, 1.0, 1.0))
 	_results_laps_value_label = _add_metric_card(metrics_grid, "L A P S", "-- / --", COLOR_TEXT_MAIN)
 
-	var standings_title := _make_result_label("F I N A L  S T A N D I N G S", _overlay_font_px(11, 18, 0.014), Color(0.45, 0.44, 0.62, 1.0), false, HORIZONTAL_ALIGNMENT_LEFT)
-	standings_title.anchor_left = 0.02
-	standings_title.anchor_top = 0.61
-	standings_title.anchor_right = 0.98
-	standings_title.anchor_bottom = 0.65
-	standings_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	stage.add_child(standings_title)
+	_results_standings_title_label = _make_result_label("F I N A L  S T A N D I N G S", _result_font_px(13, 24, 0.017), Color(0.45, 0.44, 0.62, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	_results_standings_title_label.anchor_left = 0.02
+	_results_standings_title_label.anchor_top = 0.59
+	_results_standings_title_label.anchor_right = 0.98
+	_results_standings_title_label.anchor_bottom = 0.63
+	_results_standings_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	stage.add_child(_results_standings_title_label)
 
 	var standings_panel := PanelContainer.new()
 	standings_panel.name = "StandingsPanel"
 	standings_panel.anchor_left = 0.02
-	standings_panel.anchor_top = 0.655
+	standings_panel.anchor_top = 0.635
 	standings_panel.anchor_right = 0.98
-	standings_panel.anchor_bottom = 0.88
+	standings_panel.anchor_bottom = 0.84
 	standings_panel.add_theme_stylebox_override("panel", _make_style(Color(0.024, 0.026, 0.034, 0.74), Color(1.0, 1.0, 1.0, 0.10), 1, 0))
 	stage.add_child(standings_panel)
 	_results_standings_list = VBoxContainer.new()
@@ -363,23 +395,37 @@ func _build_results_interface() -> void:
 	_results_standings_list.add_theme_constant_override("separation", 0)
 	standings_panel.add_child(_wrap_with_margin(_results_standings_list, _overlay_space(0, 0), _overlay_space(0, 0)))
 
-	var button_row := HBoxContainer.new()
-	button_row.name = "ResultsButtons"
-	button_row.anchor_left = 0.02
-	button_row.anchor_top = 0.92
-	button_row.anchor_right = 0.98
-	button_row.anchor_bottom = 1.0
-	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	button_row.add_theme_constant_override("separation", _overlay_space(22, 42))
-	stage.add_child(button_row)
-	_results_main_menu_button = _make_button("<  MAIN MENU", Callable(self, "_return_to_main_menu"))
-	_results_main_menu_button.custom_minimum_size = Vector2(_overlay_vw(0.22, 220.0, 420.0), _overlay_vh(0.058, 44.0, 68.0))
+	_results_button_row = HBoxContainer.new()
+	_results_button_row.name = "ResultsButtons"
+	_results_button_row.anchor_left = 0.22
+	_results_button_row.anchor_top = 0.885
+	_results_button_row.anchor_right = 0.78
+	_results_button_row.anchor_bottom = 0.975
+	_results_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_results_button_row.add_theme_constant_override("separation", _overlay_space(16, 30))
+	stage.add_child(_results_button_row)
+	_results_main_menu_button = _make_button("MAIN MENU", Callable(self, "_return_to_main_menu"))
+	_results_main_menu_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_results_main_menu_button.custom_minimum_size = Vector2(_overlay_vw(0.16, 180.0, 300.0), _overlay_vh(0.050, 42.0, 60.0))
 	_apply_result_button_typography(_results_main_menu_button)
-	button_row.add_child(_results_main_menu_button)
-	_results_race_again_button = _make_button(">  RACE AGAIN", Callable(self, "_restart_race"), true)
-	_results_race_again_button.custom_minimum_size = Vector2(_overlay_vw(0.32, 280.0, 520.0), _overlay_vh(0.066, 50.0, 78.0))
+	_results_button_row.add_child(_results_main_menu_button)
+	_results_race_again_button = _make_button("RACE AGAIN", Callable(self, "_restart_race"), true)
+	_results_race_again_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_results_race_again_button.custom_minimum_size = Vector2(_overlay_vw(0.18, 190.0, 320.0), _overlay_vh(0.052, 44.0, 62.0))
 	_apply_result_button_typography(_results_race_again_button)
-	button_row.add_child(_results_race_again_button)
+	_results_button_row.add_child(_results_race_again_button)
+
+
+func _build_finish_transition_overlay() -> void:
+	_finish_fade_rect = ColorRect.new()
+	_finish_fade_rect.name = "FinishFadeToBlack"
+	_finish_fade_rect.process_mode = Node.PROCESS_MODE_ALWAYS
+	_finish_fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+	_finish_fade_rect.color = Color.BLACK
+	_finish_fade_rect.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_finish_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_finish_fade_rect.visible = false
+	add_child(_finish_fade_rect)
 
 
 func _connect_race_manager() -> void:
@@ -427,6 +473,8 @@ func _resume_race() -> void:
 
 
 func _restart_race() -> void:
+	_cancel_finish_transition()
+	_stop_results_music(0.20)
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -442,28 +490,117 @@ func _end_race() -> void:
 
 
 func _return_to_main_menu() -> void:
+	_cancel_finish_transition()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(main_menu_scene_path)
 
 
 func _on_race_finished(results: Array) -> void:
 	_hide_countdown()
-	_results_visible = true
 	_last_results = results.duplicate()
 	_overlay_root.visible = false
-	_show_results_screen(results)
-	get_tree().paused = true
-	if _results_race_again_button != null:
-		_results_race_again_button.grab_focus()
+	if _results_root != null:
+		_results_root.visible = false
+	_start_finish_transition(_last_results)
 
 
 func _on_race_started() -> void:
+	_cancel_finish_transition()
+	_stop_results_music(0.0)
 	_max_player_speed_kmh = 0
 	_results_visible = false
 	if _results_root != null:
 		_results_root.visible = false
 	if not _countdown_showing_go:
 		_hide_countdown()
+
+
+func _start_finish_transition(results: Array) -> void:
+	_cancel_finish_transition()
+	_results_visible = false
+	_finish_transition_active = true
+	_fade_race_music_out(race_music_fade_seconds)
+	get_tree().paused = false
+
+	if _finish_fade_rect == null:
+		_pause_race_under_results()
+		_show_results_after_finish_transition(results)
+		_complete_finish_transition()
+		return
+
+	_finish_fade_rect.visible = true
+	_finish_fade_rect.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_finish_transition_tween = create_tween()
+	_finish_transition_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_finish_transition_tween.set_trans(Tween.TRANS_QUAD)
+	_finish_transition_tween.set_ease(Tween.EASE_IN_OUT)
+	_finish_transition_tween.tween_interval(maxf(finish_coast_seconds, 0.0))
+	_finish_transition_tween.tween_property(
+			_finish_fade_rect,
+			"modulate:a",
+			1.0,
+			maxf(finish_fade_to_black_seconds, 0.0)
+	)
+	_finish_transition_tween.tween_callback(Callable(self, "_pause_race_under_results"))
+	_finish_transition_tween.tween_interval(maxf(finish_black_hold_seconds, 0.0))
+	_finish_transition_tween.tween_callback(Callable(self, "_show_results_after_finish_transition").bind(results.duplicate()))
+	_finish_transition_tween.tween_property(
+			_finish_fade_rect,
+			"modulate:a",
+			0.0,
+			maxf(finish_results_reveal_seconds, 0.0)
+	)
+	_finish_transition_tween.tween_callback(Callable(self, "_complete_finish_transition"))
+
+
+func _pause_race_under_results() -> void:
+	get_tree().paused = true
+
+
+func _show_results_after_finish_transition(results: Array) -> void:
+	_results_visible = true
+	_show_results_screen(results)
+	_play_results_music()
+	if _results_race_again_button != null:
+		_results_race_again_button.grab_focus()
+
+
+func _complete_finish_transition() -> void:
+	_finish_transition_active = false
+	if _finish_fade_rect != null:
+		_finish_fade_rect.visible = false
+		_finish_fade_rect.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_finish_transition_tween = null
+
+
+func _cancel_finish_transition() -> void:
+	if _finish_transition_tween != null:
+		_finish_transition_tween.kill()
+		_finish_transition_tween = null
+	_finish_transition_active = false
+	if _finish_fade_rect != null:
+		_finish_fade_rect.visible = false
+		_finish_fade_rect.modulate = Color(1.0, 1.0, 1.0, 0.0)
+
+
+func _play_results_music() -> void:
+	if _ui_audio == null:
+		_bind_ui_audio()
+	if _ui_audio != null and _ui_audio.has_method("play_menu_music"):
+		_ui_audio.call("play_menu_music", results_music_fade_seconds)
+
+
+func _stop_results_music(fade_seconds: float) -> void:
+	if _ui_audio != null and _ui_audio.has_method("stop_menu_music"):
+		_ui_audio.call("stop_menu_music", fade_seconds)
+
+
+func _fade_race_music_out(fade_seconds: float) -> void:
+	var race_audio := _find_node_by_name(get_tree().current_scene, &"RaceAudio")
+	if race_audio == null:
+		return
+	if race_audio.has_method("fade_music_out"):
+		race_audio.call("fade_music_out", fade_seconds)
 
 
 func _on_countdown_changed(_time_remaining_seconds: float, whole_seconds: int) -> void:
@@ -953,6 +1090,22 @@ func _load_raw_texture(path: String) -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
+func _load_font_safely(path: String) -> Font:
+	if path.is_empty():
+		return null
+	if FileAccess.file_exists("%s.import" % path):
+		var imported_font := load(path) as Font
+		if imported_font != null:
+			return imported_font
+	var font_file := FontFile.new()
+	if not font_file.has_method("load_dynamic_font"):
+		return null
+	var error: Variant = font_file.call("load_dynamic_font", ProjectSettings.globalize_path(path))
+	if error is int and int(error) == OK:
+		return font_file
+	return null
+
+
 func ordinal(value: int) -> String:
 	var suffix := "th"
 	var mod_100 := value % 100
@@ -991,8 +1144,9 @@ func _add_metric_card(parent: Control, caption_text: String, value_text: String,
 	panel.name = "ResultMetricCard"
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.custom_minimum_size = Vector2(1.0, _overlay_space(74, 116))
+	panel.custom_minimum_size = Vector2(1.0, _overlay_space(58, 88))
 	panel.add_theme_stylebox_override("panel", _make_style(Color(0.050, 0.052, 0.064, 0.38), Color(1.0, 1.0, 1.0, 0.10), 1, 0))
+	_results_metric_cards.append(panel)
 	parent.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -1007,9 +1161,13 @@ func _add_metric_card(parent: Control, caption_text: String, value_text: String,
 	stack.add_theme_constant_override("separation", _overlay_space(6, 12))
 	margin.add_child(stack)
 
-	var caption := _make_result_label(caption_text, _overlay_font_px(10, 17, 0.013), Color(0.45, 0.44, 0.60, 1.0), false, HORIZONTAL_ALIGNMENT_LEFT)
+	var caption := _make_result_label(caption_text, _result_font_px(11, 17, 0.013), Color(0.45, 0.44, 0.60, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_metric_caption_labels.append(caption)
 	stack.add_child(caption)
-	var value := _make_result_label(value_text, _overlay_font_px(19, 34, 0.028), accent, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var value := _make_result_label(value_text, _result_font_px(20, 36, 0.026), accent, true, HORIZONTAL_ALIGNMENT_CENTER)
+	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_results_metric_value_labels.append(value)
 	stack.add_child(value)
 	return value
 
@@ -1066,8 +1224,58 @@ func _refresh_overlay_sizing() -> void:
 		var panel := _overlay_root.get_node_or_null("Center/Panel") as PanelContainer
 		if panel != null:
 			panel.custom_minimum_size = _pause_panel_size()
+	if _results_root != null:
+		_refresh_results_typography()
 	if _results_visible and _results_root != null:
 		_show_results_screen(_last_results)
+
+
+func _refresh_results_typography() -> void:
+	if _results_title_label != null:
+		_results_title_label.add_theme_font_size_override("font_size", _result_font_px(44, 96, 0.064))
+	if _results_position_card != null:
+		var position_card_side := _overlay_space(120, 175)
+		_results_position_card.custom_minimum_size = Vector2(position_card_side, position_card_side)
+	for label: Label in _results_position_support_labels:
+		if label != null:
+			label.add_theme_font_size_override("font_size", _result_font_px(11, 18, 0.014))
+	if _results_position_label != null:
+		_results_position_label.add_theme_font_size_override("font_size", _result_font_px(54, 96, 0.070))
+	for label: Label in _results_identity_caption_labels:
+		if label != null:
+			label.add_theme_font_size_override("font_size", _result_font_px(11, 18, 0.014))
+	if _results_car_value_label != null:
+		_results_car_value_label.add_theme_font_size_override("font_size", _result_font_px(22, 38, 0.027))
+	if _results_track_value_label != null:
+		_results_track_value_label.add_theme_font_size_override("font_size", _result_font_px(20, 34, 0.024))
+	for label: Label in _results_metric_caption_labels:
+		if label != null:
+			label.add_theme_font_size_override("font_size", _result_font_px(11, 17, 0.013))
+	for label: Label in _results_metric_value_labels:
+		if label != null:
+			label.add_theme_font_size_override("font_size", _result_font_px(20, 36, 0.026))
+	for panel: PanelContainer in _results_metric_cards:
+		if panel != null:
+			panel.custom_minimum_size = Vector2(1.0, _overlay_space(58, 88))
+	if _results_standings_title_label != null:
+		_results_standings_title_label.add_theme_font_size_override("font_size", _result_font_px(13, 24, 0.017))
+	if _results_button_row != null:
+		_results_button_row.add_theme_constant_override("separation", _overlay_space(16, 30))
+	if _results_main_menu_button != null:
+		_results_main_menu_button.custom_minimum_size = Vector2(_overlay_vw(0.16, 180.0, 300.0), _overlay_vh(0.050, 42.0, 60.0))
+		_apply_result_button_typography(_results_main_menu_button)
+	if _results_race_again_button != null:
+		_results_race_again_button.custom_minimum_size = Vector2(_overlay_vw(0.18, 190.0, 320.0), _overlay_vh(0.052, 44.0, 62.0))
+		_apply_result_button_typography(_results_race_again_button)
+
+
+func _result_font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
+	var ui_scale := _overlay_scale()
+	var viewport_height := get_viewport().get_visible_rect().size.y
+	var scaled_minimum := maxf(8.0, float(minimum) * minf(ui_scale, 1.0))
+	var height_size := viewport_height * vh_ratio
+	var gentle_scale := lerpf(0.92, 1.06, clampf((ui_scale - UI_MIN_SCALE) / (1.25 - UI_MIN_SCALE), 0.0, 1.0))
+	return roundi(clampf(height_size * gentle_scale, scaled_minimum, float(maximum)))
 
 
 func _overlay_font_px(minimum: int, maximum: int, vh_ratio: float) -> int:
@@ -1278,7 +1486,12 @@ func _make_button(text: String, callback: Callable, primary: bool = false) -> Bu
 
 
 func _apply_result_button_typography(button: Button) -> void:
-	button.add_theme_font_size_override("font_size", _overlay_font_px(18, 32, 0.029))
+	button.add_theme_font_size_override("font_size", _result_font_px(18, 30, 0.024))
+	var bold_font := _load_font_safely(RESULT_BUTTON_BOLD_FONT_PATH)
+	if bold_font != null:
+		button.add_theme_font_override("font", bold_font)
+	button.add_theme_constant_override("outline_size", 1)
+	button.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.24))
 
 
 func _make_style(fill: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:

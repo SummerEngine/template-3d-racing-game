@@ -16,9 +16,9 @@ const TrackQueryV2Script := preload("res://scripts/track/track_query_v2.gd")
 @export_range(4.0, 32.0, 0.25) var default_road_width_m: float = 20.0
 @export_range(1, 6, 1) var lane_count: int = 2
 @export_range(2.0, 6.0, 0.1) var lane_spacing_m: float = 3.6
-@export_range(1.0, 20.0, 0.5) var sample_spacing_m: float = 5.0
-@export_range(0.0, 1.0, 0.05) var centerline_tangent_strength: float = 0.55
-@export_range(1, 24, 1) var curve_subdivisions: int = 10
+@export_range(1.0, 20.0, 0.5) var sample_spacing_m: float = 2.0
+@export_range(0.0, 1.0, 0.05) var centerline_tangent_strength: float = 0.72
+@export_range(1, 32, 1) var curve_subdivisions: int = 24
 
 @export var generate_road: bool = true
 @export var generate_collision: bool = true
@@ -27,8 +27,9 @@ const TrackQueryV2Script := preload("res://scripts/track/track_query_v2.gd")
 @export var generate_curbs: bool = true
 @export var generate_surrounding_terrain: bool = true
 @export var generate_guardrail_hooks: bool = true
+@export var generate_guardrail_markers: bool = false
 
-@export_range(2.0, 20.0, 0.5) var collision_spacing_m: float = 6.0
+@export_range(1.0, 20.0, 0.5) var collision_spacing_m: float = 2.0
 @export_range(0.2, 2.0, 0.05) var collision_thickness_m: float = 0.9
 @export_range(0.0, 2.0, 0.05) var collision_width_margin_m: float = 0.35
 @export_range(-0.1, 0.2, 0.01) var collision_surface_lift_m: float = 0.02
@@ -40,6 +41,10 @@ const TrackQueryV2Script := preload("res://scripts/track/track_query_v2.gd")
 @export_range(0.0, 20.0, 0.25) var terrain_outer_drop_m: float = 6.5
 @export_range(0.0, 8.0, 0.1) var terrain_roughness_m: float = 1.8
 @export_range(0.0, 12.0, 0.25) var terrain_edge_gap_m: float = 2.5
+@export_range(2, 12, 1) var terrain_band_count: int = 6
+@export_range(0.0, 32.0, 0.5) var terrain_mountain_height_m: float = 0.0
+@export_range(0.25, 0.85, 0.05) var terrain_ridge_position: float = 0.62
+@export_range(0.75, 8.0, 0.25) var guardrail_sample_spacing_m: float = 1.25
 @export_range(6.0, 40.0, 1.0) var guardrail_hook_spacing_m: float = 16.0
 @export_range(0.0, 4.0, 0.05) var guardrail_edge_offset_m: float = 0.72
 @export_range(0.25, 4.0, 0.05) var guardrail_collision_thickness_m: float = 1.45
@@ -515,9 +520,14 @@ func _builder_options() -> Dictionary:
 		"terrain_outer_drop_m": terrain_outer_drop_m,
 		"terrain_roughness_m": terrain_roughness_m,
 		"terrain_edge_gap_m": terrain_edge_gap_m,
+		"terrain_band_count": terrain_band_count,
+		"terrain_mountain_height_m": terrain_mountain_height_m,
+		"terrain_ridge_position": terrain_ridge_position,
 		"generate_guardrail_hooks": generate_guardrail_hooks,
+		"generate_guardrail_markers": generate_guardrail_markers,
 		"shoulder_width_m": shoulder_width_m,
 		"curb_width_m": curb_width_m,
+		"guardrail_sample_spacing_m": guardrail_sample_spacing_m,
 		"guardrail_hook_spacing_m": guardrail_hook_spacing_m,
 		"guardrail_edge_offset_m": guardrail_edge_offset_m,
 		"guardrail_collision_thickness_m": guardrail_collision_thickness_m,
