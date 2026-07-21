@@ -1,0 +1,41 @@
+{
+  "id": "3d-racing-game",
+  "version": "1.0.0",
+  "name": "3D Racing",
+  "engineMinVersion": "0.5.43",
+  "entryScene": "res://scenes/ui/boot_loading.tscn",
+  "dimension": "3D",
+  "mechanics": [
+    "arcade-driving",
+    "drifting",
+    "gear-shifting",
+    "rival-racers",
+    "garage-car-select",
+    "track-select",
+    "difficulty-options",
+    "camera-modes",
+    "track-authoring-tools",
+    "engine-audio",
+    "per-track-music",
+    "race-results",
+    "hud"
+  ],
+  "genres": [
+    "racing",
+    "arcade",
+    "driving"
+  ],
+  "agentBrief": "An arcade racing vertical slice (Godot 4.6, Forward+, GDScript). ENTRY: res://scenes/ui/boot_loading.tscn -> the main menu. THE MENU UI IS BUILT ENTIRELY IN CODE in scripts/ui/main_menu.gd (a very large file) — there is no menu .tscn to edit; home, car select and track select are views built by _build_*_view functions. scenes/ui/garage_showroom.tscn is instanced INTO the menu as its 3D backdrop (props under EditableProps) — it is scenery, not a gameplay scene. TRACKS ARE DATA: GameSession (the only autoload, scripts/game/game_session.gd) holds TRACK_OPTIONS — id, display_name, description, scene_path, music_key, lap_count, preview_texture_path, is_available/locked/locked_reason — so adding a track means a race scene plus one entry there. storm_coast ships available; showcase_circuit ships locked:true ON PURPOSE as the example of the locked treatment (the RACE NOW button becomes a disabled TRACK LOCKED with the reason as tooltip). Difficulty (rival tiers) and transmission options are tables in game_session.gd too, and it creates the audio buses and owns volume settings. AUDIO OWNERSHIP — READ BEFORE TOUCHING MUSIC: MenuAudioController (scripts/audio/menu_audio_controller.gd) is a scene-tree-root singleton obtained via its static resolve(); it owns menu AND race-results music (default stream: menu_neon_garage_loop.mp3) and survives scene changes. Do NOT add an AudioStreamPlayer with autoplay to any menu scene — a second player in garage_showroom.tscn once caused two tracks playing simultaneously and was removed. Race scenes carry their own RaceAudioController; VehicleAudioController does engine, drift and brake audio per car. UI LAYOUT CAUTION: in the car and track select views the info rail (which holds CONFIRM / RACE NOW) is deliberately parented to the view root AFTER the bottom carousel, so it draws and hit-tests above the carousel when small or wide windows make the panel grow into it. Keep that ordering; raising z_index alone does not work because Control input picking follows tree order, not z. INPUT (bound in project.godot): drive_accelerate, drive_brake, drive_left, drive_right, drive_drift, drive_shift_down, drive_shift_up, camera_toggle_primary, camera_look_back, race_menu_overlay. STRUCTURE: scenes/player_car.tscn is the drivable car; race scenes live under scenes/race/; the track pipeline is profile-driven — scripts/profiles/ holds resource definitions (track_profile, audio_mix_profile, track_authoring_profile and more), scripts/track/ the runtime (13 scripts), scripts/track_authoring/ the authoring toolkit (16 scripts) with authoring scenes under scenes/tracks/, and scripts/race/ the race flow (15 scripts) including race_flow_overlay.gd for countdown/results. scripts/customization/ handles car customization, scripts/vehicles/ the car physics, scripts/vfx/ and scripts/environment/ polish. LICENSE: MIT, Summer Engine. CUSTOMIZE BY: adding TRACK_OPTIONS entries and track scenes through the authoring toolkit, retuning vehicle and audio profiles, extending difficulty and transmission tables — do not rewrite the GameSession or audio-controller spine.",
+  "shipsProjectGodot": true,
+  "userFacing": {
+    "tagline": "Arcade racing with drift, gears and rivals: pick a car in the garage, pick a track, race.",
+    "highlights": [
+      "Coastal mountain route with wet-road lighting, ocean haze and fast readable corners",
+      "Garage showroom car select with a 3D backdrop, difficulty tiers and transmission options",
+      "Drift, manual or automatic shifting, and rival racers to beat",
+      "Race flow with loading, countdown, overlay menu and results",
+      "A full track-authoring toolkit and profile-driven track pipeline for building your own routes",
+      "Per-track music, engine and drift audio, and a locked-track treatment ready for progression"
+    ]
+  }
+}
