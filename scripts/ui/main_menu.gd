@@ -482,9 +482,12 @@ func _build_car_select_view() -> Control:
 	rail.offset_top = _space(22, 36)
 	rail.offset_right = -rail_margin
 	rail.offset_bottom = -_space(18, 30)
-	body.add_child(rail)
-
 	layout.add_child(_build_car_carousel())
+	# Same overlay treatment as the track view: the car rail carries the
+	# CONFIRM button, which the growing carousel panel would otherwise
+	# swallow in wide or short windows.
+	rail.offset_top = _vh(0.082, 58.0, 76.0) + _space(22, 36)
+	root.add_child(rail)
 	return root
 
 
@@ -521,9 +524,14 @@ func _build_track_select_view() -> Control:
 	rail.offset_top = _space(22, 36)
 	rail.offset_right = -rail_margin
 	rail.offset_bottom = -_space(18, 30)
-	body.add_child(rail)
-
 	layout.add_child(_build_track_carousel())
+	# The rail carries the RACE NOW stack. Parent it to the view root, added
+	# after the bottom carousel: in wide or short windows the carousel panel
+	# grows upward into the rail's space, and as the later sibling it would
+	# draw over the button and take its clicks. As the last child of the root
+	# the rail always renders and picks on top of the bottom panel instead.
+	rail.offset_top = _vh(0.082, 58.0, 76.0) + _space(22, 36)
+	root.add_child(rail)
 	return root
 
 
