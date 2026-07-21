@@ -2,7 +2,7 @@ class_name MenuAudioController
 extends Node
 
 const DEFAULT_INSTANCE_NAME: StringName = &"MenuAudio"
-const DEFAULT_MUSIC_STREAM_PATH: String = "res://assets/audio/music/race_loop_arcade_drift.mp3"
+const DEFAULT_MUSIC_STREAM_PATH: String = "res://assets/audio/music/menu_neon_garage_loop.mp3"
 
 @export var menu_music_stream: AudioStream = null
 @export var hover_stream: AudioStream = null
