@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://cao10ufv4ufr" path="res://assets/ui/showroom/hangar_wall_panels_4k_normal.png" id="9_walln"]
 [ext_resource type="PackedScene" uid="uid://f4y21ww6qhd8" path="res://assets/ui/showroom/lights/industrial_ceiling_light_reference.glb" id="10_ceilinglight"]
 [ext_resource type="Texture2D" uid="uid://bs53uavipns17" path="res://assets/ui/showroom/hangar_floor_workshop_concrete_4k.png" id="11_floor4k"]
-[ext_resource type="AudioStream" uid="uid://ceihgpqcl325" path="res://assets/audio/music/menu_neon_garage_loop.mp3" id="11_nma5v"]
 [ext_resource type="Texture2D" uid="uid://b86bl4702o0oh" path="res://assets/ui/showroom/hangar_floor_workshop_concrete_4k_normal.png" id="12_floorn"]
 [ext_resource type="Texture2D" uid="uid://dyjrsqqa5vski" path="res://assets/ui/showroom/tire_marks_decal_4k.png" id="13_tiremarks"]
 [ext_resource type="Texture2D" uid="uid://bsi6krs6mv8yc" path="res://assets/ui/showroom/hangar_ceiling_panels_4k_normal.png" id="14_ceilingn"]
@@ -766,8 +765,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2100496, 0.8746084, -6.0490
 
 [node name="ToolCart2" parent="EditableProps" unique_id=649437547 instance=ExtResource("7_cwj2n")]
 transform = Transform3D(0.9646541, 0, -0.2635195, 0, 1, 0, 0.2635195, 0, 0.9646541, 4.6441336, 0.8746084, -5.534447)
-
-[node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=2004744149]
-stream = ExtResource("11_nma5v")
-volume_db = -7.0
-autoplay = true
