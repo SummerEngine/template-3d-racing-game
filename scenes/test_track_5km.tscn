@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://2rbj5wpbdpla"]
 
-[ext_resource type="Script" uid="uid://d1srgjwxfrk8q" path="res://scripts/test_track_5km.gd" id="1_track"]
-[ext_resource type="PackedScene" uid="uid://hdyeiyxpt8ir" path="res://scenes/player_car.tscn" id="2_car"]
-[ext_resource type="Script" uid="uid://b38xmpvltaog7" path="res://scripts/elastic_chase_camera.gd" id="3_camera"]
-[ext_resource type="Script" uid="uid://b0bq0uk1nuclm" path="res://scripts/driving_debug_hud.gd" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/test_track_5km.gd" id="1_track"]
+[ext_resource type="PackedScene" path="res://scenes/player_car.tscn" id="2_car"]
+[ext_resource type="Script" path="res://scripts/elastic_chase_camera.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/driving_debug_hud.gd" id="4_hud"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(2600, 0.2, 2600)

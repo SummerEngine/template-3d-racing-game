@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="TrackProfile" format=3 uid="uid://efwsjf6wjdh8"]
 
-[ext_resource type="Script" uid="uid://ctuore486bkmt" path="res://scripts/track/track_profile.gd" id="1_profile"]
-[ext_resource type="Script" uid="uid://4p2yi355rk3s" path="res://scripts/track/track_guardrail_settings.gd" id="2_guardrails"]
-[ext_resource type="Script" uid="uid://djamug8sfr3fm" path="res://scripts/track/track_environment_section.gd" id="3_section"]
-[ext_resource type="Script" uid="uid://rdg3xk4pvo43" path="res://scripts/track/transition_profile.gd" id="4_transition"]
-[ext_resource type="Resource" uid="uid://cjxfnw5v0y4ju" path="res://resources/tracks/environments/highway_crops_environment.tres" id="5_highway"]
-[ext_resource type="Resource" uid="uid://djs8ejpjtvdfq" path="res://resources/tracks/environments/industrial_environment.tres" id="6_industrial"]
+[ext_resource type="Script" path="res://scripts/track/track_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://scripts/track/track_guardrail_settings.gd" id="2_guardrails"]
+[ext_resource type="Script" path="res://scripts/track/track_environment_section.gd" id="3_section"]
+[ext_resource type="Script" path="res://scripts/track/transition_profile.gd" id="4_transition"]
+[ext_resource type="Resource" path="res://resources/tracks/environments/highway_crops_environment.tres" id="5_highway"]
+[ext_resource type="Resource" path="res://resources/tracks/environments/industrial_environment.tres" id="6_industrial"]
 
 [sub_resource type="Resource" id="Section_highway_open"]
 script = ExtResource("3_section")

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://hdyeiyxpt8ir"]
 
-[ext_resource type="Script" uid="uid://dgwtrhyeo884v" path="res://scripts/car_controller.gd" id="1_car"]
-[ext_resource type="PackedScene" uid="uid://ckxgsmgdyodfb" path="res://assets/cars/player_hypercar.glb" id="2_s2c5k"]
-[ext_resource type="Script" uid="uid://bbohn8ngrcjsm" path="res://scripts/vfx/vehicle_feedback_emitter.gd" id="2_vfx"]
-[ext_resource type="Script" uid="uid://cao2awdf2dlr1" path="res://scripts/audio/vehicle_audio_controller.gd" id="3_audio"]
+[ext_resource type="Script" path="res://scripts/car_controller.gd" id="1_car"]
+[ext_resource type="PackedScene" path="res://assets/cars/player_hypercar.glb" id="2_s2c5k"]
+[ext_resource type="Script" path="res://scripts/vfx/vehicle_feedback_emitter.gd" id="2_vfx"]
+[ext_resource type="Script" path="res://scripts/audio/vehicle_audio_controller.gd" id="3_audio"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(1.9, 1, 4.35)

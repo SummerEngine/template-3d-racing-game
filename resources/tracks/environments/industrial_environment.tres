@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnvironmentProfile" format=3 uid="uid://djs8ejpjtvdfq"]
 
-[ext_resource type="Script" uid="uid://3l1h47k887s" path="res://scripts/track/environment_profile.gd" id="1_environment"]
-[ext_resource type="Script" uid="uid://dci0sra62ed62" path="res://scripts/track/scenery_rule.gd" id="2_rule"]
+[ext_resource type="Script" path="res://scripts/track/environment_profile.gd" id="1_environment"]
+[ext_resource type="Script" path="res://scripts/track/scenery_rule.gd" id="2_rule"]
 
 [sub_resource type="Resource" id="SceneryRule_factory"]
 script = ExtResource("2_rule")

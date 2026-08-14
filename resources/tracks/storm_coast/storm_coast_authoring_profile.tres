@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="TrackAuthoringProfile" format=3 uid="uid://ddef50m6a1k0n"]
 
-[ext_resource type="Script" uid="uid://dxix82l55fpg5" path="res://scripts/track_authoring/track_authoring_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://scripts/track_authoring/track_authoring_profile.gd" id="1_profile"]
 
 [resource]
 resource_name = "StormCoastAuthoringProfile"
