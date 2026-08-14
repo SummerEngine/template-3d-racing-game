@@ -1,6 +1,6 @@
 [gd_resource type="Environment" format=3 uid="uid://c7uxy4j3uiu8f"]
 
-[ext_resource type="Texture2D" uid="uid://bdhj1j3f4eubu" path="res://assets/environment/sky/evening_road_01_puresky_polyhaven.jpg" id="1_sky"]
+[ext_resource type="Texture2D" path="res://assets/environment/sky/evening_road_01_puresky_polyhaven.jpg" id="1_sky"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_golden_hour"]
 panorama = ExtResource("1_sky")
