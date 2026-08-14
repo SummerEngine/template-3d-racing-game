@@ -1351,14 +1351,14 @@ func _add_hidden_preview_beauty_box(parent: Node3D, node_name: String, box_size:
 	return node
 
 
-func _add_preview_beauty_spot(parent: Node3D, node_name: String, light_position: Vector3, color: Color, energy: float, size: float) -> void:
+func _add_preview_beauty_spot(parent: Node3D, node_name: String, light_position: Vector3, color: Color, energy: float, light_size: float) -> void:
 	var light := SpotLight3D.new()
 	light.name = node_name
 	light.position = light_position
 	light.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	light.light_color = color
 	light.light_energy = energy
-	light.light_size = size
+	light.light_size = light_size
 	light.shadow_enabled = true
 	light.shadow_blur = 2.0
 	light.spot_range = 7.0
@@ -2437,7 +2437,6 @@ func _rebuild_car_preview() -> void:
 		car.call("set_controls_enabled", false)
 	if car.has_method("set_car_color_variant"):
 		car.call("set_car_color_variant", _displayed_car_color())
-	_soften_preview_car_reflections(car)
 
 
 func _load_preview_packed_scene(scene_path: String) -> PackedScene:
@@ -2528,57 +2527,6 @@ func _disable_preview_processing(root: Node) -> void:
 	root.set_process_unhandled_input(false)
 	for child: Node in root.get_children():
 		_disable_preview_processing(child)
-
-
-func _soften_preview_car_reflections(root: Node) -> void:
-	if root == null:
-		return
-	if root is MeshInstance3D:
-		_soften_preview_mesh_materials(root as MeshInstance3D)
-	for child: Node in root.get_children():
-		_soften_preview_car_reflections(child)
-
-
-func _soften_preview_mesh_materials(mesh_instance: MeshInstance3D) -> void:
-	if mesh_instance.material_override != null:
-		mesh_instance.material_override = _softened_preview_material(mesh_instance.material_override, mesh_instance.name)
-		return
-	if mesh_instance.mesh == null:
-		return
-	var surface_count := mesh_instance.mesh.get_surface_count()
-	for surface_index: int in range(surface_count):
-		var source_material := mesh_instance.get_surface_override_material(surface_index)
-		if source_material == null:
-			source_material = mesh_instance.mesh.surface_get_material(surface_index)
-		var softened_material := _softened_preview_material(source_material, mesh_instance.name)
-		if softened_material != null:
-			mesh_instance.set_surface_override_material(surface_index, softened_material)
-
-
-func _softened_preview_material(source_material: Material, context_name: StringName) -> Material:
-	if not (source_material is BaseMaterial3D):
-		return source_material
-	var material := source_material.duplicate() as BaseMaterial3D
-	if material == null:
-		return source_material
-	var material_context := ("%s %s" % [material.resource_name, String(context_name)]).to_lower()
-	var min_roughness := 0.36
-	if _text_contains_any(material_context, ["glass", "window", "windshield", "windscreen"]):
-		min_roughness = 0.22
-	elif _text_contains_any(material_context, ["tire", "tyre", "rubber"]):
-		min_roughness = 0.62
-	elif _text_contains_any(material_context, ["wheel", "rim", "brake", "caliper"]):
-		min_roughness = 0.42
-	material.roughness = maxf(material.roughness, min_roughness)
-	material.set("metallic_specular", minf(float(material.get("metallic_specular")), 0.38))
-	return material
-
-
-func _text_contains_any(text: String, needles: Array[String]) -> bool:
-	for needle: String in needles:
-		if text.contains(needle):
-			return true
-	return false
 
 
 func _position_preview_camera() -> void:
