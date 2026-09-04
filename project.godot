@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Demo"
-config/version="0.1.0"
+config/name="3D Racing"
+config/version="1.0.4"
 run/main_scene="res://scenes/ui/boot_loading.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
@@ -22,7 +22,7 @@ GameSession="*res://scripts/game/game_session.gd"
 
 [dotnet]
 
-project/assembly_name="Demo"
+project/assembly_name="Racing3D"
 
 [input]
 
